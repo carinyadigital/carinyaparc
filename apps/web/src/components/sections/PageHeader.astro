@@ -48,6 +48,7 @@ const CLIP =
         widths={[640, 1080, 1600, 2048]}
         sizes="100vw"
         loading={isDark ? 'eager' : 'lazy'}
+        fetchpriority={isDark ? 'high' : 'auto'}
         class="h-full w-full object-cover object-right brightness-75 md:object-center"
       />
       {isDark && (

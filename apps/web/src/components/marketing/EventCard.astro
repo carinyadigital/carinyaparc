@@ -44,7 +44,7 @@ const external = isExternalEventHref(signupHref);
   )}
 
   {showOnSiteSignup ? (
-    <EventSignup eventId={event.id} eventTitle={event.data.title} isFull={full} />
+    <EventSignup eventSlug={event.id} eventTitle={event.data.title} isFull={full} />
   ) : full ? (
     <div class="mt-6">
       <Button href="/subscribe/" variant="outline" size="sm">

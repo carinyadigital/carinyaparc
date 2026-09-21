@@ -2,6 +2,8 @@
 
 Scaffold for the Astro + MDX replacement of `apps/site`. Production still deploys from `apps/site` until cut-over.
 
+On-demand endpoints live at `/api/contact/`, `/api/subscribe/`, `/api/events/signup/`, and `/api/csp-report/` (`prerender = false`). React islands for contact, subscribe (standalone, inline, end-of-post, modal), event signup, and consent live under `src/components/islands/`. Marketing pages that mount those islands land in a later phase.
+
 From the repo root:
 
 ```bash

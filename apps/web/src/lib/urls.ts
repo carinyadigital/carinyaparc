@@ -18,3 +18,12 @@ export function recipeUrl(slug: string): string {
 export function eventsListingUrl(): string {
   return '/get-involved/events/';
 }
+
+/**
+ * On-demand API paths always include a trailing slash so POST is not 308'd
+ * (and converted to GET) under `trailingSlash: 'always'`.
+ */
+export const API_CONTACT_PATH = '/api/contact/';
+export const API_SUBSCRIBE_PATH = '/api/subscribe/';
+export const API_EVENT_SIGNUP_PATH = '/api/events/signup/';
+export const API_CSP_REPORT_PATH = '/api/csp-report/';

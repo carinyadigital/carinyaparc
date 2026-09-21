@@ -1,9 +1,8 @@
 ---
 /**
- * Single-field email capture used on /regenerate/ (static). Posts to /api/subscribe/;
- * Phase 4 hydrates via data-form="subscribe".
+ * Single-field email capture used on /regenerate/.
  */
-import Button from '@/components/ui/Button.astro';
+import { InlineSubscribe } from '@/components/islands/InlineSubscribe';
 import Tag from './Tag.astro';
 
 interface Props {
@@ -13,41 +12,16 @@ const { class: className } = Astro.props;
 ---
 
 <div class={className}>
-  <form method="post" action="/api/subscribe/" data-form="subscribe" class="max-w-[520px]">
-    <div class="flex flex-col gap-3 sm:flex-row">
-      <label for="regenerate-email" class="sr-only">
-        Email address
-      </label>
-      <input
-        id="regenerate-email"
-        name="email"
-        type="email"
-        required
-        placeholder="Enter your email address"
-        autocomplete="email"
-        class="min-w-0 flex-1 rounded-pill border border-line bg-fleece px-[22px] py-[15px] text-[15px] text-bark outline-none placeholder:text-stone focus:border-eucalypt-500 disabled:opacity-70"
-      />
-      <Button type="submit" class="shrink-0">
-        Join the list
-      </Button>
-    </div>
-    <div aria-hidden="true" style="display: none">
-      <label for="regenerate-website">Website</label>
-      <input type="text" id="regenerate-website" name="website" tabindex="-1" autocomplete="off" />
-    </div>
-  </form>
+  <InlineSubscribe
+    client:visible
+    source="regenerate"
+    variant="compact"
+    submitLabel="Join the list"
+  />
 
   <div class="mt-[22px] flex flex-wrap gap-2.5">
     <Tag tone="eucalypt">Planting days</Tag>
     <Tag tone="kangaroo">Farm tours</Tag>
     <Tag tone="branch">Eco-stays</Tag>
   </div>
-
-  <p class="mt-4 text-sm text-stone">
-    Read our
-    <a href="/legal/privacy-policy/" class="font-semibold text-eucalypt-600 hover:opacity-70">
-      privacy policy
-    </a>
-    .
-  </p>
 </div>

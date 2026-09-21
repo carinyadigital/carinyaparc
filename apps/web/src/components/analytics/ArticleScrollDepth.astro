@@ -1,0 +1,11 @@
+---
+/**
+ * Bind article scroll-depth tracking on pages that render an <article>.
+ * The script is a no-op when no article is present.
+ */
+---
+
+<script>
+  import { bindPageArticleScrollDepth } from '@/lib/client/scroll-depth';
+  bindPageArticleScrollDepth();
+</script>

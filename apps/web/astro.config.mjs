@@ -13,7 +13,13 @@ import tailwindcss from '@tailwindcss/vite';
 import vercelRedirectTrailingSlash from './integrations/vercel-redirect-trailing-slash.mjs';
 import { mergeSecurityIntoVercelOutput } from './src/lib/security/vercel-config';
 
-const sentryDsn = process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN;
+const sentryDsn = (process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN || '').trim();
+
+// The browser bundle only inlines PUBLIC_ variables. Copy the DSN there so the
+// client init and the tunnel allowlist describe the same project.
+if (sentryDsn) {
+  process.env.PUBLIC_SENTRY_DSN = sentryDsn;
+}
 
 /**
  * Copy security headers and Gone routes from the generated vercel.json into
@@ -56,12 +62,13 @@ export default defineConfig({
     vercelSecurityConfig(),
     mdx(),
     react(),
-    sitemap(),
+    sitemap({
+      filter: (page) => !page.includes('/monitoring/'),
+    }),
     vercelRedirectTrailingSlash(),
     ...(sentryDsn
       ? [
           sentry({
-            dsn: sentryDsn,
             sourceMapsUploadOptions: {
               enabled: Boolean(process.env.SENTRY_AUTH_TOKEN),
             },
@@ -88,5 +95,12 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    ...(sentryDsn
+      ? {
+          define: {
+            'import.meta.env.PUBLIC_SENTRY_DSN': JSON.stringify(sentryDsn),
+          },
+        }
+      : {}),
   },
 });

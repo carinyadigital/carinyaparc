@@ -6,5 +6,6 @@ User-agent: *
 Allow: /
 
 Disallow: /api/
+Disallow: /monitoring/
 
 Sitemap: https://carinyaparc.com.au/sitemap.xml

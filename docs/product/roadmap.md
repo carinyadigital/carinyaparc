@@ -171,20 +171,20 @@ Carried forward: **Stay information** (Phase 4).
 
 ## 4. Milestones
 
-| Milestone                             | Phase | Customer-visible? | Notes                                          |
-| ------------------------------------- | ----- | ----------------- | ---------------------------------------------- |
-| CI green on every PR, hermetic build  | 1     | Internal only     | Done                                           |
-| RSS, recipe structured data, archives | 1     | Yes               | Done; ships with the Astro build               |
-| `@carinya/theme` in the monorepo      | 1     | No                | Done                                           |
-| Production serves from `apps/web`     | 2     | Yes               | Done                                           |
-| CSP enforced, WAF rule live           | 2     | Internal only     | Durable abuse control                          |
-| Retired Next.js app deleted           | 2     | No                | Repo has one app                               |
-| Owner publishes via PR unaided        | 3     | Internal only     | Templates and how-to                           |
-| Editor tooling decision               | 3     | No                | Optional git-backed editor                     |
-| Stay information pages live           | 4     | Yes               | Guest pipeline and pre-qualification           |
-| Experiences and partner pages         | 4     | Yes               | Marketing scaffolding for future offers        |
-| Rich social previews                  | 5     | Yes               | When links are shared                          |
-| Verified local-business data          | 5     | Partial           | Search and maps                                |
+| Milestone                             | Phase | Customer-visible? | Notes                                   |
+| ------------------------------------- | ----- | ----------------- | --------------------------------------- |
+| CI green on every PR, hermetic build  | 1     | Internal only     | Done                                    |
+| RSS, recipe structured data, archives | 1     | Yes               | Done; ships with the Astro build        |
+| `@carinya/theme` in the monorepo      | 1     | No                | Done                                    |
+| Production serves from `apps/web`     | 2     | Yes               | Done                                    |
+| CSP enforced, WAF rule live           | 2     | Internal only     | Durable abuse control                   |
+| Retired Next.js app deleted           | 2     | No                | Repo has one app                        |
+| Owner publishes via PR unaided        | 3     | Internal only     | Templates and how-to                    |
+| Editor tooling decision               | 3     | No                | Optional git-backed editor              |
+| Stay information pages live           | 4     | Yes               | Guest pipeline and pre-qualification    |
+| Experiences and partner pages         | 4     | Yes               | Marketing scaffolding for future offers |
+| Rich social previews                  | 5     | Yes               | When links are shared                   |
+| Verified local-business data          | 5     | Partial           | Search and maps                         |
 
 ---
 

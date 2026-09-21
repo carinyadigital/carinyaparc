@@ -6,6 +6,8 @@ export type ConsentStatusResponse = {
   choice: ConsentChoiceValue;
 };
 
+export const CONSENT_COOKIE_NAME = 'cp_consent';
+
 export function normalizeConsentChoice(value: unknown): ConsentChoiceValue {
   if (value === 'accepted' || value === 'rejected') {
     return value;

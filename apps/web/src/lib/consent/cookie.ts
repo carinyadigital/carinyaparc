@@ -1,6 +1,9 @@
-import { CONSENT_COOKIE_NAME } from '@/lib/constants';
-
-import { normalizeConsentChoice, type ConsentChoice, type ConsentChoiceValue } from './types';
+import {
+  CONSENT_COOKIE_NAME,
+  normalizeConsentChoice,
+  type ConsentChoice,
+  type ConsentChoiceValue,
+} from './types';
 
 const CONSENT_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 

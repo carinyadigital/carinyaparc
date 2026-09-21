@@ -2,17 +2,22 @@ export const SITE_TITLE = 'Carinya Parc';
 export const SITE_DESCRIPTION = 'Carinya Parc - Regenerative farming and sustainable living';
 
 function resolveBaseUrl(): string {
-  const fromEnv =
-    (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SITE_URL) ||
-    process.env.PUBLIC_SITE_URL;
+  const fromImportMeta =
+    typeof import.meta !== 'undefined'
+      ? (import.meta.env?.PUBLIC_SITE_URL as string | undefined)
+      : undefined;
+  const fromProcess = typeof process !== 'undefined' ? process.env.PUBLIC_SITE_URL : undefined;
+  const fromEnv = fromImportMeta || fromProcess;
 
   if (typeof fromEnv === 'string' && fromEnv.length > 0) {
     return fromEnv.replace(/\/$/, '');
   }
 
-  return process.env.NODE_ENV === 'production'
-    ? 'https://carinyaparc.com.au'
-    : 'http://localhost:4321';
+  const isProd =
+    (typeof import.meta !== 'undefined' && Boolean(import.meta.env?.PROD)) ||
+    (typeof process !== 'undefined' && process.env.NODE_ENV === 'production');
+
+  return isProd ? 'https://carinyaparc.com.au' : 'http://localhost:4321';
 }
 
 export const BASE_URL = resolveBaseUrl();
@@ -68,7 +73,7 @@ export const BLOG_URL_PATH = '/blog';
 
 export const DEFAULT_BREADCRUMB_HOME = { name: 'Home', url: BASE_URL, position: 1 };
 
-export const CONSENT_COOKIE_NAME = 'cp_consent';
+export { CONSENT_COOKIE_NAME } from './consent/types';
 
 export const LOCAL_BUSINESS = {
   name: 'Carinya Parc',

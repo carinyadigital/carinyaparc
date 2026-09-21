@@ -97,4 +97,36 @@ describe('InlineSubscribe', () => {
       expect(trackSubscribeComplete).toHaveBeenCalledWith({ source: 'blog:test-post' });
     });
   });
+
+  it('renders the stay band privacy note and success copy', async () => {
+    postSubscribe.mockResolvedValue({ ok: true });
+
+    await act(async () => {
+      root.render(<InlineSubscribe source="stay" variant="stay" />);
+    });
+
+    expect(container.querySelector('#subscribe-email-stay')).not.toBeNull();
+    expect(container.textContent).toContain('Join a growing community of supporters');
+
+    const email = container.querySelector('#subscribe-email-stay') as HTMLInputElement;
+    const props = reactProps<{
+      onChange?: (e: { target: { value: string } }) => void;
+    }>(email);
+
+    await act(async () => {
+      props.onChange?.({ target: { value: 'reader@carinyaparc.com.au' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Thanks for joining us');
+    });
+    expect(container.textContent).toContain("You're on the list");
+    expect(container.textContent).not.toContain('Join a growing community of supporters');
+    expect(trackSubscribeComplete).toHaveBeenCalledWith({ source: 'stay' });
+  });
 });

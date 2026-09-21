@@ -11,6 +11,7 @@ const buttonVariants = cva(
       variant: {
         primary: 'bg-eucalypt-600 text-primary-foreground hover:bg-eucalypt-700 shadow-none',
         bracken: 'bg-bracken-500 text-fleece hover:bg-bracken-600 shadow-none',
+        secondary: 'bg-wattle text-kangaroo-900 hover:bg-kangaroo-400 shadow-none',
         outline:
           'border-[1.5px] border-eucalypt-600 bg-transparent text-eucalypt-600 hover:bg-eucalypt-50',
         ghost:

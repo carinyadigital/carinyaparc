@@ -13,7 +13,7 @@ import { getSubscribeEmailError } from '@/lib/validation/subscribe-schema';
 export interface InlineSubscribeProps {
   source: string;
   className?: string;
-  variant?: 'card' | 'compact' | 'band';
+  variant?: 'card' | 'compact' | 'band' | 'stay';
   submitLabel?: string;
 }
 
@@ -34,7 +34,8 @@ export function InlineSubscribe({
   const fieldId = variant === 'card' ? 'inline-subscribe-email' : `subscribe-email-${idSuffix}`;
   const websiteId =
     variant === 'card' ? 'inline-subscribe-website' : `subscribe-website-${idSuffix}`;
-  const isBand = variant === 'band';
+  const isBand = variant === 'band' || variant === 'stay';
+  const isStay = variant === 'stay';
 
   const markStarted = () => {
     if (startedRef.current) {
@@ -85,6 +86,23 @@ export function InlineSubscribe({
   };
 
   if (status === 'success') {
+    if (isStay) {
+      return (
+        <div
+          className={cn(
+            'w-full max-w-md rounded-[18px] border border-fleece/30 bg-fleece/12 px-[26px] py-6',
+            className,
+          )}
+          aria-live="polite"
+        >
+          <p className="font-heading text-[22px] text-fleece">Thanks for joining us</p>
+          <p className="mt-2 text-[15px] text-inverse-muted">
+            You&apos;re on the list. We&apos;ll be in touch soon with news from the paddock.
+          </p>
+        </div>
+      );
+    }
+
     if (variant !== 'card') {
       return (
         <p
@@ -158,7 +176,9 @@ export function InlineSubscribe({
             if (emailError) setEmailError('');
           }}
           disabled={status === 'loading'}
-          placeholder={isBand ? 'Your email address' : 'you@example.com'}
+          placeholder={
+            isStay ? 'Enter your email address' : isBand ? 'Your email address' : 'you@example.com'
+          }
           autoComplete="email"
           invalid={Boolean(emailError)}
           aria-invalid={Boolean(emailError)}
@@ -175,7 +195,7 @@ export function InlineSubscribe({
         type="submit"
         disabled={status === 'loading'}
         isLoading={status === 'loading'}
-        variant={isBand ? 'bracken' : 'primary'}
+        variant={isStay ? 'secondary' : isBand ? 'bracken' : 'primary'}
         className={cn('shrink-0', variant === 'card' ? 'mt-0 sm:mt-7' : '')}
       >
         {submitLabel}
@@ -191,17 +211,30 @@ export function InlineSubscribe({
           noValidate
           className={cn(
             'flex flex-col gap-3 sm:flex-row sm:items-start',
-            isBand && 'min-w-[280px] max-w-[460px] flex-1',
+            isStay && 'w-full max-w-md',
+            isBand && !isStay && 'min-w-[280px] max-w-[460px] flex-1',
           )}
         >
           {fields}
         </form>
         {formError ? (
           <p
-            className={cn('mt-3 text-sm font-medium', isBand ? 'text-wattle' : 'text-destructive')}
+            className={cn(
+              'mt-3 text-sm font-medium',
+              isStay ? 'text-bracken-200' : isBand ? 'text-wattle' : 'text-destructive',
+            )}
             role="alert"
           >
             {formError}
+          </p>
+        ) : null}
+        {isStay ? (
+          <p className="mt-4 max-w-md text-sm/6 text-inverse-subtle">
+            Join a growing community of supporters. Unsubscribe anytime. Read our{' '}
+            <a href="/legal/privacy-policy/" className="font-semibold text-fleece hover:opacity-70">
+              privacy&nbsp;policy
+            </a>
+            .
           </p>
         ) : null}
         {variant === 'compact' ? <SubscribePrivacyNote className="mt-4" /> : null}

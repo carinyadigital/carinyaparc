@@ -1,0 +1,30 @@
+---
+/**
+ * Global pre-footer newsletter band (`#stay`). Site.astro mounts this on
+ * marketing pages; blog routes suppress it so journal subscribe modules do not
+ * stack a second band.
+ */
+import { InlineSubscribe } from '@/components/islands/InlineSubscribe';
+---
+
+<section id="stay" class="bg-paperbark py-16 sm:py-24" aria-labelledby="stay-heading">
+  <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+    <div class="relative isolate grid gap-10 overflow-hidden rounded-xl bg-eucalypt-600 px-7 py-11 shadow-lg sm:px-16 sm:py-[72px] lg:grid-cols-2 lg:items-center">
+      <div class="max-w-xl">
+        <h2
+          id="stay-heading"
+          class="font-heading text-4xl font-normal tracking-tight text-balance text-fleece sm:text-5xl"
+        >
+          Stay connected to the land
+        </h2>
+        <p class="mt-4 text-lg text-inverse-muted">
+          Progress reports, planting days and produce news from Carinya Parc. We respect your inbox.
+        </p>
+      </div>
+
+      <div class="flex justify-center lg:justify-end">
+        <InlineSubscribe client:visible source="stay" variant="stay" />
+      </div>
+    </div>
+  </div>
+</section>

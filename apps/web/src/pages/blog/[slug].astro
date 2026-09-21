@@ -11,9 +11,11 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import AuthorBlock from '@/components/blog/AuthorBlock.astro';
 import BlogPostArticle from '@/components/blog/BlogPostArticle.astro';
 import EndOfPostSubscribe from '@/components/blog/EndOfPostSubscribe.astro';
+import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
 import { BASE_URL, DEFAULT_OG_IMAGE } from '@/lib/constants';
+import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
 import { blogSubscribeSource } from '@/lib/validation/subscribe-schema';
@@ -28,12 +30,14 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 const { entry } = Astro.props as Props;
 const { Content } = await render(entry);
 
-const [author, category, related] = await Promise.all([
+const [author, category, related, upcomingEvents] = await Promise.all([
   getEntry(entry.data.author),
   entry.data.category ? getEntry(entry.data.category) : Promise.resolve(undefined),
   getRelatedPosts(entry, 3),
+  getUpcomingEvents(),
 ]);
 const relatedPosts = await toPostSummaries(related);
+const nextEvent = upcomingEvents[0] ?? null;
 
 const slug = entry.id;
 const authorName = author?.data.name ?? 'Carinya Parc';
@@ -70,6 +74,7 @@ const breadcrumbs = [
 ---
 
 <Site
+  showNewsletter={false}
   title={`${entry.data.title} - Blog - Carinya Parc`}
   description={description}
   path={path}
@@ -142,6 +147,8 @@ const breadcrumbs = [
     <ShareBar url={canonicalUrl} title={entry.data.title} />
 
     <AuthorBlock author={author?.data} />
+
+    <GetInvolvedCTA event={nextEvent} />
 
     <div class="pb-12"></div>
 

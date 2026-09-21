@@ -26,6 +26,7 @@ const topics = categories.map((c) => ({ name: c.name, slug: c.id }));
 ---
 
 <Site
+  showNewsletter={false}
   title={`${tag.name} - Blog | Carinya Parc`}
   description={`Published stories tagged ${tag.name} from Carinya Parc — regenerative farming, restoration, and life on the property.`}
   path={tagUrl(tag.id)}

@@ -15,7 +15,10 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const WEB_ROOT = path.resolve(__dirname, '..');
-const DIST = path.join(WEB_ROOT, 'dist');
+const DIST_ROOT = path.join(WEB_ROOT, 'dist');
+const DIST = existsSync(path.join(DIST_ROOT, 'client', 'index.html'))
+  ? path.join(DIST_ROOT, 'client')
+  : DIST_ROOT;
 const BASELINE = path.resolve(
   WEB_ROOT,
   '..',

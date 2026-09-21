@@ -1,4 +1,5 @@
 ---
+import { SubscribeModalHost } from '@/components/islands/SubscribeModalHost';
 import { navigation } from '@/config/navigation';
 import { cn } from '@/lib/cn';
 import { withTrailingSlash } from '@/lib/metadata/canonical';
@@ -18,7 +19,11 @@ const headerClass = isSolid
   : 'absolute top-0 left-0 right-0 bg-transparent text-fleece';
 ---
 
-<header class={cn('z-40 transition-all duration-300', headerClass)}>
+<header
+  data-site-header
+  data-overlay={overlay ? 'true' : 'false'}
+  class={cn('z-40 transition-all duration-300', headerClass)}
+>
   <nav
     aria-label="Main navigation"
     class="mx-auto flex max-w-[1240px] items-center justify-between gap-5 px-6 py-[22px] lg:px-14"
@@ -36,15 +41,18 @@ const headerClass = isSolid
       </a>
     </div>
 
-    <details class="relative flex lg:hidden">
-      <summary
+    <div class="flex lg:hidden">
+      <button
+        type="button"
+        data-mobile-menu-open
         class={cn(
-          '-m-2.5 inline-flex list-none items-center justify-center rounded-pill border px-3 py-2.5 transition-colors duration-150 [&::-webkit-details-marker]:hidden',
+          '-m-2.5 inline-flex items-center justify-center rounded-pill border px-3 py-2.5 transition-colors duration-150',
           isSolid ? 'border-line text-bark bg-fleece' : 'border-fleece/50 text-fleece bg-fleece/14',
         )}
+        aria-expanded="false"
+        aria-controls="mobile-menu"
         aria-label="Open menu"
       >
-        <span class="sr-only">Open menu</span>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path
             d="M4 7h16M4 12h16M4 17h16"
@@ -53,45 +61,8 @@ const headerClass = isSolid
             stroke-linecap="round"
           ></path>
         </svg>
-      </summary>
-      <div
-        id="mobile-menu"
-        class="absolute right-0 top-full z-50 mt-3 w-72 rounded-2xl border border-line bg-fleece p-6 text-charcoal shadow-lg"
-      >
-        <ul class="space-y-4 text-[15px] font-medium">
-          {visibleNav.map((item) => (
-            <li>
-              <a
-                href={withTrailingSlash(item.href)}
-                class={cn(
-                  'block transition-opacity duration-150 hover:opacity-70',
-                  withTrailingSlash(item.href) === normalisedPath && 'opacity-70',
-                )}
-              >
-                {item.label ? (
-                  <span>{item.label}</span>
-                ) : (
-                  <span class="flex flex-col items-start leading-tight">
-                    <span class="text-[15px] font-medium text-eucalypt-600">{item.verb}</span>
-                    <span class="mt-0.5 text-xs font-normal whitespace-nowrap opacity-80">
-                      {item.rest}
-                    </span>
-                  </span>
-                )}
-              </a>
-            </li>
-          ))}
-          <li>
-            <a
-              href="/regenerate/"
-              class="inline-flex rounded-pill bg-eucalypt-600 px-[22px] py-[11px] text-sm font-semibold text-primary-foreground hover:bg-eucalypt-700"
-            >
-              Get involved
-            </a>
-          </li>
-        </ul>
-      </div>
-    </details>
+      </button>
+    </div>
 
     <div
       class={cn(
@@ -136,4 +107,84 @@ const headerClass = isSolid
       </a>
     </div>
   </nav>
+
+  <div
+    data-mobile-menu
+    id="mobile-menu"
+    hidden
+    class="pointer-events-none fixed inset-0 z-50 bg-eucalypt-900/45 opacity-0 backdrop-blur-sm transition-opacity duration-200 lg:hidden"
+  >
+    <nav
+      data-mobile-menu-panel
+      class="fixed right-0 top-0 bottom-0 w-full max-w-xs bg-eucalypt-900 p-6 shadow-lg sm:max-w-sm"
+      aria-label="Mobile"
+    >
+      <div class="mb-8 flex items-center justify-between">
+        <a href="/" class="transition-opacity duration-150 hover:opacity-70">
+          <span class="font-heading text-lg tracking-[0.3em] uppercase text-primary-foreground">
+            Carinya&nbsp;Parc
+          </span>
+        </a>
+        <button
+          type="button"
+          data-mobile-menu-close
+          class="-m-2.5 rounded-pill p-2.5 text-inverse hover:opacity-70"
+          aria-label="Close menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M6 6l12 12M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="mt-6 flow-root">
+        <div class="-my-6 divide-y divide-eucalypt-800">
+          <div class="space-y-1 py-6">
+            {visibleNav.map((item) => (
+              <a
+                href={withTrailingSlash(item.href)}
+                class="-mx-3 block rounded-lg border-b border-eucalypt-800 px-3 py-3 text-base font-medium text-inverse last:border-0 hover:opacity-70"
+              >
+                {item.label ? (
+                  <span>{item.label}</span>
+                ) : (
+                  <span class="flex flex-col">
+                    <span class="text-base font-semibold text-fleece">{item.verb}</span>
+                    <span class="text-sm font-normal text-inverse-subtle">{item.rest}</span>
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+          <div class="space-y-3 py-6">
+            <a
+              href="/regenerate/"
+              class="block w-full rounded-pill bg-bracken-500 px-5 py-3.5 text-center text-sm font-semibold text-fleece transition-colors hover:bg-bracken-600"
+            >
+              Get involved
+            </a>
+            <button
+              type="button"
+              data-open-subscribe
+              class="block w-full rounded-pill border border-fleece/40 px-5 py-3 text-center text-sm font-semibold text-inverse transition-colors hover:bg-fleece/10"
+            >
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
 </header>
+
+<SubscribeModalHost client:idle />
+
+<script>
+  import { initSiteHeader } from '@/lib/client/site-header';
+  initSiteHeader();
+</script>

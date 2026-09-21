@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
+import { SLUG_PATTERN } from '@/lib/content/schema';
+
 /**
  * Event signup Zod schema — shared by the public form and POST /api/events/signup.
- * Mirrors the contact/subscribe security fields (honeypot + submission timing).
+ * Events are identified by content slug (there is no numeric CMS id).
  * Spam-email rejection is handled in the route (silent success), not here.
  */
 export const eventSignupSchema = z.object({
-  eventId: z.string().trim().min(1, 'Event is required'),
+  eventSlug: z.string().min(1, 'Event is required').regex(SLUG_PATTERN, 'Event is required'),
   name: z
     .string()
     .min(1, 'Name is required')

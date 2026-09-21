@@ -4,7 +4,7 @@ import { eventSignupClientSchema, eventSignupSchema } from './event-signup-schem
 
 describe('eventSignupSchema', () => {
   const valid = {
-    eventId: 'spring-planting-day',
+    eventSlug: 'winter-planting-day',
     name: 'Alex Farmer',
     email: 'alex@fastmail.com',
     website: '',
@@ -15,9 +15,14 @@ describe('eventSignupSchema', () => {
     expect(eventSignupSchema.safeParse(valid).success).toBe(true);
   });
 
-  it('requires the event slug', () => {
-    expect(eventSignupSchema.safeParse({ ...valid, eventId: '  ' }).success).toBe(false);
-    expect(eventSignupSchema.safeParse({ ...valid, eventId: 12 }).success).toBe(false);
+  it('rejects a missing event slug', () => {
+    const result = eventSignupSchema.safeParse({ ...valid, eventSlug: '' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a slug that is not kebab-case', () => {
+    const result = eventSignupSchema.safeParse({ ...valid, eventSlug: 'Winter Planting' });
+    expect(result.success).toBe(false);
   });
 
   it('rejects an empty name', () => {
@@ -37,7 +42,7 @@ describe('eventSignupSchema', () => {
 
   it('client schema omits anti-bot fields', () => {
     const result = eventSignupClientSchema.safeParse({
-      eventId: 'spring-planting-day',
+      eventSlug: 'open-day',
       name: 'Alex',
       email: 'alex@fastmail.com',
     });

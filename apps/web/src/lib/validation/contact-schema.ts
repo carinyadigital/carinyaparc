@@ -52,9 +52,9 @@ export const contactFormSchema = z.object({
     .min(50, 'Message must be at least 50 characters')
     .max(500, 'Message must be 500 characters or less'),
 
-  website: z.string().max(0, 'Invalid submission').optional().or(z.literal('')),
+  website: z.string().optional().or(z.literal('')),
 
-  submissionTime: z.number().min(2000, 'Submission too fast').optional(),
+  submissionTime: z.number().optional(),
 });
 
 export type ContactFormData = z.infer<typeof contactFormSchema>;

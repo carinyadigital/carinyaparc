@@ -1,7 +1,7 @@
 ---
 /**
  * On-site event signup form (static). Posts to /api/events/signup/ with the same fields as
- * the React EventSignup (eventId, name, email, website honeypot). When the event is full,
+ * the React EventSignup (eventSlug, name, email, website honeypot). When the event is full,
  * shows the waitlist state instead. Phase 4 hydrates via data-form="event-signup".
  */
 import Button from '@/components/ui/Button.astro';
@@ -10,13 +10,13 @@ import SubscribePrivacyNote from './SubscribePrivacyNote.astro';
 import { INPUT_CLASS, LABEL_CLASS, REQUIRED_MARK_CLASS } from './form-classes';
 
 interface Props {
-  eventId: string;
+  eventSlug: string;
   eventTitle: string;
   isFull?: boolean;
   class?: string;
 }
 
-const { eventId, eventTitle, isFull = false, class: className } = Astro.props;
+const { eventSlug, eventTitle, isFull = false, class: className } = Astro.props;
 ---
 
 {isFull ? (
@@ -42,13 +42,13 @@ const { eventId, eventTitle, isFull = false, class: className } = Astro.props;
       class="mt-3"
       novalidate
     >
-      <input type="hidden" name="eventId" value={eventId} />
+      <input type="hidden" name="eventSlug" value={eventSlug} />
       <div aria-hidden="true" style="display: none">
-        <label for={`event-signup-website-${eventId}`}>Website</label>
+        <label for={`event-signup-website-${eventSlug}`}>Website</label>
         <input
           type="text"
           name="website"
-          id={`event-signup-website-${eventId}`}
+          id={`event-signup-website-${eventSlug}`}
           tabindex="-1"
           autocomplete="off"
         />
@@ -56,12 +56,12 @@ const { eventId, eventTitle, isFull = false, class: className } = Astro.props;
 
       <div class="flex flex-col gap-3">
         <div class="space-y-2">
-          <label for={`event-signup-name-${eventId}`} class={LABEL_CLASS}>
+          <label for={`event-signup-name-${eventSlug}`} class={LABEL_CLASS}>
             Name<span class={REQUIRED_MARK_CLASS}>*</span>
           </label>
           <input
             type="text"
-            id={`event-signup-name-${eventId}`}
+            id={`event-signup-name-${eventSlug}`}
             name="name"
             required
             autocomplete="name"
@@ -70,12 +70,12 @@ const { eventId, eventTitle, isFull = false, class: className } = Astro.props;
         </div>
 
         <div class="space-y-2">
-          <label for={`event-signup-email-${eventId}`} class={LABEL_CLASS}>
+          <label for={`event-signup-email-${eventSlug}`} class={LABEL_CLASS}>
             Email<span class={REQUIRED_MARK_CLASS}>*</span>
           </label>
           <input
             type="email"
-            id={`event-signup-email-${eventId}`}
+            id={`event-signup-email-${eventSlug}`}
             name="email"
             required
             autocomplete="email"

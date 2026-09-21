@@ -2,6 +2,7 @@
 import Base from './Base.astro';
 import Header from '@/components/header/Header.astro';
 import Footer from '@/components/footer/Footer.astro';
+import ArticleScrollDepth from '@/components/analytics/ArticleScrollDepth.astro';
 import { generatePageMetadata, type PageMetadata } from '@/lib/metadata';
 
 interface Props {
@@ -43,4 +44,5 @@ const metadata =
     <slot />
   </main>
   {showFooter && <Footer />}
+  <ArticleScrollDepth />
 </Base>

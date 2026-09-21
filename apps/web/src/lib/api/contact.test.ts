@@ -83,3 +83,19 @@ describe('handleContactPost', () => {
     expect(response.status).toBe(500);
   });
 });
+
+describe('form-encoded submissions', () => {
+  it('validates a form-encoded body the same way as JSON', async () => {
+    const { handleContactPost } = await import('./contact');
+    const response = await handleContactPost(
+      new Request('http://localhost/api/contact/', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ firstName: 'A' }).toString(),
+      }),
+    );
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toBe('Validation failed');
+  });
+});

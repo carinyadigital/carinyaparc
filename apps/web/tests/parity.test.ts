@@ -35,6 +35,7 @@ interface Urls {
   nonSitemapPaths: string[];
   publishedButNotInSitemap: { posts: string[]; recipes: string[] };
   intentionallyRemoved: { paths: string[] };
+  redirected: { paths: Record<string, string> };
   knownBrokenInProduction: string[];
 }
 
@@ -135,10 +136,36 @@ function allHtmlFiles(dir: string): string[] {
 
 describeIfBuilt('URL parity', () => {
   const removed = new Set(urls.intentionallyRemoved.paths);
+  const redirected = new Set(Object.keys(urls.redirected.paths));
 
-  it('builds every production URL that was not deliberately removed', () => {
-    const missing = urls.sitemapPaths.filter((p) => !removed.has(p) && !existsSync(distFile(p)));
+  it('builds every production URL that was not deliberately removed or redirected', () => {
+    const missing = urls.sitemapPaths.filter(
+      (p) => !removed.has(p) && !redirected.has(p) && !existsSync(distFile(p)),
+    );
     expect(missing).toEqual([]);
+  });
+
+  it('redirects every retired URL (with and without trailing slash) to a page that exists', () => {
+    const vercelConfig = path.join(WEB_ROOT, '.vercel', 'output', 'config.json');
+    const routes = (
+      JSON.parse(readFileSync(vercelConfig, 'utf8')) as {
+        routes: Array<{ src?: string; status?: number; headers?: Record<string, string> }>;
+      }
+    ).routes;
+    const firstMatch = (pathname: string) =>
+      routes.find((route) => typeof route.src === 'string' && new RegExp(route.src).test(pathname));
+
+    for (const [from, to] of Object.entries(urls.redirected.paths)) {
+      expect(existsSync(distFile(to)), `${from} → ${to}`).toBe(true);
+      expect(existsSync(distFile(from)), `${from} must not also be built as a page`).toBe(false);
+      // The canonical (trailing-slash) form must hit the 301 directly.
+      const slashed = firstMatch(from);
+      expect(slashed?.status, from).toBe(301);
+      expect(slashed?.headers?.Location, from).toBe(to);
+      // The bare form is first normalised by Vercel's trailing-slash 308, then redirected.
+      const bare = firstMatch(from.replace(/\/$/, ''));
+      expect([301, 308]).toContain(bare?.status);
+    }
   });
 
   it('does not build the deliberately removed empty archives', () => {
@@ -171,8 +198,11 @@ describeIfBuilt('URL parity', () => {
     for (const p of urls.intentionallyRemoved.paths) {
       expect(sitemap.includes(`${urls.base}${p}`), p).toBe(false);
     }
-    for (const p of urls.sitemapPaths.filter((x) => !removed.has(x))) {
+    for (const p of urls.sitemapPaths.filter((x) => !removed.has(x) && !redirected.has(x))) {
       expect(sitemap.includes(`${urls.base}${p}`), p).toBe(true);
+    }
+    for (const p of redirected) {
+      expect(sitemap.includes(`${urls.base}${p}`), `${p} should not be in the sitemap`).toBe(false);
     }
   });
 });

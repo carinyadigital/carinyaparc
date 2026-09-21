@@ -4,6 +4,7 @@ content/
 # Generated files
 public/
 coverage/
+apps/site/content-export/
 
 # Payload-generated files (emitted unformatted by `payload generate:*`)
 apps/site/src/payload-types.ts

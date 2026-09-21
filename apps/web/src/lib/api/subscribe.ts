@@ -86,7 +86,17 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
     const result = await upsertMailerLiteSubscriber(subscriberData);
     if (!result.ok) {
       countMetric('subscribe.submissions', 1, { status: 'failed' });
-      return jsonResponse({ error: result.error }, result.status);
+      // Upstream configuration and server errors are logged by the client; visitors get a
+      // generic message rather than MailerLite's wording or our environment details.
+      const upstreamFault = result.status >= 500 || result.status === 401 || result.status === 403;
+      return jsonResponse(
+        {
+          error: upstreamFault
+            ? 'The newsletter service is unavailable right now. Please try again later.'
+            : result.error,
+        },
+        upstreamFault ? 503 : result.status,
+      );
     }
 
     countMetric('subscribe.submissions', 1, { status: 'success' });

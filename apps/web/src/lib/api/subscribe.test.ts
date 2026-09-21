@@ -149,3 +149,35 @@ describe('POST /api/subscribe', () => {
     });
   });
 });
+
+describe('upstream failures', () => {
+  beforeEach(() => {
+    resetSubscribeRateLimit();
+  });
+
+  it('hides configuration and server errors behind a generic message', async () => {
+    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({
+      ok: false,
+      status: 500,
+      error: 'Newsletter service not configured. Please add MAILERLITE_API_KEY to .env.local',
+    });
+    const response = await handleSubscribePost(
+      jsonRequest({ email: 'reviewer@fastmail.com', submissionTime: 9000 }),
+    );
+    expect(response.status).toBe(503);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
+  });
+
+  it('passes validation-style upstream errors through', async () => {
+    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({
+      ok: false,
+      status: 422,
+      error: 'Subscription failed: The email must be a valid email address.',
+    });
+    const response = await handleSubscribePost(
+      jsonRequest({ email: 'reviewer2@fastmail.com', submissionTime: 9000 }),
+    );
+    expect(response.status).toBe(422);
+  });
+});

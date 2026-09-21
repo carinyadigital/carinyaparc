@@ -35,28 +35,6 @@
       "jsonLdTypes": ["Organization", "BreadcrumbList"],
       "mainWords": 280
     },
-    "/blog/masterchef-to-mud-boots/": {
-      "status": 200,
-      "title": "From MasterChef to Mud Boots - Blog - Carinya Parc | Carinya Parc",
-      "titleNormalised": "From MasterChef to Mud Boots - Blog - Carinya Parc",
-      "description": "Discover how professional culinary experience transforms our approach to growing produce, prioritising flavour, nutrition, and the deep connection between soil and plate.",
-      "canonical": "https://carinyaparc.com.au/blog/masterchef-to-mud-boots/",
-      "ogType": "article",
-      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
-      "h1": "From MasterChef to Mud Boots",
-      "jsonLdTypes": ["Organization", "BreadcrumbList", "Article"],
-      "articleJsonLd": {
-        "headline": "From MasterChef to Mud Boots",
-        "datePublished": "2025-01-20T00:00:00.000Z",
-        "articleSection": "Blog",
-        "keywords": "food, cooking, farming, culinary, flavour, nutrition",
-        "image": "https://carinyaparc.com.au/images/hero-home.jpg",
-        "author": "Person",
-        "publisher": "Organization",
-        "isPartOf": "Blog"
-      },
-      "mainWords": 874
-    },
     "/recipes/slow-roasted-dexter-beef-with-root-vegetables/": {
       "status": 200,
       "title": "Slow-Roasted Dexter Beef with Root Vegetables - Recipe - Carinya Parc | Carinya Parc",
@@ -127,6 +105,37 @@
     "/no-such-page/": {
       "status": 404,
       "title": "Carinya Parc"
+    },
+    "/blog/masterchef-to-mud-boots/": {
+      "status": 301,
+      "title": "From MasterChef to Mud Boots - Blog - Carinya Parc | Carinya Parc",
+      "titleNormalised": "From MasterChef to Mud Boots - Blog - Carinya Parc",
+      "description": "Discover how professional culinary experience transforms our approach to growing produce, prioritising flavour, nutrition, and the deep connection between soil and plate.",
+      "canonical": "https://carinyaparc.com.au/blog/masterchef-to-mud-boots/",
+      "ogType": "article",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "From MasterChef to Mud Boots",
+      "jsonLdTypes": ["Organization", "BreadcrumbList", "Article"],
+      "articleJsonLd": {
+        "headline": "From MasterChef to Mud Boots",
+        "datePublished": "2025-01-20T00:00:00.000Z",
+        "articleSection": "Blog",
+        "keywords": "food, cooking, farming, culinary, flavour, nutrition",
+        "image": "https://carinyaparc.com.au/images/hero-home.jpg",
+        "author": "Person",
+        "publisher": "Organization",
+        "isPartOf": "Blog"
+      },
+      "mainWords": 874,
+      "note": "Retired in the September 2026 rewrite; redirects to /blog/a-kitchen-before-a-farm/. Article JSON-LD shape now verified on /blog/a-kitchen-before-a-farm/."
+    },
+    "/blog/a-kitchen-before-a-farm/": {
+      "status": 200,
+      "title": "A kitchen before a farm - Blog - Carinya Parc",
+      "canonical": "https://carinyaparc.com.au/blog/a-kitchen-before-a-farm/",
+      "ogType": "article",
+      "jsonLdTypes": ["Organization", "BreadcrumbList", "Article"],
+      "note": "Representative post after the rewrite (replaces masterchef-to-mud-boots)."
     }
   }
 }

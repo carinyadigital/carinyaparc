@@ -40,6 +40,8 @@ export const CSP_BALANCED_DIRECTIVES: Record<string, string[]> = {
     'https://vercel.com',
   ],
   'font-src': ["'self'", 'https://vercel.live', 'https://assets.vercel.com'],
+  // 'self' already allows the browser Sentry tunnel at /monitoring/.
+  // *.sentry.io stays for server-side ingest, which does not use the tunnel.
   'connect-src': [
     "'self'",
     'https://www.google-analytics.com',

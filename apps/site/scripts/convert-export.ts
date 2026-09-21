@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * Convert the Payload JSON export (`content-export/`, from `export:payload`) into the
- * Astro content collections under the repository-root `content/` directory (Phase 2).
+ * Astro content collections under the repository-root `content/` directory.
  *
  * Usage:
  *   pnpm --filter site convert:export [--in content-export] [--content ../../content] [--dry-run]

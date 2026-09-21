@@ -2,7 +2,7 @@
 
 **Status:** Accepted — 2026-09-21
 
-**Related:** [ADR-0001](ADR-0001-astro-mdx.md) (Astro + MDX platform), [`docs/astro-migration/PLAN.md`](../astro-migration/PLAN.md) §8 (editorial workflow), [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) §5.2 (publish runtime view)
+**Related:** [ADR-0001](ADR-0001-astro-mdx.md) (Astro + MDX platform), [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) §5.2 (publish runtime view), [`AGENTS.md`](../../AGENTS.md) (editorial workflow)
 
 ## Context
 
@@ -17,7 +17,7 @@ Publishing is merging to `main`. Specifically:
 - **Human approval on `main`.** Branch protection requires at least one human approval and green CI before a merge. An agent can author, open and update a pull request; it cannot merge. This is the publish gate, enforced by GitHub rather than by CMS roles.
 - **Vercel preview deployments are the draft preview.** Every pull request builds and deploys the whole site from that branch; the reviewer reads the actual rendered page before approving.
 - **`draft: true` is the unpublished state on `main`.** Posts, recipes and events carry a `draft` flag in frontmatter. Production builds exclude drafts from pages, archives, the feed and the sitemap; `astro dev` shows them. A draft entry may be merged to `main` without being published.
-- **The authoring contract for agents.** An agent writing content writes MDX or YAML under `content/` only, following the frontmatter contract in `docs/astro-migration/PLAN.md` §3 and the schemas in `apps/web/src/content.config.ts`; sets `draft: true` unless the brief says otherwise; never edits `apps/`, `packages/` or `.github/` in a content pull request; and leaves the merge to a human. Content review (`content-seo-review`) runs on the pull request.
+- **The authoring contract for agents.** An agent writing content writes MDX or YAML under `content/` only, following the frontmatter contract in [`ARCHITECTURE.md`](../ARCHITECTURE.md) §6.4 and the schemas in `apps/web/src/content.config.ts`; sets `draft: true` unless the brief says otherwise; never edits `apps/`, `packages/` or `.github/` in a content pull request; and leaves the merge to a human. Content review (`content-seo-review`) runs on the pull request.
 - **No CMS-side state.** There is no second copy of a document's status anywhere. If it is on `main` without `draft: true`, it is published on the next deploy.
 
 ## Alternatives considered

@@ -9,7 +9,6 @@ last_updated: 2026-09-21
 related:
   - docs/product/product.md
   - docs/PRINCIPLES.md
-  - docs/astro-migration/PLAN.md
   - docs/product/roadmap.md
   - docs/decisions/ADR-0001-astro-mdx.md
   - docs/decisions/ADR-0002-git-is-the-publish-gate.md
@@ -23,15 +22,14 @@ related:
 
 **How** the Carinya Parc website is built and behaves — architecture, runtime, data model, integration boundaries — and **where** code, content and routes live.
 
-| Doc                                                  | Role                                                                          |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [`product/product.md`](product/product.md)           | What and why                                                                  |
-| [`product/roadmap.md`](product/roadmap.md)           | When                                                                          |
-| **This document**                                    | How and where — plus risks, technical debt, and open questions (**§10 only**) |
-| [`PRINCIPLES.md`](PRINCIPLES.md)                     | Engineering rules                                                             |
-| [`astro-migration/PLAN.md`](astro-migration/PLAN.md) | Cut-over plan; Phase 7 is the remaining checklist                             |
+| Doc                                        | Role                                                                          |
+| ------------------------------------------ | ----------------------------------------------------------------------------- |
+| [`product/product.md`](product/product.md) | What and why                                                                  |
+| [`product/roadmap.md`](product/roadmap.md) | When                                                                          |
+| **This document**                          | How and where — plus risks, technical debt, and open questions (**§10 only**) |
+| [`PRINCIPLES.md`](PRINCIPLES.md)           | Engineering rules                                                             |
 
-**Cut-over status.** Production still deploys from `apps/site` (Next.js + Payload) until Phase 7 of [`PLAN.md`](astro-migration/PLAN.md) points the Vercel project at `apps/web`. Everything below describes `apps/web`, which is the product from that point on.
+**Cut-over status.** Production still deploys from `apps/site` (Next.js + Payload) until the Vercel project is pointed at `apps/web`. Remaining work is Phase 2 of [`product/roadmap.md`](product/roadmap.md). Everything below describes `apps/web`, which is the product from that point on.
 
 ---
 
@@ -206,7 +204,6 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 │   ├── ARCHITECTURE.md       # this file
 │   ├── PRINCIPLES.md
 │   ├── product/
-│   ├── astro-migration/      # PLAN.md and the production baseline
 │   └── decisions/
 ├── .github/workflows/ci.yml  # Lint, typecheck, format, test, build web, dist tests
 ├── pnpm-workspace.yaml       # apps/web and packages/*
@@ -217,7 +214,7 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 
 `pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
 
-`apps/site` (the previous Next.js + Payload app) is still in the tree because production deploys from it until the Vercel project's root directory is switched to `apps/web`. It is excluded from the pnpm workspace and is not described here; the cut-over checklist is Phase 7 of [`PLAN.md`](astro-migration/PLAN.md).
+`apps/site` (the previous Next.js + Payload app) is still in the tree because production deploys from it until the Vercel project's root directory is switched to `apps/web`. It is excluded from the pnpm workspace and is not described here; remaining cut-over work is Phase 2 of [`product/roadmap.md`](product/roadmap.md).
 
 ### 4.4 `apps/web` layout
 
@@ -245,7 +242,8 @@ apps/web/
 │   ├── styles/               # globals.css, components.css, pages/{blog,legal,recipes}.css
 │   └── assets/images/        # photographs imported by pages and optimised at build
 ├── tests/
-│   ├── parity.test.ts        # dist/ against docs/astro-migration/baseline/
+│   ├── baseline/             # production URL and metadata snapshot
+│   ├── parity.test.ts        # dist/ against tests/baseline/
 │   └── security.test.ts      # dist/ links, images, CSP hosts, headers in .vercel/output/config.json
 ├── tsconfig.json             # extends astro/tsconfigs/strict; @/* → ./src/*
 ├── vitest.config.ts          # Astro getViteConfig; src/**/*.test.{ts,tsx} and tests/**/*.test.ts
@@ -306,7 +304,7 @@ Folders with several files carry their own `types.ts` and tests; `metadata/`, `s
 
 `src/styles/globals.css` is the single entry: it imports the two font packages, `@carinya/theme`, the typography plugin and `components.css`. Per-page CSS (`pages/blog.css`, `pages/legal.css`, `pages/recipes.css`) is imported at the top of the page that needs it, so it is only bundled where it is used. Tokens are never redefined in the app; they come from `packages/carinya-theme`.
 
-Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/parity.test.ts` and `tests/security.test.ts` read the built output and skip themselves when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`. `test:parity` compares the build against the production baseline captured in `docs/astro-migration/baseline/` and is run by hand before cut-over.
+Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/parity.test.ts` and `tests/security.test.ts` read the built output and skip themselves when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`. `test:parity` compares the build against the production baseline in `apps/web/tests/baseline/` and is run by hand before cut-over.
 
 - `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers and the 410 routes into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
 - `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
@@ -663,14 +661,14 @@ Every public page is static HTML on the Vercel CDN and changes only when a build
 
 ### 7.6 Accessibility
 
-Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. No automated accessibility gate runs in CI yet; Lighthouse accessibility is compared against the baseline by hand ([`PLAN.md`](astro-migration/PLAN.md) §5).
+Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. No automated accessibility gate runs in CI yet; Lighthouse accessibility is compared against the production baseline by hand.
 
 ### 7.7 Testing strategy
 
 | Layer         | What                                                                                                                                                                                  | Command                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                              | `pnpm --filter web test`                      |
-| Parity        | `dist/` against `docs/astro-migration/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                               | `pnpm --filter web test:parity` (after build) |
+| Parity        | `dist/` against `apps/web/tests/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                                     | `pnpm --filter web test:parity` (after build) |
 | Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and report-only CSP | `pnpm --filter web test:dist` (after build)   |
 | Typecheck     | `astro check`                                                                                                                                                                         | `pnpm --filter web typecheck`                 |
 
@@ -733,7 +731,7 @@ Rollout is trunk-based: merge to `main` is the production release, every pull re
 
 ### 8.4 Cut-over
 
-The steps that move production from `apps/site` to `apps/web` — re-export, pointing the Vercel root at `apps/web`, pruning environment variables, enforcing CSP, adding the WAF rule, deleting `apps/site` — are Phase 7 of [`PLAN.md`](astro-migration/PLAN.md) and are not repeated here.
+Production still deploys from `apps/site`. Remaining work to make `apps/web` production: a final content re-export if anything changed after the freeze, point the Vercel root at `apps/web`, prune environment variables, enforce CSP, add a Vercel WAF rate-limit rule on `/api/*`, resubmit the sitemap, watch Sentry and Vercel logs for 48 hours, then delete `apps/site` and the seed-validation CI step. Sequencing is Phase 2 of [`product/roadmap.md`](product/roadmap.md).
 
 ---
 
@@ -747,7 +745,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 | ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)              | Accepted 2026-09-21                                                                         |
 | —        | `content/` at the repository root rather than inside `apps/web`                       | Candidate; recorded in ADR-0001 consequences for now                                        |
 | —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`        | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic   |
-| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; open decision 1 in [`PLAN.md`](astro-migration/PLAN.md) §7, taken as the default |
+| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; taken as the default in ADR-0001                                                 |
 | —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app        | Candidate; shipped in roadmap Phase 3                                                       |
 
 ---
@@ -762,7 +760,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 | CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch             |
 | Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                   |
 | Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls |
-| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in `PLAN.md` §3; optional git-backed editor (roadmap)   |
+| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in [`AGENTS.md`](../AGENTS.md); optional git-backed editor (roadmap) |
 
 ### 10.2 Technical debt
 
@@ -772,7 +770,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 - **Mid-article inline subscribe was not ported.** Production split the post body at its midpoint to insert a form; MDX bodies render whole. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly.
 - **Placeholder `imageAlt` values.** Converted content carried filename-derived alt text; posts have been rewritten with real descriptions, but `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
 - **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
-- **`apps/site` is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes in Phase 7.
+- **`apps/site` is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes at cut-over.
 - **`turbo.json` still lists Payload-era variables** (`PAYLOAD_SECRET`, `NEON_DATABASE_URL`, `NEXT_PUBLIC_*`, `SESSION_SECRET`, `SECURITY_CSP_*`); prune with `apps/site`.
 - **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
 - **Not carried over from production**: `article:published_time` and `article:author` Open Graph tags on posts.

@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Export all Payload content to JSON for the Astro + MDX migration (Phase 0).
+ * Export all Payload content to JSON.
  *
  * Usage:
  *   pnpm --filter site export:payload [--out content-export]

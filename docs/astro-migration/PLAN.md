@@ -171,7 +171,7 @@ Each phase ends with a PR to `main`. Phases 0–6 are done; `apps/site` keeps de
 ### Phase 0 — Freeze and baseline
 
 - `apps/site/scripts/export-payload.ts` (`pnpm --filter site export:payload`) uses the Payload local API with access control bypassed and writes `apps/site/content-export/` (gitignored — it holds drafts and registrant email addresses): one JSON file per collection with relationships resolved to slugs, rich text exported both as Lexical JSON and as Markdown via `convertLexicalToMarkdown`, a `manifest.json` with counts and the published slug list per collection, and `markdown/` side files for reading the conversion. Run once locally with `NEON_DATABASE_URL` and `PAYLOAD_SECRET` in `.env.local`.
-- Production baseline captured by hand (the production firewall answers scripted requests with 429) and committed to `docs/astro-migration/baseline/`: `urls.json` (the 80 sitemap paths plus non-sitemap routes and known-broken URLs), `metadata.json` (observed `<head>` and JSON-LD facts for representative URLs), `sitemap.xml`, and a `README.md` with findings.
+- Production baseline captured by hand (the production firewall answers scripted requests with 429) and committed to `apps/web/tests/baseline/`: `urls.json` (the 80 sitemap paths plus non-sitemap routes and known-broken URLs), `metadata.json` (observed `<head>` and JSON-LD facts for representative URLs), `sitemap.xml`, and a `README.md` with findings.
 - Content decision: all ten posts and four recipes are imported as MDX in their current published state, so URLs and search presence carry over unchanged; editorial rewrites happen afterwards by PR.
 - Content freeze declared from the export date (21 September 2026); anything authored in the old admin afterwards is picked up by re-running the export at cut-over.
 - Lighthouse for `/`, `/blog/`, one post, one recipe is captured by hand from the Vercel or PageSpeed report and saved alongside the baseline.
@@ -224,7 +224,7 @@ Each phase ends with a PR to `main`. Phases 0–6 are done; `apps/site` keeps de
 
 ### Phase 6 — Docs and cleanup (done)
 
-- `AGENTS.md`, `README.md`, `apps/web/README.md`, `docs/ARCHITECTURE.md`, `docs/PRINCIPLES.md` and `docs/astro-migration/PLAN.md` describe `apps/web` as the product and `content/` as the CMS; `docs/product/roadmap.md` closes the Phase 1 CMS items and adds the cut-over and editorial-tooling phases.
+- `AGENTS.md`, `README.md`, `apps/web/README.md`, `docs/ARCHITECTURE.md`, `docs/PRINCIPLES.md` and `docs/product/roadmap.md` describe `apps/web` as the product and `content/` as the CMS; they do not point at this folder. `docs/product/roadmap.md` closes the Phase 1 CMS items and adds the cut-over and editorial-tooling phases.
 - `docs/decisions/ADR-0001-astro-mdx.md` and `ADR-0002-git-is-the-publish-gate.md` record the platform choice and the publish gate.
 - `skills/carinya-parc/SKILL.md` points at `apps/web` paths and MDX content; the `apps/site/content/seeds` and `content/archive` READMEs say the pipeline is retired.
 - No document instructs anyone to run Payload, Postgres, Docker, `/admin`, seed JSON or `import:content-seeds`.
@@ -244,7 +244,7 @@ Rollback at any point before step 6 is "set the Vercel root directory back to `a
 
 ## 5. Verification (what "parity" means)
 
-- **URL parity**: every path in `docs/astro-migration/baseline/urls.json` returns 200 in `dist/`, except the intentionally removed empty archives (which must 404 and be absent from the generated sitemap) and the documented production fixes (`/legal/*`, `/blog/page/2/`) which must now be 200.
+- **URL parity**: every path in `apps/web/tests/baseline/urls.json` returns 200 in `dist/`, except the intentionally removed empty archives (which must 404 and be absent from the generated sitemap) and the documented production fixes (`/legal/*`, `/blog/page/2/`) which must now be 200.
 - **Metadata parity**: for the representative URLs in `baseline/metadata.json`, `description`, `canonical`, `og:type`, `robots` and the set of JSON-LD `@type`s match, `title` matches after normalising production's doubled site suffix, and every page emits the common `<head>` set recorded there.
 - **Content parity**: each post's rendered text (whitespace-normalised) contains the same headings as the Lexical source; recipes have the same ingredient and step counts.
 - **Forms**: contact, subscribe, event signup succeed on preview against real Resend/MailerLite sandboxes.

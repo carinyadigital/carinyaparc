@@ -5,7 +5,7 @@ status: Snapshot
 last_updated: 2026-09-21
 related:
   - docs/astro-migration/PLAN.md
-  - docs/astro-migration/baseline/urls.json
+  - apps/web/tests/baseline/urls.json
 ---
 
 # Review — Next.js (`apps/site`) → Astro (`apps/web`)
@@ -133,7 +133,7 @@ Retired journal URLs 301 in `astro.config.mjs`. Empty category/tag archives are 
 
 | Phase                   | Status                                                                            |
 | ----------------------- | --------------------------------------------------------------------------------- |
-| 0 Baseline              | Done — `docs/astro-migration/baseline/`                                           |
+| 0 Baseline              | Done — `apps/web/tests/baseline/`                                                 |
 | 1 Scaffold              | Done                                                                              |
 | 2 Content               | Done — 0 events recorded                                                          |
 | 3 Pages                 | Done, with the documented midpoint-subscribe skip                                 |

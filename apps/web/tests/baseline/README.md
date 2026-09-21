@@ -1,6 +1,6 @@
 # Production baseline — captured 21 September 2026
 
-Source of truth for the Phase 3 parity test. Captured by hand in a browser because the
+Source of truth for the `test:parity` suite. Captured by hand in a browser because the
 production firewall answers every scripted request with 429.
 
 ## Files
@@ -63,7 +63,7 @@ recipeYield, recipeIngredient, datePublished — and nothing else.
 6. **`og:image` falls back to the home hero everywhere** (including blog index and events).
    Keep the same fallback so social previews don't regress.
 
-## Parity test contract (Phase 3)
+## Parity test contract
 
 - Every path in `urls.json` returns 200 from `dist/`, except paths listed under
   `intentionallyRemoved` in that file (empty archives) — those must 404 and be absent

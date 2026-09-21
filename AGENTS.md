@@ -13,7 +13,7 @@ Carinya Parc ([carinyaparc.com.au](https://carinyaparc.com.au)) is a regenerativ
 
 For product context read `docs/product/product.md` (what and why). For delivery phasing read `docs/product/roadmap.md` (when). For architecture, routes and folders read `docs/ARCHITECTURE.md` (how and where; debt is tracked in its §10 only). For engineering rules read `docs/PRINCIPLES.md`.
 
-**Cut-over status.** Production still deploys from `apps/site` (the previous Next.js + Payload app) until the Vercel project is pointed at `apps/web`. Until then `apps/site` remains in the tree but is not the product: do not add features to it, do not document it, and do not run its database or admin tooling. The cut-over steps are Phase 7 of `docs/astro-migration/PLAN.md`.
+**Cut-over status.** Production still deploys from `apps/site` (the previous Next.js + Payload app) until the Vercel project is pointed at `apps/web`. Until then `apps/site` remains in the tree but is not the product: do not add features to it, do not document it, and do not run its database or admin tooling. Remaining cut-over work is Phase 2 of `docs/product/roadmap.md`.
 
 ## Project structure
 
@@ -43,7 +43,7 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 │   └── typescript-config/    # @repo/typescript-config
 ├── brand/                    # voice.md, positioning.md (not a workspace package)
 ├── skills/carinya-parc/      # Product-local agent skill (not a workspace package)
-└── docs/                     # ARCHITECTURE.md, PRINCIPLES.md, product/, astro-migration/, decisions/
+└── docs/                     # ARCHITECTURE.md, PRINCIPLES.md, product/, decisions/
 ```
 
 **Import alias** (from `apps/web/tsconfig.json`): `@/*` → `apps/web/src/*`. Prefer it over deep relative paths.
@@ -203,7 +203,6 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 | `docs/product/roadmap.md`                | When                                                                     |
 | `docs/ARCHITECTURE.md`                   | How and where — architecture, routes, content contract; debt in §10 only |
 | `docs/PRINCIPLES.md`                     | Engineering rules                                                        |
-| `docs/astro-migration/PLAN.md`           | Migration plan; Phase 7 is the cut-over checklist                        |
 | `docs/decisions/`                        | Architecture decision records                                            |
 | `apps/web/README.md`                     | App-level commands and layout                                            |
 | `apps/web/.env.example`                  | Every environment variable                                               |

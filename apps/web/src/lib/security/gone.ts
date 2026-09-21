@@ -1,5 +1,5 @@
 /**
- * Payload admin and GraphQL were removed with the Astro cut-over. Returning
+ * Payload admin and GraphQL are retired. Returning
  * Gone tells crawlers these URLs are permanently retired rather than missing.
  */
 export const GONE_STATUS = 410;

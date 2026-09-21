@@ -1,6 +1,6 @@
 /**
- * Cut-over parity: the built site (`dist/`) against the production baseline captured in
- * docs/astro-migration/baseline/. Run `astro build` first; `pnpm test:parity`.
+ * Cut-over parity: the built site (`dist/`) against the production baseline in
+ * tests/baseline/. Run `astro build` first; `pnpm test:parity`.
  *
  * - Every production URL is still built, except the empty archives we deliberately dropped
  *   (which must be absent from the generated sitemap) and the routes production served broken,
@@ -19,7 +19,7 @@ const DIST_ROOT = path.join(WEB_ROOT, 'dist');
 const DIST = existsSync(path.join(DIST_ROOT, 'client', 'index.html'))
   ? path.join(DIST_ROOT, 'client')
   : DIST_ROOT;
-const BASELINE = path.resolve(WEB_ROOT, '..', '..', 'docs', 'astro-migration', 'baseline');
+const BASELINE = path.join(WEB_ROOT, 'tests', 'baseline');
 
 interface Urls {
   base: string;

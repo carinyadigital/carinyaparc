@@ -11,7 +11,7 @@ pnpm web:dev                    # http://localhost:4321, drafts visible
 pnpm web:build                  # dist/ and .vercel/output/
 pnpm --filter web test          # Vitest: src/**/*.test.ts(x) plus tests/ (dist suites skip without a build)
 pnpm --filter web test:dist     # links, images, CSP hosts, headers — run after a build
-pnpm --filter web test:parity   # built site vs docs/astro-migration/baseline/
+pnpm --filter web test:parity   # built site vs tests/baseline/
 pnpm --filter web generate:vercel-json   # regenerate vercel.json from src/lib/security
 pnpm lint && pnpm typecheck && pnpm format:check   # from the root, across the monorepo
 ```

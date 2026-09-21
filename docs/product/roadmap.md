@@ -1,10 +1,10 @@
 ---
 type: Roadmap
 domain: carinya-parc-website
-version: '0.5'
+version: '0.6'
 owner: product
 status: Draft
-last_updated: 2026-09-21
+last_updated: 2026-09-22
 parent_product: docs/product/product.md
 parent_roadmap: null
 related:
@@ -30,7 +30,7 @@ This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHIT
 
 The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Content is MDX in `content/`, reviewed and published through pull requests; the site is built by Astro and served from the Vercel CDN.
 
-This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. Revalidation, a media library, site globals, a rich-text toolbar and production admin verification are no longer needed because there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is finishing Phase 2 (CSP, WAF, retiring the previous app), then a short period of learning whether PR-based editing is enough for the editor.
+This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. Revalidation, a media library, site globals, a rich-text toolbar and a CMS admin are not needed: there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is a short period of learning whether PR-based editing is enough for the editor.
 
 Each phase unlocks the next without stacking risky changes.
 
@@ -38,11 +38,10 @@ Each phase unlocks the next without stacking risky changes.
 
 ## 2. Sequencing logic
 
-1. **Finish Phase 2, then everything else.** Production already serves from `apps/web`. Remaining Phase 2 work is CSP enforcement, the WAF rule, and deleting the retired app; that should close before new marketing pages land.
-2. **Editorial confidence before editorial tooling.** Publish through PRs for a few weeks before deciding whether a git-backed editor is worth adding. The gate (human approval on `main`) stays the same either way.
-3. **Marketing outcomes next.** Stay information, experiences and partner scaffolding address the guest pipeline from [`product.md`](product.md) and need no platform work.
-4. **Discoverability after the content settles.** Dynamic social images and verified local-business data are polish on stable content; RSS, recipe structured data, category and tag archives and per-document SEO already ship with the Astro build.
-5. **Grow the monorepo only on demand.** `@carinya/theme`, `brand/` and `skills/carinya-parc` exist; nothing else is extracted until a second surface needs it.
+1. **Editorial confidence before editorial tooling.** Publish through PRs for a few weeks before deciding whether a git-backed editor is worth adding. The gate (human approval on `main`) stays the same either way.
+2. **Marketing outcomes next.** Stay information, experiences and partner scaffolding address the guest pipeline from [`product.md`](product.md) and need no platform work.
+3. **Discoverability after the content settles.** Dynamic social images and verified local-business data are polish on stable content; RSS, recipe structured data, category and tag archives and per-document SEO already ship with the Astro build.
+4. **Grow the monorepo only on demand.** `@carinya/theme`, `brand/` and `skills/carinya-parc` exist; nothing else is extracted until a second surface needs it.
 
 ---
 
@@ -62,30 +61,22 @@ What shipped, and how:
 - Draft content never appears on the public site: `draft: true` is excluded from production builds.
 - The product monorepo: `@carinya/theme` as a workspace package, `brand/` as the voice and positioning source, `skills/carinya-parc` for agent guidance (formerly its own phase).
 
-Closed as no longer needed: on-demand revalidation, media library, site globals, scoped rich-text toolbar, production admin verification under CSP, and a shared rate-limit store (replaced by a Vercel WAF rule, Phase 2).
+Closed as no longer needed: on-demand revalidation, media library, site globals, scoped rich-text toolbar, and a shared rate-limit store (replaced by a Vercel WAF rule).
 
 Carried forward: **Stay information** (Phase 4).
 
 ---
 
-### Phase 2 — Cut-over
+### Phase 2 — Production hardening (closed)
 
-**Objective:** Finish production hardening on `apps/web` and retire the previous app.
+**Objective:** Finish production hardening on `apps/web`.
 
-**In scope:** Environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for the retired Next.js app and the seed-validation CI step.
+What shipped, and how:
 
-**Quality gates:**
-
-- Every URL in the production baseline returns 200 (or the documented redirect or 410).
-- Contact, subscribe and event signup succeed against production MailerLite and Resend.
-- No CSP violations from the site's own pages in the first 48 hours of enforcement.
-
-**Exit criteria:**
-
-- [x] Production serves from `apps/web`; rollback path documented and tested once on a preview.
-- [ ] CSP enforced; WAF rule active on `/api/*`.
-- [ ] The retired Next.js app, its dependencies, `docker-compose.yml`, the seed pipeline and the Neon database are gone.
-- [ ] `turbo.json` and CI no longer reference Payload-era variables or steps.
+- Production serves from `apps/web` on Vercel; rollback is redeploying the previous deployment.
+- CSP is enforced (`Content-Security-Policy`); violations still POST to `/api/csp-report/`.
+- A Vercel WAF rate-limit rule covers `POST` to `/api/contact`, `/api/subscribe` and `/api/events`.
+- CI builds and tests `apps/web` only.
 
 **Out of scope:** Any new page or content feature; editorial tooling.
 
@@ -114,7 +105,7 @@ Carried forward: **Stay information** (Phase 4).
 - [ ] No placeholder alt text in `content/`.
 - [ ] Editor tooling decision recorded as an ADR.
 
-**Entry condition:** Phase 2 exit criteria met.
+**Entry condition:** Phase 2 closed.
 
 ---
 
@@ -138,7 +129,7 @@ Carried forward: **Stay information** (Phase 4).
 - [ ] Stay pages live with copy verified against on-ground reality.
 - [ ] Experiences and partner routes exist with clear contact paths.
 
-**Entry condition:** Phase 2 complete; Phase 3 may run in parallel.
+**Entry condition:** Phase 2 closed; Phase 3 may run in parallel.
 
 ---
 
@@ -178,8 +169,7 @@ Carried forward: **Stay information** (Phase 4).
 | RSS, recipe structured data, archives | 1     | Yes               | Done; ships with the Astro build        |
 | `@carinya/theme` in the monorepo      | 1     | No                | Done                                    |
 | Production serves from `apps/web`     | 2     | Yes               | Done                                    |
-| CSP enforced, WAF rule live           | 2     | Internal only     | Durable abuse control                   |
-| Retired Next.js app deleted           | 2     | No                | Repo has one app                        |
+| CSP enforced, WAF rule live           | 2     | Internal only     | Done                                    |
 | Owner publishes via PR unaided        | 3     | Internal only     | Templates and how-to                    |
 | Editor tooling decision               | 3     | No                | Optional git-backed editor              |
 | Stay information pages live           | 4     | Yes               | Guest pipeline and pre-qualification    |
@@ -191,16 +181,15 @@ Carried forward: **Stay information** (Phase 4).
 
 ## 5. Cross-domain dependencies
 
-| Dependency                                   | Owner                 | Gates                                                   | Status      |
-| -------------------------------------------- | --------------------- | ------------------------------------------------------- | ----------- |
-| Vercel project, previews and secrets         | Engineering / hosting | Every phase                                             | Active      |
-| GitHub branch protection (human approval)    | Engineering           | Phase 2 onward — the publish gate                       | Active      |
-| Vercel WAF rate-limit rule on `/api/*`       | Engineering / hosting | Phase 2 — durable form protection                       | Not started |
-| MailerLite groups per event                  | Marketing             | Event signups                                           | Active      |
-| Resend sending domain                        | Engineering           | Contact notifications                                   | Active      |
-| Neon database                                | Engineering / hosting | Phase 2 — decommission after registrations CSV is saved | Retiring    |
-| Verified property coordinates                | Owner                 | Phase 5                                                 | Not started |
-| Stay copy verified against on-ground reality | Owner                 | Phase 4                                                 | Not started |
+| Dependency                                   | Owner                 | Gates                   | Status      |
+| -------------------------------------------- | --------------------- | ----------------------- | ----------- |
+| Vercel project, previews and secrets         | Engineering / hosting | Every phase             | Active      |
+| GitHub branch protection (human approval)    | Engineering           | The publish gate        | Active      |
+| Vercel WAF rate-limit on form POSTs          | Engineering / hosting | Durable form protection | Active      |
+| MailerLite groups per event                  | Marketing             | Event signups           | Active      |
+| Resend sending domain                        | Engineering           | Contact notifications   | Active      |
+| Verified property coordinates                | Owner                 | Phase 5                 | Not started |
+| Stay copy verified against on-ground reality | Owner                 | Phase 4                 | Not started |
 
 ---
 

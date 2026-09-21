@@ -30,7 +30,7 @@
           "value": "camera=(), microphone=(), geolocation=()"
         },
         {
-          "key": "Content-Security-Policy-Report-Only",
+          "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://www.google-analytics.com https://*.vercel-scripts.com https://vercel.live; style-src 'self' 'unsafe-inline' https://vercel.live; img-src 'self' blob: data: https://www.google-analytics.com https://*.googleusercontent.com https://vercel.live https://vercel.com; font-src 'self' https://vercel.live https://assets.vercel.com; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.sentry.io https://vitals.vercel-insights.com https://vercel.live wss://vercel.live wss://ws-us3.pusher.com; worker-src 'self' blob:; frame-src 'self' https://www.googletagmanager.com https://vercel.live; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri /api/csp-report/"
         }
       ]

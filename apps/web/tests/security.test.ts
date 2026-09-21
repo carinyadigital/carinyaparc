@@ -1,5 +1,5 @@
 /**
- * Dist-output checks for Phase 5: internal links, images, CSP resource hosts,
+ * Dist-output checks: internal links, images, CSP resource hosts,
  * security headers in the Vercel Build Output config, and hero loading hints.
  * Run after `astro build` (`pnpm --filter web test:dist`).
  */
@@ -215,16 +215,16 @@ describeIfBuilt('hero image loading', () => {
 });
 
 describeIfBuilt('Vercel output security config', () => {
-  it('merges continue headers, Gone routes, and report-only CSP', () => {
+  it('merges continue headers, Gone routes, and enforced CSP', () => {
     expect(existsSync(VERCEL_CONFIG)).toBe(true);
     const output = JSON.parse(readFileSync(VERCEL_CONFIG, 'utf8')) as VercelOutput;
     const headerRoute = output.routes?.find((route) => route.continue && route.headers);
     expect(headerRoute?.headers?.['X-Frame-Options']).toBe('DENY');
     expect(headerRoute?.headers?.['Strict-Transport-Security']).toContain('max-age=63072000');
-    expect(headerRoute?.headers?.['Content-Security-Policy-Report-Only']).toContain(
+    expect(headerRoute?.headers?.['Content-Security-Policy']).toContain(
       'report-uri /api/csp-report/',
     );
-    expect(headerRoute?.headers?.['Content-Security-Policy']).toBeUndefined();
+    expect(headerRoute?.headers?.['Content-Security-Policy-Report-Only']).toBeUndefined();
 
     for (const src of GONE_PATH_PATTERNS) {
       expect(output.routes?.some((route) => route.src === src && route.status === 410)).toBe(true);

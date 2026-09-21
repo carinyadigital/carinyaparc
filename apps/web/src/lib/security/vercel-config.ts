@@ -1,5 +1,5 @@
 import { buildCSPHeader } from './csp';
-import { CSP_DIRECTIVES, CSP_REPORT_ONLY_UNTIL_CUTOVER, CSP_REPORT_URI } from './constants';
+import { CSP_DIRECTIVES, CSP_REPORT_ONLY, CSP_REPORT_URI } from './constants';
 import { createSecurityHeadersConfig, generateSecurityHeaders } from './headers';
 
 export interface VercelHeaderEntry {
@@ -42,7 +42,7 @@ export interface VercelOutputConfig {
 }
 
 /**
- * Retired Payload surfaces. Matching requests return HTTP 410 at the CDN
+ * Retired admin and GraphQL paths. Matching requests return HTTP 410 at the CDN
  * (and from the on-demand Astro endpoints used by local preview).
  */
 export const GONE_PATH_PATTERNS = [
@@ -73,7 +73,7 @@ function securityHeaderEntries(): VercelHeaderEntry[] {
 
 /** Shape written to `vercel.json` and merged into the Vercel Build Output config. */
 export function generateVercelJson(options: GenerateVercelJsonOptions = {}): VercelJson {
-  const reportOnly = options.reportOnly ?? CSP_REPORT_ONLY_UNTIL_CUTOVER;
+  const reportOnly = options.reportOnly ?? CSP_REPORT_ONLY;
 
   return {
     $schema: 'https://openapi.vercel.sh/vercel.json',

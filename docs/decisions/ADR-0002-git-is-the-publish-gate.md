@@ -42,4 +42,4 @@ Publishing is merging to `main`. Specifically:
 - Publishing latency is a build and deploy, not a button; dated content (events) goes stale between merges unless a scheduled deploy is added.
 - The editor needs a GitHub account and a basic pull-request habit, or a tool that hides it.
 - `draft: true` is the only scheduling mechanism; there is no publish-at date.
-- Branch protection is configuration outside the repository. If it is loosened, the gate is gone with no signal in the code; the setting is part of the cut-over checklist and should be reviewed when access changes.
+- Branch protection is configuration outside the repository. If it is loosened, the gate is gone with no signal in the code; the setting should be reviewed when access changes.

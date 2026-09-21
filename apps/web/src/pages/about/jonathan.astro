@@ -67,6 +67,8 @@ const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
                 height={423}
                 widths={[592, 1184]}
                 sizes="37rem"
+                loading="eager"
+                fetchpriority="high"
                 class={`aspect-[7/5] w-[37rem] ${PHOTO_CLASS}`}
               />
             </div>
@@ -79,6 +81,7 @@ const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
                   height={288}
                   widths={[384, 768]}
                   sizes="24rem"
+                  loading="lazy"
                   class={`aspect-[4/3] w-[24rem] flex-none ${PHOTO_CLASS}`}
                 />
               </div>
@@ -90,6 +93,7 @@ const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
                   height={423}
                   widths={[592, 1184]}
                   sizes="37rem"
+                  loading="lazy"
                   class={`aspect-[7/5] w-[37rem] flex-none ${PHOTO_CLASS}`}
                 />
               </div>
@@ -101,6 +105,7 @@ const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
                   height={288}
                   widths={[384, 768]}
                   sizes="24rem"
+                  loading="lazy"
                   class={`aspect-[4/3] w-[24rem] ${PHOTO_CLASS}`}
                 />
               </div>

@@ -46,6 +46,7 @@ const featuredPosts = await toPostSummaries(await getFeaturedPosts(limit));
                   sizes="(max-width: 1024px) 100vw, 55vw"
                   quality={80}
                   loading="eager"
+                  fetchpriority="high"
                   class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                 />
               ) : (

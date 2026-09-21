@@ -9,8 +9,8 @@ parent_product: docs/product/product.md
 parent_roadmap: null
 related:
   - docs/product/product.md
-  - docs/architecture/solution.md
-  - docs/architecture/astro-migration.md
+  - docs/ARCHITECTURE.md
+  - docs/astro-migration/PLAN.md
 ---
 
 # Roadmap — Carinya Parc website
@@ -21,16 +21,15 @@ related:
 | ---------------------------------------------- | --------------------------------------- |
 | [`product.md`](product.md)                     | What and why                            |
 | **This document**                              | When — sequencing and phase gates       |
-| [`solution.md`](../architecture/solution.md)   | How — architecture; current debt in §10 |
-| [`structure.md`](../architecture/structure.md) | Where — routes and folders              |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md)        | How and where — architecture; current debt in §10 |
 
-This document does not list technical debt — see [`solution.md`](../architecture/solution.md) §10. Stories and acceptance criteria are scoped when a phase starts.
+This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHITECTURE.md) §10. Stories and acceptance criteria are scoped when a phase starts.
 
 ---
 
 ## 1. Roadmap intent
 
-The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Content is MDX in `content/`, reviewed and published through pull requests; the site is built by Astro and served from the Vercel CDN ([`astro-migration.md`](../architecture/astro-migration.md)).
+The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Content is MDX in `content/`, reviewed and published through pull requests; the site is built by Astro and served from the Vercel CDN ([`PLAN.md`](../astro-migration/PLAN.md)).
 
 This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. The migration removed the CMS work that used to sit in front of those outcomes: revalidation, a media library, site globals, a rich-text toolbar and production admin verification are no longer needed because there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is the cut-over itself, then a short period of learning whether PR-based editing is enough for the editor.
 
@@ -74,7 +73,7 @@ Carried forward: **Stay information** (Phase 4).
 
 **Objective:** Make `apps/web` the production site and retire `apps/site`.
 
-**In scope:** Phase 7 of [`astro-migration.md`](../architecture/astro-migration.md) — final content re-export if anything changed after the freeze, Vercel root directory to `apps/web`, environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for `apps/site` and the seed-validation CI step.
+**In scope:** Phase 7 of [`PLAN.md`](../astro-migration/PLAN.md) — final content re-export if anything changed after the freeze, Vercel root directory to `apps/web`, environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for `apps/site` and the seed-validation CI step.
 
 **Quality gates:**
 
@@ -99,7 +98,7 @@ Carried forward: **Stay information** (Phase 4).
 
 **In scope:**
 
-- Content templates for posts, recipes and events (frontmatter with every field, in the authoring contract from `astro-migration.md` §3), and a short how-to for the editor.
+- Content templates for posts, recipes and events (frontmatter with every field, in the authoring contract from `PLAN.md` §3), and a short how-to for the editor.
 - Real `imageAlt` on every entry; a schema rule or lint that flags placeholder alt text.
 - Path-scoped review: CODEOWNERS or branch rules so a content-only PR needs one human approval and no engineering review.
 - A scheduled production deploy if events or dated content go stale between merges.
@@ -114,7 +113,7 @@ Carried forward: **Stay information** (Phase 4).
 
 - [ ] Templates and how-to merged; three posts published through the workflow by the owner.
 - [ ] No placeholder alt text in `content/`.
-- [ ] Editor tooling decision recorded (ADR or a note in `astro-migration.md` §8).
+- [ ] Editor tooling decision recorded (ADR or a note in `PLAN.md` §8).
 
 **Entry condition:** Phase 2 exit criteria met.
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted — 2026-09-21
 
-**Related:** [`docs/architecture/astro-migration.md`](../architecture/astro-migration.md) (plan and phases), [`docs/architecture/solution.md`](../architecture/solution.md) (resulting architecture), [ADR-0002](ADR-0002-git-is-the-publish-gate.md) (publish gate)
+**Related:** [`docs/astro-migration/PLAN.md`](../astro-migration/PLAN.md) (plan and phases), [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) (resulting architecture), [ADR-0002](ADR-0002-git-is-the-publish-gate.md) (publish gate)
 
 ## Context
 

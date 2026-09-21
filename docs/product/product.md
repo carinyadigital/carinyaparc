@@ -16,9 +16,8 @@ This document describes the product vision for Carinya Parc as expressed through
 | ------------------------------------------------------------- | ------------------------------------------------- |
 | **This document**                                             | What and why — vision, scope, features, non-goals |
 | [`product/roadmap.md`](roadmap.md)                            | When — phased delivery                            |
-| [`architecture/solution.md`](../architecture/solution.md)     | How — architecture; risks and debt in §10 only    |
-| [`architecture/structure.md`](../architecture/structure.md)   | Where — routes and folders                        |
-| [`architecture/principles.md`](../architecture/principles.md) | Engineering rules                                 |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md)                       | How and where — architecture, routes, content; debt in §10 only |
+| [`PRINCIPLES.md`](../PRINCIPLES.md)                           | Engineering rules                                 |
 
 ---
 

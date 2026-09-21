@@ -11,9 +11,9 @@ Carinya Parc ([carinyaparc.com.au](https://carinyaparc.com.au)) is a regenerativ
 - **Shared packages:** `@carinya/theme` (design tokens and the Tailwind theme), `@repo/eslint-config`, `@repo/typescript-config`.
 - **Brand and skill:** `brand/voice.md`, `brand/positioning.md`, and the product-local agent skill at `skills/carinya-parc/SKILL.md`.
 
-For product context read `docs/product/product.md` (what and why). For delivery phasing read `docs/product/roadmap.md` (when). For architecture read `docs/architecture/solution.md` (how; debt is tracked in its §10 only). For routes and folders read `docs/architecture/structure.md` (where). For engineering rules read `docs/architecture/principles.md`.
+For product context read `docs/product/product.md` (what and why). For delivery phasing read `docs/product/roadmap.md` (when). For architecture, routes and folders read `docs/ARCHITECTURE.md` (how and where; debt is tracked in its §10 only). For engineering rules read `docs/PRINCIPLES.md`.
 
-**Cut-over status.** Production still deploys from `apps/site` (the previous Next.js + Payload app) until the Vercel project is pointed at `apps/web`. Until then `apps/site` remains in the tree but is not the product: do not add features to it, do not document it, and do not run its database or admin tooling. The cut-over steps are Phase 7 of `docs/architecture/astro-migration.md`.
+**Cut-over status.** Production still deploys from `apps/site` (the previous Next.js + Payload app) until the Vercel project is pointed at `apps/web`. Until then `apps/site` remains in the tree but is not the product: do not add features to it, do not document it, and do not run its database or admin tooling. The cut-over steps are Phase 7 of `docs/astro-migration/PLAN.md`.
 
 ## Project structure
 
@@ -44,7 +44,7 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 ├── brand/                    # voice.md, positioning.md (not a workspace package)
 ├── skills/carinya-parc/      # Product-local agent skill (not a workspace package)
 ├── specs/                    # Domain TDDs linked from GitHub issues
-└── docs/                     # product/, architecture/, decisions/
+└── docs/                     # ARCHITECTURE.md, PRINCIPLES.md, product/, astro-migration/, decisions/
 ```
 
 **Import alias** (from `apps/web/tsconfig.json`): `@/*` → `apps/web/src/*`. Prefer it over deep relative paths.
@@ -124,7 +124,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `pnpm
 
 Content is the CMS. An agent writing content edits files under `content/` and nothing under `apps/`.
 
-- **Schemas** are in `apps/web/src/content.config.ts` and are enforced on every build; `astro check` and `pnpm web:build` fail on bad frontmatter. Field-by-field detail is in `docs/architecture/structure.md`.
+- **Schemas** are in `apps/web/src/content.config.ts` and are enforced on every build; `astro check` and `pnpm web:build` fail on bad frontmatter. Field-by-field detail is in `docs/ARCHITECTURE.md` §6.4.
 - **Slug = filename.** `content/posts/first-planting-day.mdx` is `/blog/first-planting-day/`. Slugs are lowercase kebab-case. Renaming a file changes a public URL; add a redirect in `astro.config.mjs` if the old URL was ever live.
 - **Images** referenced from frontmatter live in `content/images/` and are referenced relative to the entry, for example `image: "../images/river-valley-aerial.jpg"`. Astro optimises them at build time. Always set `imageAlt`.
 - **Drafts.** `draft: true` keeps posts, recipes and events out of the production build and the sitemap but shows them in `pnpm web:dev`. The events signup endpoint refuses drafts.
@@ -202,13 +202,12 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 | ---------------------------------------- | ------------------------------------------------- |
 | `docs/product/product.md`                | What and why                                      |
 | `docs/product/roadmap.md`                | When                                              |
-| `docs/architecture/solution.md`          | How — architecture; debt in §10 only              |
-| `docs/architecture/structure.md`         | Where — routes, folders, content contract         |
-| `docs/architecture/principles.md`        | Engineering rules                                 |
-| `docs/architecture/astro-migration.md`   | Migration plan; Phase 7 is the cut-over checklist |
+| `docs/ARCHITECTURE.md`                   | How and where — architecture, routes, content contract; debt in §10 only |
+| `docs/PRINCIPLES.md`                     | Engineering rules                                 |
+| `docs/astro-migration/PLAN.md`           | Migration plan; Phase 7 is the cut-over checklist |
 | `docs/decisions/`                        | Architecture decision records                     |
 | `apps/web/README.md`                     | App-level commands and layout                     |
 | `apps/web/.env.example`                  | Every environment variable                        |
 | `brand/voice.md`, `brand/positioning.md` | How the site speaks                               |
 
-When adding or changing user-visible features, update the relevant doc in `docs/` alongside code changes. Track technical debt only in `docs/architecture/solution.md` §10.
+When adding or changing user-visible features, update the relevant doc in `docs/` alongside code changes. Track technical debt only in `docs/ARCHITECTURE.md` §10.

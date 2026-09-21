@@ -1,6 +1,6 @@
 # Guiding Principles
 
-Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`ARCHITECTURE.md`](ARCHITECTURE.md) says where things live; this document says how they are built. The words **SHALL**, **MUST**, **SHOULD** and **MAY** carry their usual weight: the first two are checked in review, the last two are the default unless there is a stated reason.
+Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`ARCHITECTURE.md`](ARCHITECTURE.md) is the system architecture and layout; this document is how the code is built. The words **SHALL**, **MUST**, **SHOULD** and **MAY** carry their usual weight: the first two are checked in review, the last two are the default unless there is a stated reason.
 
 1. **Zero JavaScript by default.** Pages and components **SHALL** be `.astro` files that render to static HTML. A page **MUST NOT** ship client-side JavaScript unless it contains an island or a small inline `<script>` for a progressive enhancement (sharing, scroll depth, the header). A component that only presents data **SHALL NOT** be written in React.
 

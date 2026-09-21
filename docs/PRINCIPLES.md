@@ -1,6 +1,6 @@
 # Guiding Principles
 
-Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`structure.md`](structure.md) says where things live; this document says how they are built. The words **SHALL**, **MUST**, **SHOULD** and **MAY** carry their usual weight: the first two are checked in review, the last two are the default unless there is a stated reason.
+Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`ARCHITECTURE.md`](ARCHITECTURE.md) says where things live; this document says how they are built. The words **SHALL**, **MUST**, **SHOULD** and **MAY** carry their usual weight: the first two are checked in review, the last two are the default unless there is a stated reason.
 
 1. **Zero JavaScript by default.** Pages and components **SHALL** be `.astro` files that render to static HTML. A page **MUST NOT** ship client-side JavaScript unless it contains an island or a small inline `<script>` for a progressive enhancement (sharing, scroll depth, the header). A component that only presents data **SHALL NOT** be written in React.
 
@@ -8,7 +8,7 @@ Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`structur
 
 3. **Pages are thin.** A file under `src/pages/` **SHALL** contain only `getStaticPaths`, calls to the content helpers, metadata composition and component composition. Rendering **SHALL** be delegated to components; formatting and side effects **SHALL** live in `src/lib/`. UI components **SHALL NOT** fetch, send email, call a third party or hold business rules.
 
-4. **Content through helpers.** Pages **SHALL** read collections through `src/lib/content/` (`getPublishedPosts`, `getPublishedRecipes`, `getUpcomingEvents`, …) rather than calling `getCollection` directly, so draft filtering, sorting and the summary shapes have one definition. Content **SHALL** be validated by the Zod schemas in `src/content.config.ts`; a schema change **MUST** be reflected in `structure.md` §4. Internal URLs **SHALL** come from `src/lib/urls.ts` so every link carries its trailing slash.
+4. **Content through helpers.** Pages **SHALL** read collections through `src/lib/content/` (`getPublishedPosts`, `getPublishedRecipes`, `getUpcomingEvents`, …) rather than calling `getCollection` directly, so draft filtering, sorting and the summary shapes have one definition. Content **SHALL** be validated by the Zod schemas in `src/content.config.ts`; a schema change **MUST** be reflected in [`ARCHITECTURE.md`](ARCHITECTURE.md) §6.4. Internal URLs **SHALL** come from `src/lib/urls.ts` so every link carries its trailing slash.
 
 5. **Metadata is composed, not hand-written.** Page metadata **SHALL** be produced by `generatePageMetadata` in `src/lib/metadata/`, which composes small functions (`generateTitle`, `generateCanonicalUrl`, `generateOpenGraph`, `generateTwitterCard`, `generateRobots`, `generateIcons`). `Base.astro` is the only file that turns that object into `<meta>` tags. Pages **MUST NOT** emit their own `<title>` or `<meta>` elements.
 
@@ -34,4 +34,4 @@ Engineering rules for the Carinya Parc website (`apps/web`, Astro 7). [`structur
 
 16. **Copy.** User-facing text **SHALL** be Australian English and follow `brand/voice.md`. Error messages returned by endpoints **SHOULD** tell the visitor what to do next and **SHALL NOT** reveal internal details.
 
-17. **Documentation.** A change to routes or folders **MUST** update `structure.md`; a change to architecture **MUST** update `solution.md`; technical debt **SHALL** be recorded only in `solution.md` §10. These principles **SHOULD** be amended in the same pull request that first departs from them.
+17. **Documentation.** A change to routes, folders or architecture **MUST** update [`ARCHITECTURE.md`](ARCHITECTURE.md); technical debt **SHALL** be recorded only in [`ARCHITECTURE.md`](ARCHITECTURE.md) §10. These principles **SHOULD** be amended in the same pull request that first departs from them.

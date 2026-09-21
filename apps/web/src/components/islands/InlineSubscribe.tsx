@@ -5,6 +5,7 @@ import { SubscribePrivacyNote } from '@/components/subscribe/SubscribePrivacyNot
 import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
+import { cn } from '@/lib/cn';
 import { trackSubscribeComplete, trackSubscribeStart } from '@/lib/analytics';
 import { postSubscribe } from '@/lib/subscribe/client';
 import { getSubscribeEmailError } from '@/lib/validation/subscribe-schema';
@@ -12,9 +13,16 @@ import { getSubscribeEmailError } from '@/lib/validation/subscribe-schema';
 export interface InlineSubscribeProps {
   source: string;
   className?: string;
+  variant?: 'card' | 'compact' | 'band';
+  submitLabel?: string;
 }
 
-export function InlineSubscribe({ source, className }: InlineSubscribeProps) {
+export function InlineSubscribe({
+  source,
+  className,
+  variant = 'card',
+  submitLabel = 'Subscribe',
+}: InlineSubscribeProps) {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -22,6 +30,11 @@ export function InlineSubscribe({ source, className }: InlineSubscribeProps) {
   const [formError, setFormError] = useState('');
   const [formLoadTime] = useState(() => Date.now());
   const startedRef = useRef(false);
+  const idSuffix = source.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '');
+  const fieldId = variant === 'card' ? 'inline-subscribe-email' : `subscribe-email-${idSuffix}`;
+  const websiteId =
+    variant === 'card' ? 'inline-subscribe-website' : `subscribe-website-${idSuffix}`;
+  const isBand = variant === 'band';
 
   const markStarted = () => {
     if (startedRef.current) {
@@ -72,6 +85,21 @@ export function InlineSubscribe({ source, className }: InlineSubscribeProps) {
   };
 
   if (status === 'success') {
+    if (variant !== 'card') {
+      return (
+        <p
+          className={cn(
+            'text-[15px] leading-relaxed',
+            isBand ? 'text-fleece' : 'text-charcoal',
+            className,
+          )}
+          aria-live="polite"
+        >
+          You&apos;re in — thank you. Please check your email to complete your subscription.
+        </p>
+      );
+    }
+
     return (
       <aside
         className={`my-12 rounded-[18px] border border-eucalypt-200 bg-eucalypt-50 px-6 py-8 sm:px-8 ${className ?? ''}`}
@@ -95,6 +123,92 @@ export function InlineSubscribe({ source, className }: InlineSubscribeProps) {
     );
   }
 
+  const fields = (
+    <>
+      <div aria-hidden="true" style={{ display: 'none' }}>
+        <label htmlFor={websiteId}>Website</label>
+        <input
+          type="text"
+          name="website"
+          id={websiteId}
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
+      <FormField
+        name={fieldId}
+        label="Email address"
+        required
+        hideLabel={variant !== 'card'}
+        error={emailError || undefined}
+        className={cn('min-w-0 flex-1', variant !== 'card' && 'space-y-0')}
+      >
+        <Input
+          type="email"
+          name="email"
+          id={fieldId}
+          value={email}
+          onFocus={markStarted}
+          onChange={(e) => {
+            markStarted();
+            setEmail(e.target.value);
+            if (emailError) setEmailError('');
+          }}
+          disabled={status === 'loading'}
+          placeholder={isBand ? 'Your email address' : 'you@example.com'}
+          autoComplete="email"
+          invalid={Boolean(emailError)}
+          aria-invalid={Boolean(emailError)}
+          className={
+            isBand
+              ? 'rounded-pill border-fleece/35 bg-fleece/10 px-5 py-3.5 text-fleece placeholder:text-fleece/60 focus:border-fleece/70'
+              : variant === 'compact'
+                ? 'rounded-pill px-[22px] py-[15px]'
+                : undefined
+          }
+        />
+      </FormField>
+      <Button
+        type="submit"
+        disabled={status === 'loading'}
+        isLoading={status === 'loading'}
+        variant={isBand ? 'bracken' : 'primary'}
+        className={cn('shrink-0', variant === 'card' ? 'mt-0 sm:mt-7' : '')}
+      >
+        {submitLabel}
+      </Button>
+    </>
+  );
+
+  if (variant !== 'card') {
+    return (
+      <div className={className}>
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className={cn(
+            'flex flex-col gap-3 sm:flex-row sm:items-start',
+            isBand && 'min-w-[280px] max-w-[460px] flex-1',
+          )}
+        >
+          {fields}
+        </form>
+        {formError ? (
+          <p
+            className={cn('mt-3 text-sm font-medium', isBand ? 'text-wattle' : 'text-destructive')}
+            role="alert"
+          >
+            {formError}
+          </p>
+        ) : null}
+        {variant === 'compact' ? <SubscribePrivacyNote className="mt-4" /> : null}
+      </div>
+    );
+  }
+
   return (
     <aside
       className={`my-12 rounded-[18px] border border-line bg-fleece px-6 py-8 sm:px-8 ${className ?? ''}`}
@@ -112,61 +226,12 @@ export function InlineSubscribe({ source, className }: InlineSubscribeProps) {
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6" noValidate>
-        <div aria-hidden="true" style={{ display: 'none' }}>
-          <label htmlFor="inline-subscribe-website">Website</label>
-          <input
-            type="text"
-            name="website"
-            id="inline-subscribe-website"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-            tabIndex={-1}
-            autoComplete="off"
-          />
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <FormField
-            name="inline-subscribe-email"
-            label="Email address"
-            required
-            error={emailError || undefined}
-            className="min-w-0 flex-1"
-          >
-            <Input
-              type="email"
-              name="email"
-              id="inline-subscribe-email"
-              value={email}
-              onFocus={markStarted}
-              onChange={(e) => {
-                markStarted();
-                setEmail(e.target.value);
-                if (emailError) setEmailError('');
-              }}
-              disabled={status === 'loading'}
-              placeholder="you@example.com"
-              autoComplete="email"
-              invalid={Boolean(emailError)}
-              aria-invalid={Boolean(emailError)}
-            />
-          </FormField>
-          <Button
-            type="submit"
-            disabled={status === 'loading'}
-            isLoading={status === 'loading'}
-            className="mt-0 shrink-0 sm:mt-7"
-          >
-            Subscribe
-          </Button>
-        </div>
-
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">{fields}</div>
         {formError && (
           <p className="mt-3 text-sm font-medium text-destructive" role="alert">
             {formError}
           </p>
         )}
-
         <SubscribePrivacyNote className="mt-4" />
       </form>
     </aside>

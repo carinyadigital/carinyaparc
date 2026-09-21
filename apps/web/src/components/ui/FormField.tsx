@@ -8,17 +8,21 @@ export interface FormFieldProps {
   description?: string;
   error?: string;
   required?: boolean;
+  hideLabel?: boolean;
   children: React.ReactNode;
   className?: string;
 }
 
 const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ name, label, description, error, required, children, className }, ref) => {
+  ({ name, label, description, error, required, hideLabel = false, children, className }, ref) => {
     return (
       <div ref={ref} className={cn('space-y-2', className)}>
-        <label htmlFor={name} className="block text-[13.5px] font-semibold text-foreground">
+        <label
+          htmlFor={name}
+          className={hideLabel ? 'sr-only' : 'block text-[13.5px] font-semibold text-foreground'}
+        >
           {label}
-          {required && <span className="ml-1 text-destructive">*</span>}
+          {required && !hideLabel && <span className="ml-1 text-destructive">*</span>}
         </label>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
         {children}

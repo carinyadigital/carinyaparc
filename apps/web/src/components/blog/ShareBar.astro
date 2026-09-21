@@ -1,7 +1,6 @@
 ---
 /**
- * End-of-article share row. Static share-intent links only (no JS in Phase 3); the
- * "Copy link" / native-share buttons from apps/site return with the React island in Phase 4.
+ * End-of-article share row: social intent links plus copy/native-share buttons.
  */
 import Button from '@/components/ui/Button.astro';
 import { cn } from '@/lib/cn';
@@ -31,6 +30,7 @@ const links = [
 ---
 
 <aside
+  data-share-bar
   class={cn(
     'mx-auto mt-10 flex max-w-[720px] flex-col items-center gap-3 border-t border-line px-6 pt-8 sm:flex-row sm:justify-between',
     className,
@@ -51,5 +51,32 @@ const links = [
         {link.label}
       </Button>
     ))}
+    <button
+      type="button"
+      data-share-copy
+      data-share-url={url}
+      data-share-title={title}
+      class="inline-flex items-center justify-center gap-2 rounded-pill border-[1.5px] border-eucalypt-600 bg-transparent px-5 py-2.5 text-[13px] font-semibold text-eucalypt-600 hover:bg-eucalypt-50"
+      aria-label="Copy link"
+    >
+      <span data-share-copy-label>Copy link</span>
+    </button>
+    <button
+      type="button"
+      data-share-native
+      data-share-title={title}
+      data-share-url={url}
+      hidden
+      class="inline-flex items-center justify-center gap-2 rounded-pill bg-transparent px-5 py-2.5 text-[13px] font-semibold text-bracken-500 hover:bg-bracken-50"
+      aria-label="Share"
+    >
+      Share
+    </button>
   </div>
+  <p data-share-status class="sr-only" aria-live="polite"></p>
 </aside>
+
+<script>
+  import { bindAllShareBars } from '@/lib/client/share';
+  bindAllShareBars();
+</script>

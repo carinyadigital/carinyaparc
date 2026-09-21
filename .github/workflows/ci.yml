@@ -51,7 +51,7 @@ jobs:
       - name: Build web
         run: pnpm turbo run build --filter=web
 
-      - name: Dist parity, links, and security
+      - name: Dist links and security
         run: pnpm --filter web test:dist
 
       - name: Validate content seeds

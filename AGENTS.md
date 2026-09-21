@@ -197,16 +197,16 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 
 ## Additional resources
 
-| Document                                 | Role                                              |
-| ---------------------------------------- | ------------------------------------------------- |
-| `docs/product/product.md`                | What and why                                      |
-| `docs/product/roadmap.md`                | When                                              |
+| Document                                 | Role                                                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| `docs/product/product.md`                | What and why                                                             |
+| `docs/product/roadmap.md`                | When                                                                     |
 | `docs/ARCHITECTURE.md`                   | How and where — architecture, routes, content contract; debt in §10 only |
-| `docs/PRINCIPLES.md`                     | Engineering rules                                 |
-| `docs/astro-migration/PLAN.md`           | Migration plan; Phase 7 is the cut-over checklist |
-| `docs/decisions/`                        | Architecture decision records                     |
-| `apps/web/README.md`                     | App-level commands and layout                     |
-| `apps/web/.env.example`                  | Every environment variable                        |
-| `brand/voice.md`, `brand/positioning.md` | How the site speaks                               |
+| `docs/PRINCIPLES.md`                     | Engineering rules                                                        |
+| `docs/astro-migration/PLAN.md`           | Migration plan; Phase 7 is the cut-over checklist                        |
+| `docs/decisions/`                        | Architecture decision records                                            |
+| `apps/web/README.md`                     | App-level commands and layout                                            |
+| `apps/web/.env.example`                  | Every environment variable                                               |
+| `brand/voice.md`, `brand/positioning.md` | How the site speaks                                                      |
 
 When adding or changing user-visible features, update the relevant doc in `docs/` alongside code changes. Track technical debt only in `docs/ARCHITECTURE.md` §10.

@@ -17,11 +17,11 @@ related:
 
 **When** work ships. Defines phased objectives, exit criteria, and milestones.
 
-| Doc                                            | Role                                    |
-| ---------------------------------------------- | --------------------------------------- |
-| [`product.md`](product.md)                     | What and why                            |
-| **This document**                              | When — sequencing and phase gates       |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md)        | How and where — architecture; current debt in §10 |
+| Doc                                     | Role                                              |
+| --------------------------------------- | ------------------------------------------------- |
+| [`product.md`](product.md)              | What and why                                      |
+| **This document**                       | When — sequencing and phase gates                 |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture; current debt in §10 |
 
 This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHITECTURE.md) §10. Stories and acceptance criteria are scoped when a phase starts.
 

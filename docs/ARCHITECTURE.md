@@ -23,13 +23,13 @@ related:
 
 **How** the Carinya Parc website is built and behaves — architecture, runtime, data model, integration boundaries — and **where** code, content and routes live.
 
-| Doc                                                             | Role                                                                |
-| --------------------------------------------------------------- | ------------------------------------------------------------------- |
-| [`product/product.md`](product/product.md)                      | What and why                                                        |
-| [`product/roadmap.md`](product/roadmap.md)                      | When                                                                |
-| **This document**                                               | How and where — plus risks, technical debt, and open questions (**§10 only**) |
-| [`PRINCIPLES.md`](PRINCIPLES.md)                                | Engineering rules                                                   |
-| [`astro-migration/PLAN.md`](astro-migration/PLAN.md)            | Cut-over plan; Phase 7 is the remaining checklist              |
+| Doc                                                  | Role                                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`product/product.md`](product/product.md)           | What and why                                                                  |
+| [`product/roadmap.md`](product/roadmap.md)           | When                                                                          |
+| **This document**                                    | How and where — plus risks, technical debt, and open questions (**§10 only**) |
+| [`PRINCIPLES.md`](PRINCIPLES.md)                     | Engineering rules                                                             |
+| [`astro-migration/PLAN.md`](astro-migration/PLAN.md) | Cut-over plan; Phase 7 is the remaining checklist                             |
 
 **Cut-over status.** Production still deploys from `apps/site` (Next.js + Payload) until Phase 7 of [`PLAN.md`](astro-migration/PLAN.md) points the Vercel project at `apps/web`. Everything below describes `apps/web`, which is the product from that point on.
 
@@ -165,26 +165,26 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 
 ### 4.2 Components
 
-| Block                     | Responsibility                                                                                      | Location                                                              |
-| ------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| **Collections**           | Six collections and their Zod schemas; `reference()` for author/category, `image()` for heroes      | `apps/web/src/content.config.ts`, `src/lib/content/schema.ts`         |
-| **Content queries**       | Published-only filtering, sorting, card shapes, archives with at least one post, upcoming events    | `src/lib/content/{posts,recipes,events,dates}.ts`                     |
-| **Pages**                 | One `.astro` file per route; `getStaticPaths` from the queries                                      | `src/pages/**`                                                        |
+| Block                     | Responsibility                                                                                                              | Location                                                              |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Collections**           | Six collections and their Zod schemas; `reference()` for author/category, `image()` for heroes                              | `apps/web/src/content.config.ts`, `src/lib/content/schema.ts`         |
+| **Content queries**       | Published-only filtering, sorting, card shapes, archives with at least one post, upcoming events                            | `src/lib/content/{posts,recipes,events,dates}.ts`                     |
+| **Pages**                 | One `.astro` file per route; `getStaticPaths` from the queries                                                              | `src/pages/**`                                                        |
 | **Layouts**               | `Base.astro` (head, metadata, Organization JSON-LD, consent island), `Site.astro` (header, `#stay` newsletter band, footer) | `src/layouts/`                                                        |
-| **UI primitives**         | Button, Eyebrow, Breadcrumb, JsonLd, MotifTile, form fields                                         | `src/components/ui/`                                                  |
-| **Sections and chrome**   | Hero, PageHeader, ImpactStats; header, footer; blog, recipes, marketing sections                    | `src/components/{sections,header,footer,blog,recipes,marketing}/`     |
-| **Islands**               | ContactForm, SubscribeForm/Modal/Inline/EndOfPost, EventSignup, ConsentGate                         | `src/components/islands/`, `src/components/consent/`                  |
-| **Endpoints**             | `prerender = false` routes delegating to handlers                                                   | `src/pages/api/`, `src/lib/api/`                                      |
-| **Validation**            | Zod schemas, sanitisation, spam-email list                                                          | `src/lib/validation/`                                                 |
-| **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                    | `src/lib/rate-limit.ts`                                               |
-| **Integrations**          | MailerLite client (subscribers, event groups), Resend notification email                            | `src/lib/mailerlite/`, `src/lib/email/`                               |
-| **Security policy**       | Header presets, CSP directives, `vercel.json` generator, Gone routes                                | `src/lib/security/`, `scripts/generate-vercel-json.ts`                |
-| **Build integrations**    | Merge headers and 410 routes into the Vercel output; make redirects accept a trailing slash         | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs` |
-| **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`        |
-| **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                              | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`           |
-| **Observability**         | Sentry capture and metric counters used by the handlers                                             | `src/lib/observability/metrics.ts`                                    |
-| **Feed**                  | RSS builder for `/feed.xml`                                                                         | `src/lib/blog/build-feed.ts`, `src/pages/feed.xml.ts`                 |
-| **Theme**                 | Design tokens consumed by `src/styles/globals.css`                                                  | `packages/carinya-theme`                                              |
+| **UI primitives**         | Button, Eyebrow, Breadcrumb, JsonLd, MotifTile, form fields                                                                 | `src/components/ui/`                                                  |
+| **Sections and chrome**   | Hero, PageHeader, ImpactStats; header, footer; blog, recipes, marketing sections                                            | `src/components/{sections,header,footer,blog,recipes,marketing}/`     |
+| **Islands**               | ContactForm, SubscribeForm/Modal/Inline/EndOfPost, EventSignup, ConsentGate                                                 | `src/components/islands/`, `src/components/consent/`                  |
+| **Endpoints**             | `prerender = false` routes delegating to handlers                                                                           | `src/pages/api/`, `src/lib/api/`                                      |
+| **Validation**            | Zod schemas, sanitisation, spam-email list                                                                                  | `src/lib/validation/`                                                 |
+| **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                            | `src/lib/rate-limit.ts`                                               |
+| **Integrations**          | MailerLite client (subscribers, event groups), Resend notification email                                                    | `src/lib/mailerlite/`, `src/lib/email/`                               |
+| **Security policy**       | Header presets, CSP directives, `vercel.json` generator, Gone routes                                                        | `src/lib/security/`, `scripts/generate-vercel-json.ts`                |
+| **Build integrations**    | Merge headers and 410 routes into the Vercel output; make redirects accept a trailing slash                                 | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs` |
+| **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization                         | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`        |
+| **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                                                      | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`           |
+| **Observability**         | Sentry capture and metric counters used by the handlers                                                                     | `src/lib/observability/metrics.ts`                                    |
+| **Feed**                  | RSS builder for `/feed.xml`                                                                                                 | `src/lib/blog/build-feed.ts`, `src/pages/feed.xml.ts`                 |
+| **Theme**                 | Design tokens consumed by `src/styles/globals.css`                                                                          | `packages/carinya-theme`                                              |
 
 ### 4.3 Repository layout
 
@@ -258,20 +258,20 @@ apps/web/
 
 Everything under `src/components/` is an `.astro` component unless it is an island.
 
-| Folder       | Holds                                                                                                                                                                                                                                                    |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ui/`        | Primitives: `Button`, `Breadcrumb`, `Eyebrow`, `JsonLd`, `MotifTile` (`.astro`) and the form primitives islands share (`Input`, `Select`, `Textarea`, `FormField`, `Alert`, `Button.tsx`)                                                                |
-| `sections/`  | Shared page chrome: `Hero`, `HeroText`, `PageHeader`, `PageIntro`, `ImpactStats`                                                                                                                                                                         |
-| `header/`    | `Header.astro` (mounts `SubscribeModalHost` with `client:idle`)                                                                                                                                                                                          |
-| `footer/`    | `Footer`, `FooterNav`, `SocialLinks`                                                                                                                                                                                                                     |
-| `blog/`      | Journal UI: `PostCard`, `FeaturedPosts`, `LatestPosts`, `PaginatedPosts`, `PaginationNav`, `BlogPostArticle`, `AuthorBlock`, `RelatedPosts`, `BlogTopicNav`, `JournalIntro`, `JournalPostGrid`, `JournalSubscribeBand`, `EndOfPostSubscribe`, `ShareBar` |
-| `recipes/`   | `RecipeCard`, `RecipeGrid`, `RecipeMeta`, `RecipeIngredients`, `RecipeInstructions`, `RecipeTags`                                                                                                                                                        |
+| Folder       | Holds                                                                                                                                                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ui/`        | Primitives: `Button`, `Breadcrumb`, `Eyebrow`, `JsonLd`, `MotifTile` (`.astro`) and the form primitives islands share (`Input`, `Select`, `Textarea`, `FormField`, `Alert`, `Button.tsx`)                                                                        |
+| `sections/`  | Shared page chrome: `Hero`, `HeroText`, `PageHeader`, `PageIntro`, `ImpactStats`                                                                                                                                                                                 |
+| `header/`    | `Header.astro` (mounts `SubscribeModalHost` with `client:idle`)                                                                                                                                                                                                  |
+| `footer/`    | `Footer`, `FooterNav`, `SocialLinks`                                                                                                                                                                                                                             |
+| `blog/`      | Journal UI: `PostCard`, `FeaturedPosts`, `LatestPosts`, `PaginatedPosts`, `PaginationNav`, `BlogPostArticle`, `AuthorBlock`, `RelatedPosts`, `BlogTopicNav`, `JournalIntro`, `JournalPostGrid`, `JournalSubscribeBand`, `EndOfPostSubscribe`, `ShareBar`         |
+| `recipes/`   | `RecipeCard`, `RecipeGrid`, `RecipeMeta`, `RecipeIngredients`, `RecipeInstructions`, `RecipeTags`                                                                                                                                                                |
 | `marketing/` | Sections for the marketing pages: `SectionWithImage`, `WaysToHelpSection`, `PartnersSection`, `GetInvolvedCTA`, `SubscribeSection`, `ContactFormSection`, `InlineSubscribeForm`, `NewsletterBand`, `EventCard`, `EventSignup`, `EventsEmptyState`, `Icon`, `Tag` |
-| `islands/`   | The only React components that ship to the browser: `ConsentGate`, `ContactForm`, `SubscribeForm`, `InlineSubscribe`, `EndOfPostSubscribe`, `SubscribeModal`, `SubscribeModalHost`, `EventSignup`                                                        |
-| `consent/`   | `ConsentBanner.tsx`, rendered by `ConsentGate`                                                                                                                                                                                                           |
-| `subscribe/` | `SubscribePrivacyNote.tsx`, shared by the subscribe islands                                                                                                                                                                                              |
-| `share/`     | `ShareBar.astro` (generic share strip)                                                                                                                                                                                                                   |
-| `analytics/` | `ArticleScrollDepth.astro` — binds `lib/client/scroll-depth` on pages that render an `<article>`                                                                                                                                                         |
+| `islands/`   | The only React components that ship to the browser: `ConsentGate`, `ContactForm`, `SubscribeForm`, `InlineSubscribe`, `EndOfPostSubscribe`, `SubscribeModal`, `SubscribeModalHost`, `EventSignup`                                                                |
+| `consent/`   | `ConsentBanner.tsx`, rendered by `ConsentGate`                                                                                                                                                                                                                   |
+| `subscribe/` | `SubscribePrivacyNote.tsx`, shared by the subscribe islands                                                                                                                                                                                                      |
+| `share/`     | `ShareBar.astro` (generic share strip)                                                                                                                                                                                                                           |
+| `analytics/` | `ArticleScrollDepth.astro` — binds `lib/client/scroll-depth` on pages that render an `<article>`                                                                                                                                                                 |
 
 An island is always wrapped by a small `.astro` component that owns the `client:*` directive (for example `marketing/ContactFormSection.astro` mounts `islands/ContactForm.tsx` with `client:visible`). Pages import the wrapper, never the island; only `Base.astro` (`ConsentGate`) and `Header.astro` (`SubscribeModalHost`) mount one directly.
 
@@ -670,7 +670,7 @@ Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from 
 | Layer         | What                                                                                                                                                                                  | Command                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                              | `pnpm --filter web test`                      |
-| Parity        | `dist/` against `docs/astro-migration/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                  | `pnpm --filter web test:parity` (after build) |
+| Parity        | `dist/` against `docs/astro-migration/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                               | `pnpm --filter web test:parity` (after build) |
 | Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and report-only CSP | `pnpm --filter web test:dist` (after build)   |
 | Typecheck     | `astro check`                                                                                                                                                                         | `pnpm --filter web typecheck`                 |
 
@@ -741,14 +741,14 @@ The steps that move production from `apps/site` to `apps/web` — re-export, poi
 
 Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern this architecture:
 
-| ID       | Decision                                                                                | Status                                                                                    |
-| -------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                       |
-| ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)             | Accepted 2026-09-21                                                                       |
-| —        | `content/` at the repository root rather than inside `apps/web`                         | Candidate; recorded in ADR-0001 consequences for now                                      |
-| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`          | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
-| —        | Event signups as MailerLite groups, no capacity counting                                | Candidate; open decision 1 in [`PLAN.md`](astro-migration/PLAN.md) §7, taken as the default |
-| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app          | Candidate; shipped in roadmap Phase 3                                                     |
+| ID       | Decision                                                                              | Status                                                                                      |
+| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                         |
+| ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)              | Accepted 2026-09-21                                                                         |
+| —        | `content/` at the repository root rather than inside `apps/web`                       | Candidate; recorded in ADR-0001 consequences for now                                        |
+| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`        | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic   |
+| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; open decision 1 in [`PLAN.md`](astro-migration/PLAN.md) §7, taken as the default |
+| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app        | Candidate; shipped in roadmap Phase 3                                                       |
 
 ---
 
@@ -756,13 +756,13 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 ### 10.1 Risks
 
-| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                                  |
-| ----------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                         |
-| CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch                      |
-| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                            |
-| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls          |
-| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in `PLAN.md` §3; optional git-backed editor (roadmap) |
+| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                         |
+| ----------------------------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------------------------- |
+| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                |
+| CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch             |
+| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                   |
+| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls |
+| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in `PLAN.md` §3; optional git-backed editor (roadmap)   |
 
 ### 10.2 Technical debt
 

@@ -12,12 +12,12 @@ The Carinya Parc website is the primary digital touchpoint for guests, partners,
 
 This document describes the product vision for Carinya Parc as expressed through the website, so that product, engineering, and AI agents can make consistent decisions.
 
-| Doc                                                           | Role                                              |
-| ------------------------------------------------------------- | ------------------------------------------------- |
-| **This document**                                             | What and why — vision, scope, features, non-goals |
-| [`product/roadmap.md`](roadmap.md)                            | When — phased delivery                            |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md)                       | How and where — architecture, routes, content; debt in §10 only |
-| [`PRINCIPLES.md`](../PRINCIPLES.md)                           | Engineering rules                                 |
+| Doc                                     | Role                                                            |
+| --------------------------------------- | --------------------------------------------------------------- |
+| **This document**                       | What and why — vision, scope, features, non-goals               |
+| [`product/roadmap.md`](roadmap.md)      | When — phased delivery                                          |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture, routes, content; debt in §10 only |
+| [`PRINCIPLES.md`](../PRINCIPLES.md)     | Engineering rules                                               |
 
 ---
 

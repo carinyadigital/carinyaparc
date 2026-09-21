@@ -10,11 +10,11 @@ specs/{domain}/
 └── design.local.md      # Technical design for open work
 ```
 
-| Domain               | Status     | Notes                                                     |
-| -------------------- | ---------- | --------------------------------------------------------- |
-| [`blog/`](blog/)     | Open (ops) | MailerLite welcomes + GA4 funnels; reader surface shipped |
-| [`media/`](media/)   | Open       | Media library                                             |
-| [`site/`](site/)     | Open       | Remaining site hardening                                  |
+| Domain             | Status     | Notes                                                     |
+| ------------------ | ---------- | --------------------------------------------------------- |
+| [`blog/`](blog/)   | Open (ops) | MailerLite welcomes + GA4 funnels; reader surface shipped |
+| [`media/`](media/) | Open       | Media library                                             |
+| [`site/`](site/)   | Open       | Remaining site hardening                                  |
 
 Canonical product/architecture docs stay under `docs/`. Slack `#site` is
 standup, not intake.

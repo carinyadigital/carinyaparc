@@ -19,14 +19,7 @@ const DIST_ROOT = path.join(WEB_ROOT, 'dist');
 const DIST = existsSync(path.join(DIST_ROOT, 'client', 'index.html'))
   ? path.join(DIST_ROOT, 'client')
   : DIST_ROOT;
-const BASELINE = path.resolve(
-  WEB_ROOT,
-  '..',
-  '..',
-  'docs',
-  'astro-migration',
-  'baseline',
-);
+const BASELINE = path.resolve(WEB_ROOT, '..', '..', 'docs', 'astro-migration', 'baseline');
 
 interface Urls {
   base: string;

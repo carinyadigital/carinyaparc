@@ -57,6 +57,8 @@
         "src/**/*.tsx",
         "src/**/*.ts",
         "src/**/*.astro",
+        "tests/**/*.ts",
+        "vercel.json",
         "vitest.config.mjs",
         "vitest.config.ts",
         "vitest.setup.ts"

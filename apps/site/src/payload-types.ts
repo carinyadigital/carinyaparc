@@ -310,7 +310,7 @@ export interface Event {
    */
   isFull?: boolean | null;
   /**
-   * Optional external signup URL. Empty = use the on-site form.
+   * Optional external signup URL (must start with https:// or http://). Empty = use the on-site form.
    */
   signupTarget?: string | null;
   description: {

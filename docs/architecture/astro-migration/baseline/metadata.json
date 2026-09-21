@@ -1,0 +1,132 @@
+{
+  "capturedAt": "2026-09-21",
+  "commonHead": {
+    "theme-color": "#5F8575",
+    "robots": "index, follow",
+    "googlebot": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1",
+    "og:site_name": "Carinya Parc",
+    "og:locale": "en_AU",
+    "og:image:width": "1200",
+    "og:image:height": "630",
+    "twitter:card": "summary_large_image",
+    "twitter:site": "@carinyaparc",
+    "twitter:creator": "@carinyaparc"
+  },
+  "pages": {
+    "/": {
+      "status": 200,
+      "title": "Carinya Parc",
+      "description": "Carinya Parc - Regenerative farming and sustainable living",
+      "canonical": "https://carinyaparc.com.au/",
+      "ogType": "website",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "Restoring the land, nurturing the future",
+      "jsonLdTypes": ["Organization", "BreadcrumbList", "LocalBusiness"],
+      "mainWords": 360
+    },
+    "/blog/": {
+      "status": 200,
+      "title": "Blog | Carinya Parc",
+      "description": "Articles on regenerative farming, permaculture, and sustainable living practices from Carinya Parc.",
+      "canonical": "https://carinyaparc.com.au/blog/",
+      "ogType": "website",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "Field notes from a farm coming back to life",
+      "jsonLdTypes": ["Organization", "BreadcrumbList"],
+      "mainWords": 280
+    },
+    "/blog/masterchef-to-mud-boots/": {
+      "status": 200,
+      "title": "From MasterChef to Mud Boots - Blog - Carinya Parc | Carinya Parc",
+      "titleNormalised": "From MasterChef to Mud Boots - Blog - Carinya Parc",
+      "description": "Discover how professional culinary experience transforms our approach to growing produce, prioritising flavour, nutrition, and the deep connection between soil and plate.",
+      "canonical": "https://carinyaparc.com.au/blog/masterchef-to-mud-boots/",
+      "ogType": "article",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "From MasterChef to Mud Boots",
+      "jsonLdTypes": ["Organization", "BreadcrumbList", "Article"],
+      "articleJsonLd": {
+        "headline": "From MasterChef to Mud Boots",
+        "datePublished": "2025-01-20T00:00:00.000Z",
+        "articleSection": "Blog",
+        "keywords": "food, cooking, farming, culinary, flavour, nutrition",
+        "image": "https://carinyaparc.com.au/images/hero-home.jpg",
+        "author": "Person",
+        "publisher": "Organization",
+        "isPartOf": "Blog"
+      },
+      "mainWords": 874
+    },
+    "/recipes/slow-roasted-dexter-beef-with-root-vegetables/": {
+      "status": 200,
+      "title": "Slow-Roasted Dexter Beef with Root Vegetables - Recipe - Carinya Parc | Carinya Parc",
+      "titleNormalised": "Slow-Roasted Dexter Beef with Root Vegetables - Recipe - Carinya Parc",
+      "description": "Classic comfort food showcasing future Dexter beef\u2014dry-aged, grass-fed and paired with seasonal root veg.",
+      "canonical": "https://carinyaparc.com.au/recipes/slow-roasted-dexter-beef-with-root-vegetables/",
+      "ogType": "article",
+      "ogImage": null,
+      "h1": "Slow-Roasted Dexter Beef with Root Vegetables",
+      "jsonLdTypes": ["Organization", "BreadcrumbList", "Recipe"],
+      "recipeJsonLd": {
+        "prepTime": "PT20M",
+        "cookTime": "PT180M",
+        "totalTime": "PT200M",
+        "recipeYield": "4",
+        "recipeIngredientCount": 6,
+        "recipeInstructionsCount": 0
+      },
+      "mainWords": 153
+    },
+    "/get-involved/events/": {
+      "status": 200,
+      "title": "Events - Get Involved | Carinya Parc",
+      "description": "Upcoming planting days, workshops, and volunteer opportunities at Carinya Parc.",
+      "canonical": "https://carinyaparc.com.au/get-involved/events/",
+      "ogType": "website",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "Come get your hands dirty",
+      "jsonLdTypes": ["Organization", "BreadcrumbList"],
+      "mainWords": 51
+    },
+    "/blog/category/produce/": {
+      "status": 200,
+      "title": "Produce - Blog | Carinya Parc",
+      "descriptionPrefix": "Published stories in Produce from Carinya Parc",
+      "canonical": "https://carinyaparc.com.au/blog/category/produce/",
+      "ogType": "website",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "Produce",
+      "jsonLdTypes": ["Organization", "BreadcrumbList"],
+      "mainWords": 22,
+      "empty": true
+    },
+    "/blog/tag/beef/": {
+      "status": 200,
+      "title": "beef - Blog | Carinya Parc",
+      "descriptionPrefix": "Published stories tagged beef from Carinya Parc",
+      "canonical": "https://carinyaparc.com.au/blog/tag/beef/",
+      "ogType": "website",
+      "ogImage": "https://carinyaparc.com.au/images/hero-home.jpg",
+      "h1": "beef",
+      "jsonLdTypes": ["Organization", "BreadcrumbList"],
+      "mainWords": 21,
+      "empty": true
+    },
+    "/legal/privacy-policy/": {
+      "status": 404,
+      "note": "broken in production; target is 200"
+    },
+    "/blog/page/2/": {
+      "status": 404,
+      "note": "missing in production; target is 200"
+    },
+    "/feed.xml": {
+      "status": 200,
+      "title": "Carinya Parc Blog"
+    },
+    "/no-such-page/": {
+      "status": 404,
+      "title": "Carinya Parc"
+    }
+  }
+}

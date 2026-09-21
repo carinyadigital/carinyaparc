@@ -79,18 +79,18 @@ Endpoints use `export const prerender = false` with the Vercel adapter; everythi
 
 ### 2.3 Content model (Payload collections → collections)
 
-| Collection                                           | Fields                                                                                                                                                                | Target                                                                                                  |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `posts`                                              | title, slug, date, author→authors, category→categories, tags→tags[], featured, excerpt, description, image (path), body (Lexical), `_status`                          | `src/content/posts/{slug}.mdx`; body converted Lexical → Markdown; drafts get `draft: true`             |
-| `recipes`                                            | title, slug, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, tags, ingredients[{item}], instructions[{step}] | `src/content/recipes/{slug}.mdx`; ingredients and instructions as frontmatter arrays; body optional     |
-| `events`                                             | title, slug, startsAt, location, capacity, isFull, signupTarget, description (Lexical)                                                                                | `src/content/events/{slug}.mdx`; `capacity` dropped                                                     |
-| `authors`                                            | name, slug, imageUrl, bio                                                                                                                                             | `src/content/authors/{slug}.yaml` (`file()`/`glob()` loader); posts reference by `reference('authors')` |
-| `categories`                                         | name, slug, description                                                                                                                                               | `src/content/categories/{slug}.yaml`                                                                    |
-| `tags`                                               | name, slug                                                                                                                                                            | `src/data/tags.json` (slug → display name); post frontmatter carries tag slugs                          |
-| `users`, `event-registrations`, `payload-migrations` | admin/auth, signups                                                                                                                                                   | **not migrated** (registrations exported to CSV for the record)                                         |
-| legal (MDX)                                          | frontmatter-less MDX, metadata hard-coded in page                                                                                                                     | `src/content/legal/*.mdx` with title/description moved into frontmatter                                 |
+| Collection                                           | Fields                                                                                                                                                                | Target                                                                                          |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `posts`                                              | title, slug, date, author→authors, category→categories, tags→tags[], featured, excerpt, description, image (path), body (Lexical), `_status`                          | `content/posts/{slug}.mdx`; body converted Lexical → Markdown; drafts get `draft: true`         |
+| `recipes`                                            | title, slug, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, tags, ingredients[{item}], instructions[{step}] | `content/recipes/{slug}.mdx`; ingredients and instructions as frontmatter arrays; body optional |
+| `events`                                             | title, slug, startsAt, location, capacity, isFull, signupTarget, description (Lexical)                                                                                | `content/events/{slug}.mdx`; `capacity` dropped                                                 |
+| `authors`                                            | name, slug, imageUrl, bio                                                                                                                                             | `content/authors/{slug}.yaml` (`glob()` loader); posts reference by `reference('authors')`      |
+| `categories`                                         | name, slug, description                                                                                                                                               | `content/categories/{slug}.yaml`                                                                |
+| `tags`                                               | name, slug                                                                                                                                                            | `content/tags.json` (slug → display name); post frontmatter carries tag slugs                   |
+| `users`, `event-registrations`, `payload-migrations` | admin/auth, signups                                                                                                                                                   | **not migrated** (registrations exported to CSV for the record)                                 |
+| legal (MDX)                                          | frontmatter-less MDX, metadata hard-coded in page                                                                                                                     | `content/legal/*.mdx` with title/description moved into frontmatter                             |
 
-Images: `image`/`imageUrl` are public paths (`/images/*.jpg`, 15 files, 5.6 MB). The converter rewrites them to relative `src/assets/images/*` references so the `image()` schema helper and `<Image>` optimise them at build time (AVIF/WebP, sized). Motifs and favicons stay in `public/`.
+Images: `image`/`imageUrl` are public paths (`/images/*.jpg`, 15 files, 5.6 MB). The converter rewrites them to relative `content/images/*` references so the `image()` schema helper and `<Image>` optimise them at build time (AVIF/WebP, sized). Motifs, favicons and page photography that is not content stay in `apps/web/public/`.
 
 ### 2.4 What ports with little change
 
@@ -105,13 +105,21 @@ Images: `image`/`imageUrl` are public paths (`/images/*.jpg`, 15 files, 5.6 MB).
 ## 3. Target architecture
 
 ```text
+content/                    # the CMS — repository root, outside apps/, owned by content workflows
+├── posts/{slug}.mdx
+├── recipes/{slug}.mdx
+├── events/{slug}.mdx
+├── legal/{slug}.mdx
+├── authors/{slug}.yaml
+├── categories/{slug}.yaml
+├── tags.json               # slug → display name
+└── images/                 # hero images referenced from frontmatter; optimised at build
+
 apps/web (Astro 6)
 ├── astro.config.mjs        # mdx, react, sitemap, vercel adapter; trailingSlash 'always'
 ├── vercel.json             # security headers + CSP (generated from lib/security), redirects
 ├── src/
-│   ├── content.config.ts   # posts, recipes, events, authors, categories, legal
-│   ├── content/            # MDX + YAML — the CMS
-│   ├── assets/images/      # optimised at build
+│   ├── content.config.ts   # collections point at ../../content via the glob loader
 │   ├── layouts/            # Base.astro (html shell, head, fonts, consent island), Site.astro (header/footer)
 │   ├── components/         # .astro chrome, sections, cards, ui; islands/ for the three React forms
 │   ├── pages/              # routes mirror §2.1; pages/api/* are prerender=false endpoints
@@ -119,6 +127,8 @@ apps/web (Astro 6)
 │   └── styles/             # globals.css importing @carinya/theme
 └── tests/                  # vitest (unit) + build-output assertions on dist/
 ```
+
+MDX is for content people write — posts, recipes, events, legal — plus the small YAML/JSON data around it. Every page, layout and section is an `.astro` component, and marketing copy stays in components as it does today. Keeping `content/` at the repository root means content authors and agents never touch `apps/`, and branch protection or CODEOWNERS can be scoped by path.
 
 Rendering: `output: 'static'` with `@astrojs/vercel` so only `pages/api/*` become serverless functions. No middleware on public pages (they are CDN-served HTML); security headers come from `vercel.json`. CSP policy is unchanged in shape (host allowlist + `'unsafe-inline'` for scripts) — Astro inlines small scripts and cannot nonce prerendered pages either; `build.inlineStylesheets: 'auto'` is kept to the default and the style-src allowlist accommodates it.
 
@@ -141,7 +151,7 @@ featured: false
 excerpt: >-
   Lush green pasture in midwinter...
 description: Midwinter pasture recovery at Carinya Parc — ...
-image: ../../assets/images/highland-cattle-dam.jpg
+image: ../images/highland-cattle-dam.jpg
 imageAlt: Highland cattle beside the dam in winter light
 draft: false
 ---
@@ -161,10 +171,12 @@ Each phase ends with a PR to `main`; `apps/site` keeps deploying to production u
 
 ### Phase 0 — Freeze and baseline
 
-- Add `apps/site/scripts/export-payload.ts` (uses Payload local API; run once locally with `NEON_DATABASE_URL`) writing `content-export/{posts,recipes,events,authors,categories,tags,event-registrations}.json` including drafts and `_status`. Bodies exported both as Lexical JSON and as Markdown via `convertLexicalToMarkdown`.
-- Declare a content freeze in `/admin` from the export date; anything authored after must be re-exported.
-- Capture production baseline: full URL list from `/sitemap.xml`, per-URL `<title>`, meta description, canonical, JSON-LD, and status codes; Lighthouse for `/`, `/blog/`, one post, one recipe. Stored under `apps/web/tests/baseline/`.
-- Exit: export files committed (or attached to the PR), baseline captured.
+- `apps/site/scripts/export-payload.ts` (`pnpm --filter site export:payload`) uses the Payload local API with access control bypassed and writes `apps/site/content-export/` (gitignored — it holds drafts and registrant email addresses): one JSON file per collection with relationships resolved to slugs, rich text exported both as Lexical JSON and as Markdown via `convertLexicalToMarkdown`, a `manifest.json` with counts and the published slug list per collection, and `markdown/` side files for reading the conversion. Run once locally with `NEON_DATABASE_URL` and `PAYLOAD_SECRET` in `.env.local`.
+- Production baseline captured by hand (the production firewall answers scripted requests with 429) and committed to `docs/architecture/astro-migration/baseline/`: `urls.json` (the 80 sitemap paths plus non-sitemap routes and known-broken URLs), `metadata.json` (observed `<head>` and JSON-LD facts for representative URLs), `sitemap.xml`, and a `README.md` with findings.
+- Content decision: all ten posts and four recipes are imported as MDX in their current published state, so URLs and search presence carry over unchanged; editorial rewrites happen afterwards by PR.
+- Content freeze from the export date is declared in `apps/site/content/seeds/README.md`; anything authored in `/admin` afterwards is picked up by re-running the export at cut-over.
+- Lighthouse for `/`, `/blog/`, one post, one recipe is captured by hand from the Vercel or PageSpeed report and saved alongside the baseline.
+- Exit: export and baseline captured locally; `manifest.json` counts noted in the Phase 2 PR description.
 
 ### Phase 1 — Scaffold `apps/web`
 
@@ -177,11 +189,11 @@ Each phase ends with a PR to `main`; `apps/site` keeps deploying to production u
 
 ### Phase 2 — Content migration
 
-- `apps/web/scripts/convert-export.ts`: JSON → MDX/YAML per §2.3. Rewrites image paths, maps author/category IDs to slugs, converts ISO dates, marks Payload drafts `draft: true`, and writes `tags.json`.
-- Re-check the converted Markdown against the Lexical source for every post (small set — manual read-through is feasible). Fix by hand in the MDX, not the converter, once it is right for the common cases.
-- Move `content/legal/*.mdx` into the `legal` collection with frontmatter.
-- Move `public/images/*` to `src/assets/images/` (keep `404.jpg`, placeholders in `public/`).
-- Exit: `astro check` and `astro build` pass with all content; every published slug from the baseline URL list exists as an entry.
+- `apps/site/scripts/convert-export.ts` (`pnpm --filter site convert:export`) turns `content-export/` into the collections under the repository-root `content/`: authors and categories as YAML, posts and recipes as MDX with frontmatter matching `content.config.ts` (ingredients and instructions as structured arrays), legal pages copied from `apps/site/content/legal/` with title and description frontmatter, `content/tags.json` as the slug → display-name lookup, and the referenced hero images copied to `content/images/` with `image` rewritten to a relative path so Astro optimises them. The published version of each document is used; documents that exist only as drafts get `draft: true`, and unpublished edits on top of a published document are reported rather than written.
+- Body fidelity: the Markdown from `convertLexicalToMarkdown` needed one repair — the archive-era posts carried literal asterisks that Payload had escaped as `\*…\*`, restored to real emphasis by the converter. No body contains `<` or `{`, so nothing needed MDX escaping.
+- `imageAlt` is a placeholder derived from the filename (for example "Highland cattle dam"); replace with real descriptions by PR.
+- Verified: all six collections load under `astro build` with images and author references resolved, and every post and legal page renders through MDX (10 posts, 4 recipes, 1 author, 5 categories, 2 legal, 0 events).
+- Exit: content committed under `content/`; every published slug from the baseline exists as an entry.
 
 ### Phase 3 — Pages
 
@@ -228,8 +240,8 @@ Rollback at any point before step 4 is "set the Vercel root directory back to `a
 
 ## 5. Verification (what "parity" means)
 
-- **URL parity**: every URL from the production sitemap and the baseline crawl returns 200 in `dist/` (test reads `tests/baseline/urls.json`).
-- **Metadata parity**: `<title>`, `meta[name=description]`, `link[rel=canonical]`, OG image, and JSON-LD `@type` per URL equal the baseline, with a documented allow-list of intentional changes.
+- **URL parity**: every path in `docs/architecture/astro-migration/baseline/urls.json` returns 200 in `dist/`, except the intentionally removed empty archives (which must 404 and be absent from the generated sitemap) and the documented production fixes (`/legal/*`, `/blog/page/2/`) which must now be 200.
+- **Metadata parity**: for the representative URLs in `baseline/metadata.json`, `description`, `canonical`, `og:type`, `robots` and the set of JSON-LD `@type`s match, `title` matches after normalising production's doubled site suffix, and every page emits the common `<head>` set recorded there.
 - **Content parity**: each post's rendered text (whitespace-normalised) contains the same headings as the Lexical source; recipes have the same ingredient and step counts.
 - **Forms**: contact, subscribe, event signup succeed on preview against real Resend/MailerLite sandboxes.
 - **Quality gates**: `pnpm lint`, `typecheck`, `format:check`, `test`, `build` green in CI for `apps/web`.
@@ -263,7 +275,7 @@ Rollback at any point before step 4 is "set the Vercel root directory back to `a
 
 ## 8. Editorial workflow after migration
 
-- Authoring: agents (content-writer) and humans write MDX under `apps/web/src/content/` in a branch and open a PR. Schema validation and build run in CI; the Vercel preview URL is the draft preview (replaces Payload's `preview` and `_status: draft`).
+- Authoring: agents (content-writer) and humans write MDX under `content/` in a branch and open a PR. Schema validation and build run in CI; the Vercel preview URL is the draft preview (replaces Payload's `preview` and `_status: draft`).
 - Review: `content-seo-review` and a human reviewer on the PR. Branch protection on `main` requires a human approval — this is the "agent stages, human publishes" gate, enforced by GitHub rather than by Payload access control.
 - Publish: merge to `main` deploys. `draft: true` keeps an entry out of the build if it must live on `main` unpublished.
 - Roadmap consequences: Phase 1 items "on-demand revalidation", "media library", "site globals", and "scoped rich-text" are closed as not needed; "SEO controls per document" is delivered by frontmatter; "Stay information" and CI-runs-build carry forward. Phase 2 "production admin verified under CSP" is closed; shared rate limiting moves to the WAF rule.

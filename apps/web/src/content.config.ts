@@ -4,12 +4,18 @@ import { z } from 'astro/zod';
 
 import { ISO_8601_DURATION, RECIPE_DIFFICULTIES } from './lib/content/schema';
 
+/**
+ * Content lives at the repository root (`/content`), outside `apps/`, so writers and content
+ * agents never touch application code. Paths are relative to this app's root.
+ */
+const CONTENT_ROOT = '../../content';
+
 const isoDuration = z
   .string()
   .regex(ISO_8601_DURATION, 'Must be an ISO 8601 duration such as PT20M');
 
 const authors = defineCollection({
-  loader: glob({ base: './src/content/authors', pattern: '**/*.{yaml,yml}' }),
+  loader: glob({ base: `${CONTENT_ROOT}/authors`, pattern: '**/*.{yaml,yml}' }),
   schema: z.object({
     name: z.string().min(1),
     imageUrl: z.string().optional(),
@@ -18,7 +24,7 @@ const authors = defineCollection({
 });
 
 const categories = defineCollection({
-  loader: glob({ base: './src/content/categories', pattern: '**/*.{yaml,yml}' }),
+  loader: glob({ base: `${CONTENT_ROOT}/categories`, pattern: '**/*.{yaml,yml}' }),
   schema: z.object({
     name: z.string().min(1),
     description: z.string().optional(),
@@ -26,7 +32,7 @@ const categories = defineCollection({
 });
 
 const posts = defineCollection({
-  loader: glob({ base: './src/content/posts', pattern: '**/*.mdx' }),
+  loader: glob({ base: `${CONTENT_ROOT}/posts`, pattern: '**/*.mdx' }),
   schema: ({ image }) =>
     z.object({
       title: z.string().max(200),
@@ -44,7 +50,7 @@ const posts = defineCollection({
 });
 
 const recipes = defineCollection({
-  loader: glob({ base: './src/content/recipes', pattern: '**/*.mdx' }),
+  loader: glob({ base: `${CONTENT_ROOT}/recipes`, pattern: '**/*.mdx' }),
   schema: ({ image }) =>
     z.object({
       title: z.string().max(200),
@@ -67,7 +73,7 @@ const recipes = defineCollection({
 });
 
 const events = defineCollection({
-  loader: glob({ base: './src/content/events', pattern: '**/*.mdx' }),
+  loader: glob({ base: `${CONTENT_ROOT}/events`, pattern: '**/*.mdx' }),
   schema: z.object({
     title: z.string().max(200),
     startsAt: z.coerce.date(),
@@ -90,7 +96,7 @@ const events = defineCollection({
 });
 
 const legal = defineCollection({
-  loader: glob({ base: './src/content/legal', pattern: '**/*.mdx' }),
+  loader: glob({ base: `${CONTENT_ROOT}/legal`, pattern: '**/*.mdx' }),
   schema: z.object({
     title: z.string().min(1),
     description: z.string().min(1),

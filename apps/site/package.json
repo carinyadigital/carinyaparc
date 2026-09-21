@@ -27,7 +27,9 @@
     "payload": "payload",
     "test": "vitest run",
     "import:content-seeds": "tsx --env-file=.env.local scripts/import-content-seed.ts",
-    "import:content-seeds:validate": "tsx scripts/validate-content-seeds.ts"
+    "import:content-seeds:validate": "tsx scripts/validate-content-seeds.ts",
+    "export:payload": "tsx --env-file=.env.local scripts/export-payload.ts",
+    "convert:export": "tsx scripts/convert-export.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

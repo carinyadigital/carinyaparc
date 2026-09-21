@@ -18,6 +18,9 @@ node_modules
 /.next/
 /out/
 
+# astro
+.astro/
+
 # production
 /build
 

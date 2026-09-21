@@ -1,0 +1,46 @@
+---
+import Base from './Base.astro';
+import Header from '@/components/header/Header.astro';
+import Footer from '@/components/footer/Footer.astro';
+import { generatePageMetadata, type PageMetadata } from '@/lib/metadata';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  image?: string;
+  type?: 'website' | 'article';
+  overlay?: boolean;
+  showFooter?: boolean;
+  metadata?: PageMetadata;
+}
+
+const {
+  title,
+  description,
+  path,
+  image,
+  type = 'website',
+  overlay = false,
+  showFooter = true,
+  metadata: metadataOverride,
+} = Astro.props;
+
+const metadata =
+  metadataOverride ??
+  generatePageMetadata({
+    title,
+    description,
+    path,
+    image,
+    type,
+  });
+---
+
+<Base metadata={metadata}>
+  <Header overlay={overlay} currentPath={Astro.url.pathname} />
+  <main class="flex-1">
+    <slot />
+  </main>
+  {showFooter && <Footer />}
+</Base>

@@ -1,0 +1,94 @@
+---
+import FooterNav from './FooterNav.astro';
+import SocialLinks from './SocialLinks.astro';
+
+const navigation = {
+  sections: [
+    {
+      title: 'About',
+      items: [
+        { name: 'Our Story', href: '/about/' },
+        { name: 'Meet Jonno', href: '/about/jonathan/' },
+        { name: 'The Property', href: '/about/the-property/' },
+      ],
+    },
+    {
+      title: 'Explore',
+      items: [
+        { name: 'Regeneration Project', href: '/regenerate/' },
+        { name: 'Read Life on Pasture', href: '/blog/' },
+      ],
+    },
+    {
+      title: 'Connect',
+      items: [
+        { name: 'Contact Us', href: '/contact/' },
+        { name: 'Events', href: '/get-involved/events/' },
+        { name: 'Subscribe', href: '/subscribe/' },
+      ],
+    },
+  ],
+};
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-eucalypt-900 text-footer-foreground">
+  <div class="pt-[70px] pb-10">
+    <div class="mx-auto max-w-[1240px] px-6 sm:px-8 lg:px-14">
+      <div class="flex flex-col gap-8 xl:flex-row xl:justify-between">
+        <div class="space-y-5">
+          <h3 class="font-heading text-[22px] font-normal tracking-[0.3em] uppercase text-footer-brand">
+            Carinya&nbsp;Parc
+          </h3>
+          <p class="text-sm text-footer-muted max-w-xs">
+            A regenerative farm focused on restoring the land and sustainable agricultural
+            practices.
+          </p>
+          <p class="text-sm text-footer-muted max-w-xs">
+            <span>
+              Made with
+              <svg
+                class="inline-block h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+              </svg>
+              in Australia
+            </span>
+          </p>
+        </div>
+        <FooterNav sections={navigation.sections} />
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="mx-auto flex max-w-[1240px] flex-col gap-4 px-6 py-8 sm:px-8 lg:px-14 border-t border-eucalypt-800">
+      <div class="md:flex md:items-center md:justify-between">
+        <div class="md:flex md:items-center">
+          <p class="text-center text-sm text-footer-subtle md:text-left">
+            &copy; {currentYear} Carinya Parc. All rights reserved.
+          </p>
+          <div class="ml-0 mt-4 md:ml-6 md:mt-0 flex justify-center md:justify-start space-x-4 text-sm">
+            <a href="/legal/terms-of-service/" class="text-footer-subtle hover:text-wattle">
+              Terms
+            </a>
+            <a href="/legal/privacy-policy/" class="text-footer-subtle hover:text-wattle">
+              Privacy Policy
+            </a>
+          </div>
+        </div>
+        <SocialLinks />
+      </div>
+      <p class="text-center text-[13px] text-footer-subtle md:text-left">
+        Carinya Parc acknowledges the Traditional Owners and Custodians of Country across Australia.
+        We recognise their enduring connection to land, waterways and community. We pay our respects
+        to Elders past, present and emerging, and celebrate the enduring cultures, knowledge and
+        resilience of Aboriginal and Torres Strait Islander peoples.
+      </p>
+    </div>
+  </div>
+</footer>

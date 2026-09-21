@@ -1,0 +1,23 @@
+/* Site entry — @carinya/theme + site-specific CSS. */
+@import '@fontsource-variable/hanken-grotesk';
+@import '@fontsource/marcellus';
+@import '@carinya/theme';
+@plugin '@tailwindcss/typography';
+@import './components.css';
+
+:root {
+  --font-hanken: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-marcellus: 'Marcellus', Georgia, serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+  }
+}

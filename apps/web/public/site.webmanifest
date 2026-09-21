@@ -1,0 +1,38 @@
+{
+  "name": "Carinya Parc",
+  "short_name": "Carinya Parc",
+  "description": "Regenerative farming and sustainable living in The Branch, NSW",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5F8575",
+  "icons": [
+    {
+      "src": "/favicon/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "en-AU",
+  "orientation": "portrait-primary",
+  "categories": [
+    "regenerative agriculture",
+    "environment",
+    "sustainability",
+    "permaculture",
+    "syntropic agroforestry",
+    "regenerative farming",
+    "regenerative agriculture",
+    "environment",
+    "sustainability",
+    "permaculture",
+    "syntropic agroforestry"
+  ]
+}

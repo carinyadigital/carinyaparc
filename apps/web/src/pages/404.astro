@@ -1,0 +1,48 @@
+---
+import Site from '@/layouts/Site.astro';
+---
+
+<Site
+  title="Page not found | Carinya Parc"
+  description="This track doesn't lead anywhere. Head back to Carinya Parc."
+  path="/404"
+  overlay
+  showFooter={false}
+>
+  <section class="relative isolate flex min-h-screen items-center bg-eucalypt-900">
+    <img
+      src="/images/farm-track-gate.jpg"
+      alt=""
+      class="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+    />
+    <div
+      aria-hidden="true"
+      class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(18,38,26,0.86)_0%,rgba(18,38,26,0.66)_46%,rgba(18,38,26,0.40)_100%)]"
+    ></div>
+
+    <div class="relative z-10 mx-auto w-full max-w-[1240px] px-6 pb-20 pt-[120px] lg:px-14">
+      <div class="max-w-[640px]">
+        <p
+          aria-hidden="true"
+          class="font-heading text-[120px] font-normal leading-[0.9] text-wattle sm:text-[170px]"
+        >
+          404
+        </p>
+        <p class="mt-2 text-[13px] font-semibold uppercase tracking-[0.24em] text-wattle">
+          Took a wrong turn
+        </p>
+        <h1 class="mt-4 max-w-[560px] text-balance font-heading text-[38px] font-normal leading-[1.06] text-fleece sm:text-[52px]">
+          This track doesn't lead anywhere
+        </h1>
+        <div class="mt-8 flex flex-wrap gap-3.5">
+          <a
+            href="/"
+            class="inline-flex items-center justify-center rounded-pill bg-bracken-500 px-7 py-3.5 text-[15px] font-semibold leading-none text-fleece hover:bg-bracken-600"
+          >
+            ← Back to home
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Site>

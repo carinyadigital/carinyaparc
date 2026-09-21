@@ -1,0 +1,10 @@
+# robots.txt for Carinya Parc Website
+# https://carinyaparc.com.au
+
+User-agent: *
+
+Allow: /
+
+Disallow: /api/
+
+Sitemap: https://carinyaparc.com.au/sitemap.xml

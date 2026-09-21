@@ -104,6 +104,7 @@ const recipeData: RecipeData = {
                 quality={80}
                 loading="eager"
                 fetchpriority="high"
+                decoding="sync"
                 class="h-full w-full object-cover"
               />
             ) : (
@@ -111,7 +112,9 @@ const recipeData: RecipeData = {
                 src={PLACEHOLDER_IMAGE}
                 alt=""
                 class="h-full w-full object-cover"
-                loading="lazy"
+                loading="eager"
+                fetchpriority="high"
+                decoding="sync"
               />
             )}
           </div>

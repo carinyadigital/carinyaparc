@@ -11,7 +11,10 @@ import { describe, expect, it } from 'vitest';
 import { GONE_PATH_PATTERNS } from '../src/lib/security/vercel-config';
 
 const WEB_ROOT = path.resolve(__dirname, '..');
-const DIST = path.join(WEB_ROOT, 'dist');
+const DIST_ROOT = path.join(WEB_ROOT, 'dist');
+const DIST = existsSync(path.join(DIST_ROOT, 'client', 'index.html'))
+  ? path.join(DIST_ROOT, 'client')
+  : DIST_ROOT;
 const VERCEL_CONFIG = path.join(WEB_ROOT, '.vercel/output/config.json');
 
 const built = existsSync(DIST);
@@ -93,7 +96,8 @@ function toPathname(url: string): string | null {
 }
 
 function distExists(pathname: string): boolean {
-  if (pathname === '/') return existsSync(path.join(DIST, 'index.html'));
+  if (pathname === '/' || pathname === '') return existsSync(path.join(DIST, 'index.html'));
+  if (pathname === '/404' || pathname === '/404/') return existsSync(path.join(DIST, '404.html'));
   const stripped = pathname.replace(/\/$/, '');
   const asFile = path.join(DIST, stripped);
   const asIndex = path.join(DIST, stripped, 'index.html');
@@ -193,12 +197,10 @@ describeIfBuilt('hero image loading', () => {
     { pathname: '/', label: 'home' },
     { pathname: '/about/', label: 'about' },
     { pathname: '/regenerate/', label: 'regenerate' },
+    { pathname: '/blog/', label: 'blog index' },
     { pathname: '/recipes/', label: 'recipes index' },
-    { pathname: '/blog/masterchef-to-mud-boots/', label: 'post' },
-    {
-      pathname: '/recipes/slow-roasted-dexter-beef-with-root-vegetables/',
-      label: 'recipe',
-    },
+    { pathname: '/blog/why-highland-cattle/', label: 'post' },
+    { pathname: '/recipes/winter-root-vegetable-stew/', label: 'recipe' },
   ];
 
   it.each(cases)('$label hero is eager with fetchpriority high and sizes', ({ pathname }) => {
@@ -207,6 +209,7 @@ describeIfBuilt('hero image loading', () => {
     const html = readFileSync(file, 'utf8');
     expect(html).toMatch(/fetchpriority=["']high["']/);
     expect(html).toMatch(/loading=["']eager["']/);
+    expect(html).toMatch(/decoding=["']sync["']/);
     expect(html).toMatch(/\ssizes=["'][^"']+["']/);
   });
 });

@@ -1,7 +1,7 @@
 version: 2
 updates:
-  # Single pnpm lockfile at the repo root. Groups split PRs: workspace (root +
-  # packages/*), site (apps/site), and shared deps that appear in both.
+  # Single pnpm lockfile at the repo root. Groups split PRs: workspace
+  # (root + packages/*) and remaining apps/web dependencies.
   - package-ecosystem: 'pnpm'
     directory: '/'
     schedule:
@@ -13,24 +13,20 @@ updates:
       - 'dependencies'
     open-pull-requests-limit: 8
     ignore:
-      # typescript-eslint does not support TS 7.0; site tsc still uses `baseUrl`.
+      # typescript-eslint does not support TS 7.0.
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
     groups:
-      # Declared in root/packages and in apps/site — bump every copy in one PR.
       shared:
         patterns:
           - 'eslint'
           - 'eslint-config-prettier'
           - 'prettier'
           - 'typescript'
-          - 'webpack'
-      # Root package.json and packages/* only (not a direct apps/site dependency).
       workspace:
         patterns:
           - 'turbo'
           - '@eslint/js'
-          - '@next/eslint-plugin-next'
           - 'eslint-plugin-only-warn'
           - 'eslint-plugin-react'
           - 'eslint-plugin-react-hooks'
@@ -46,8 +42,7 @@ updates:
           - 'path-to-regexp'
           - 'postcss'
           - 'toml'
-      # Remaining apps/site dependencies.
-      site:
+      web:
         patterns:
           - '*'
         exclude-patterns:
@@ -55,10 +50,8 @@ updates:
           - 'eslint-config-prettier'
           - 'prettier'
           - 'typescript'
-          - 'webpack'
           - 'turbo'
           - '@eslint/js'
-          - '@next/eslint-plugin-next'
           - 'eslint-plugin-only-warn'
           - 'eslint-plugin-react'
           - 'eslint-plugin-react-hooks'
@@ -78,7 +71,6 @@ updates:
       prefix: 'chore'
       include: 'scope'
 
-  # Enable version updates for GitHub Actions
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:

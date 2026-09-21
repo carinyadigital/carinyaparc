@@ -15,8 +15,8 @@ export type RateLimiter = {
 };
 
 /**
- * In-memory rate limiter. Same shape as the previous per-instance map:
- * durable abuse control is a WAF rule at cut-over, not this store.
+ * In-memory rate limiter keyed per function instance. Complements the
+ * Vercel WAF rate-limit rule on the form endpoints; it is not a shared store.
  */
 export function createRateLimiter(options: { maxRequests: number; windowMs: number }): RateLimiter {
   const map = new Map<string, RateLimitRecord>();

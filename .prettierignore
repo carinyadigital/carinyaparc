@@ -1,14 +1,12 @@
 # Content files
 content/
 
+# Historical Next.js app kept for reference; not a workspace package.
+apps/site/
+
 # Generated files
 public/
 coverage/
-apps/site/content-export/
-
-# Payload-generated files (emitted unformatted by `payload generate:*`)
-apps/site/src/payload-types.ts
-**/importMap.js
 
 # Build output
 .next/

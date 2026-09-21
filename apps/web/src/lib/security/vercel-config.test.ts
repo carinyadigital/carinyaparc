@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { CSP_REPORT_ONLY_UNTIL_CUTOVER, CSP_REPORT_URI } from './constants';
+import { CSP_REPORT_ONLY, CSP_REPORT_URI } from './constants';
 import {
   GONE_PATH_PATTERNS,
   generateVercelJson,
@@ -41,7 +41,7 @@ describe('generateVercelJson', () => {
     expect(headers['Permissions-Policy']).toContain('camera=()');
     expect(headers['X-Content-Type-Options']).toBe('nosniff');
 
-    const cspName = CSP_REPORT_ONLY_UNTIL_CUTOVER
+    const cspName = CSP_REPORT_ONLY
       ? 'Content-Security-Policy-Report-Only'
       : 'Content-Security-Policy';
     expect(headers[cspName]).toContain("default-src 'self'");

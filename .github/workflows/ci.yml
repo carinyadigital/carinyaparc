@@ -54,9 +54,6 @@ jobs:
       - name: Dist links and security
         run: pnpm --filter web test:dist
 
-      - name: Validate content seeds
-        run: pnpm --filter site import:content-seeds:validate
-
   preview:
     name: Preview
     if: github.event_name == 'pull_request'

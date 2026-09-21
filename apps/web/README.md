@@ -1,4 +1,4 @@
-# `apps/web` — Astro 6 public site
+# `apps/web` — Astro 7 public site
 
 Scaffold for the Astro + MDX replacement of `apps/site`. Production still deploys from `apps/site` until cut-over.
 

@@ -80,6 +80,8 @@ const breadcrumbs = [
   path={path}
   image={ogImagePath}
   type="article"
+  publishedTime={entry.data.date.toISOString()}
+  authors={[authorName]}
 >
   <JsonLd article={articleData} breadcrumbs={breadcrumbs} />
 

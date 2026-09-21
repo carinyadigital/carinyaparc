@@ -150,9 +150,10 @@ Carried forward: **Stay information** (Phase 4).
 
 - Dynamic social preview images per post and recipe, generated at build, or a documented fallback policy.
 - Verified local-business coordinates in `LOCAL_BUSINESS` (the current values are placeholders).
-- `article:published_time` and `article:author` Open Graph tags on posts.
 - Recipe tag archives if recipe tags are worth surfacing; otherwise leave them as labels.
 - Targeted accessibility items: skip-navigation link, an automated accessibility check in CI.
+
+`article:published_time` and `article:author` on post pages shipped ahead of this phase. Recipe pages do not emit them.
 
 **Quality gates:**
 

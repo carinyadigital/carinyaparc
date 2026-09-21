@@ -28,6 +28,8 @@ interface MetadataConfig {
   type?: 'website' | 'article';
   noIndex?: boolean;
   noFollow?: boolean;
+  publishedTime?: string;
+  authors?: readonly string[];
 }
 
 /**
@@ -43,6 +45,8 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
     type = 'website',
     noIndex = false,
     noFollow = false,
+    publishedTime,
+    authors,
   } = config;
 
   const title = pageTitle ? generateTitle(SITE_TITLE, pageTitle) : SITE_TITLE;
@@ -63,6 +67,8 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
       url: canonical,
       imageUrl,
       type,
+      publishedTime,
+      authors,
     }),
     twitter: generateTwitterCard({
       title,
@@ -90,6 +96,8 @@ export function generatePageMetadata({
   image,
   type = 'website',
   keywords = [],
+  publishedTime,
+  authors,
 }: {
   title: string;
   description: string;
@@ -97,6 +105,8 @@ export function generatePageMetadata({
   image?: string;
   type?: 'website' | 'article';
   keywords?: string[];
+  publishedTime?: string;
+  authors?: readonly string[];
 }): PageMetadata {
   const canonical = generateCanonicalUrl(BASE_URL, path);
   const imageUrl = image ? `${BASE_URL}${image}` : `${BASE_URL}${DEFAULT_OG_IMAGE}`;
@@ -114,6 +124,8 @@ export function generatePageMetadata({
       url: canonical,
       imageUrl,
       type,
+      publishedTime,
+      authors,
     }),
     twitter: generateTwitterCard({
       title,

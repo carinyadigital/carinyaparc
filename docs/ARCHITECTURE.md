@@ -348,7 +348,7 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`,
 
 ### 4.6 Layouts, trailing slashes, and how to add things
 
-**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `overlay` (transparent header over a hero), `showFooter` and `showNewsletter`. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`. Every page uses `Site`. Nothing uses `Base` directly.
+**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `publishedTime`, `authors`, `overlay` (transparent header over a hero), `showFooter` and `showNewsletter`. Blog posts pass `publishedTime` (ISO 8601) and `authors` (display names). `generateOpenGraph` keeps those fields only when `type` is `article`, and `Base.astro` renders them as `article:published_time` and `article:author`. Recipe pages stay `type="article"` without those fields. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`. Every page uses `Site`. Nothing uses `Base` directly.
 
 **Trailing slashes.** `trailingSlash: 'always'` means Astro dev and Vercel both redirect `/blog` to `/blog/`. Consequences:
 
@@ -769,7 +769,6 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 - **The retired Next.js app is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes in Phase 2.
 - **`turbo.json` still lists Payload-era variables** (`PAYLOAD_SECRET`, `NEON_DATABASE_URL`, `NEXT_PUBLIC_*`, `SESSION_SECRET`, `SECURITY_CSP_*`); prune with the retired app.
 - **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
-- **Not carried over from production**: `article:published_time` and `article:author` Open Graph tags on posts.
 - **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.
 
 ### 10.3 Open questions

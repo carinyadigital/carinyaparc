@@ -10,8 +10,6 @@ Website for [Carinya Parc](https://carinyaparc.com.au) — a regenerative farm i
 - **Tailwind CSS 4** with design tokens in `packages/carinya-theme`
 - **pnpm** + **Turborepo** monorepo, deployed on **Vercel** with generated security headers and CSP
 
-**Cut-over status:** production still deploys from the previous app in `apps/site` until the Vercel project is pointed at `apps/web`; remaining work is Phase 2 of [`docs/product/roadmap.md`](docs/product/roadmap.md).
-
 ## Documentation
 
 See [`docs/`](docs/) — architecture ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)), product (`docs/product/`) and decisions (`docs/decisions/`). Guidance for coding agents is in [`AGENTS.md`](AGENTS.md); the app's own notes are in [`apps/web/README.md`](apps/web/README.md).

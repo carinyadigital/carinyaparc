@@ -30,7 +30,7 @@ This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHIT
 
 The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Content is MDX in `content/`, reviewed and published through pull requests; the site is built by Astro and served from the Vercel CDN.
 
-This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. Revalidation, a media library, site globals, a rich-text toolbar and production admin verification are no longer needed because there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is the cut-over itself, then a short period of learning whether PR-based editing is enough for the editor.
+This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. Revalidation, a media library, site globals, a rich-text toolbar and production admin verification are no longer needed because there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is finishing Phase 2 (CSP, WAF, retiring the previous app), then a short period of learning whether PR-based editing is enough for the editor.
 
 Each phase unlocks the next without stacking risky changes.
 
@@ -38,7 +38,7 @@ Each phase unlocks the next without stacking risky changes.
 
 ## 2. Sequencing logic
 
-1. **Cut over first, then everything else.** Until the Vercel project points at `apps/web`, production is the old app and nothing new ships to visitors. The cut-over is small, reversible, and already rehearsed on previews.
+1. **Finish Phase 2, then everything else.** Production already serves from `apps/web`. Remaining Phase 2 work is CSP enforcement, the WAF rule, and deleting the retired app; that should close before new marketing pages land.
 2. **Editorial confidence before editorial tooling.** Publish through PRs for a few weeks before deciding whether a git-backed editor is worth adding. The gate (human approval on `main`) stays the same either way.
 3. **Marketing outcomes next.** Stay information, experiences and partner scaffolding address the guest pipeline from [`product.md`](product.md) and need no platform work.
 4. **Discoverability after the content settles.** Dynamic social images and verified local-business data are polish on stable content; RSS, recipe structured data, category and tag archives and per-document SEO already ship with the Astro build.
@@ -70,9 +70,9 @@ Carried forward: **Stay information** (Phase 4).
 
 ### Phase 2 — Cut-over
 
-**Objective:** Make `apps/web` the production site and retire `apps/site`.
+**Objective:** Finish production hardening on `apps/web` and retire the previous app.
 
-**In scope:** Final content re-export if anything changed after the freeze, Vercel root directory to `apps/web`, environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for `apps/site` and the seed-validation CI step.
+**In scope:** Environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for the retired Next.js app and the seed-validation CI step.
 
 **Quality gates:**
 
@@ -82,9 +82,9 @@ Carried forward: **Stay information** (Phase 4).
 
 **Exit criteria:**
 
-- [ ] Production serves from `apps/web`; rollback path documented and tested once on a preview.
+- [x] Production serves from `apps/web`; rollback path documented and tested once on a preview.
 - [ ] CSP enforced; WAF rule active on `/api/*`.
-- [ ] `apps/site`, its dependencies, `docker-compose.yml`, the seed pipeline and the Neon database are gone.
+- [ ] The retired Next.js app, its dependencies, `docker-compose.yml`, the seed pipeline and the Neon database are gone.
 - [ ] `turbo.json` and CI no longer reference Payload-era variables or steps.
 
 **Out of scope:** Any new page or content feature; editorial tooling.
@@ -176,9 +176,9 @@ Carried forward: **Stay information** (Phase 4).
 | CI green on every PR, hermetic build  | 1     | Internal only     | Done                                           |
 | RSS, recipe structured data, archives | 1     | Yes               | Done; ships with the Astro build               |
 | `@carinya/theme` in the monorepo      | 1     | No                | Done                                           |
-| Production serves from `apps/web`     | 2     | Yes               | The cut-over; legal pages and pagination fixed |
+| Production serves from `apps/web`     | 2     | Yes               | Done                                           |
 | CSP enforced, WAF rule live           | 2     | Internal only     | Durable abuse control                          |
-| `apps/site` deleted                   | 2     | No                | Repo has one app                               |
+| Retired Next.js app deleted           | 2     | No                | Repo has one app                               |
 | Owner publishes via PR unaided        | 3     | Internal only     | Templates and how-to                           |
 | Editor tooling decision               | 3     | No                | Optional git-backed editor                     |
 | Stay information pages live           | 4     | Yes               | Guest pipeline and pre-qualification           |

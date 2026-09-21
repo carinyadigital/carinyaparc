@@ -6,7 +6,7 @@ CSS-first Tailwind CSS 4 theme for Carinya Parc. Production token source of trut
 @import '@carinya/theme';
 ```
 
-Site-specific CSS (`@plugin` typography, component utilities, page overrides) stays in `apps/site`. Fonts load via `next/font` (`--font-hanken`, `--font-marcellus`); this package does not `@import` Google Fonts.
+Site-specific CSS (`@plugin` typography, component utilities, page overrides) stays in `apps/web`. Fonts load from `@fontsource-variable/hanken-grotesk` and `@fontsource/marcellus` in `apps/web/src/styles/globals.css`; this package does not `@import` Google Fonts.
 
 ## What this package owns
 
@@ -23,7 +23,7 @@ All brand tokens live in `css/tokens.css` as a single `@theme` block (plus `.dar
 | Spacing                                                        | Tailwind defaults | 4px grid: spacing `1` = 4px … `20` = 80px                                  |
 | Border width                                                   | Tailwind default  | 1px                                                                        |
 
-Do not copy tokens into `apps/site`. Do not keep a parallel vanilla `:root` sheet.
+Do not copy tokens into `apps/web`. Do not keep a parallel vanilla `:root` sheet.
 
 ## Type utilities
 

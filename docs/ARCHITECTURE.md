@@ -29,8 +29,6 @@ related:
 | **This document**                          | How and where — plus risks, technical debt, and open questions (**§10 only**) |
 | [`PRINCIPLES.md`](PRINCIPLES.md)           | Engineering rules                                                             |
 
-**Cut-over status.** Production still deploys from `apps/site` (Next.js + Payload) until the Vercel project is pointed at `apps/web`. Remaining work is Phase 2 of [`product/roadmap.md`](product/roadmap.md). Everything below describes `apps/web`, which is the product from that point on.
-
 ---
 
 ## 1. Context and scope
@@ -213,8 +211,6 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 ```
 
 `pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
-
-`apps/site` (the previous Next.js + Payload app) is still in the tree because production deploys from it until the Vercel project's root directory is switched to `apps/web`. It is excluded from the pnpm workspace and is not described here; remaining cut-over work is Phase 2 of [`product/roadmap.md`](product/roadmap.md).
 
 ### 4.4 `apps/web` layout
 
@@ -729,9 +725,9 @@ push / merge → Vercel build (root: apps/web)
 
 Rollout is trunk-based: merge to `main` is the production release, every pull request gets a preview. Rollback is redeploying the previous Vercel deployment. Content and code share one pipeline; there is no separate content release.
 
-### 8.4 Cut-over
+### 8.4 Remaining Phase 2 work
 
-Production still deploys from `apps/site`. Remaining work to make `apps/web` production: a final content re-export if anything changed after the freeze, point the Vercel root at `apps/web`, prune environment variables, enforce CSP, add a Vercel WAF rate-limit rule on `/api/*`, resubmit the sitemap, watch Sentry and Vercel logs for 48 hours, then delete `apps/site` and the seed-validation CI step. Sequencing is Phase 2 of [`product/roadmap.md`](product/roadmap.md).
+Production serves from `apps/web`. Remaining work: prune environment variables, enforce CSP, add a Vercel WAF rate-limit rule on `/api/*`, resubmit the sitemap, watch Sentry and Vercel logs for 48 hours, then delete the retired Next.js app and the seed-validation CI step. Sequencing is Phase 2 of [`product/roadmap.md`](product/roadmap.md).
 
 ---
 
@@ -770,8 +766,8 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 - **Mid-article inline subscribe was not ported.** Production split the post body at its midpoint to insert a form; MDX bodies render whole. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly.
 - **Placeholder `imageAlt` values.** Converted content carried filename-derived alt text; posts have been rewritten with real descriptions, but `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
 - **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
-- **`apps/site` is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes at cut-over.
-- **`turbo.json` still lists Payload-era variables** (`PAYLOAD_SECRET`, `NEON_DATABASE_URL`, `NEXT_PUBLIC_*`, `SESSION_SECRET`, `SECURITY_CSP_*`); prune with `apps/site`.
+- **The retired Next.js app is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes in Phase 2.
+- **`turbo.json` still lists Payload-era variables** (`PAYLOAD_SECRET`, `NEON_DATABASE_URL`, `NEXT_PUBLIC_*`, `SESSION_SECRET`, `SECURITY_CSP_*`); prune with the retired app.
 - **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
 - **Not carried over from production**: `article:published_time` and `article:author` Open Graph tags on posts.
 - **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.

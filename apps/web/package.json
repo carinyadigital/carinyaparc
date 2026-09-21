@@ -19,7 +19,7 @@
     "clean": "rm -rf dist .astro .vercel",
     "test": "vitest run",
     "test:parity": "vitest run tests/parity.test.ts",
-    "test:dist": "vitest run tests",
+    "test:dist": "vitest run tests/security.test.ts",
     "generate:vercel-json": "vite-node scripts/generate-vercel-json.ts"
   },
   "dependencies": {

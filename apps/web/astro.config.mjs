@@ -18,6 +18,8 @@ const sentryDsn = process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN;
 /**
  * Copy security headers and Gone routes from the generated vercel.json into
  * the adapter's Build Output config so they apply on Vercel.
+ *
+ * @returns {import('astro').AstroIntegration}
  */
 function vercelSecurityConfig() {
   return {

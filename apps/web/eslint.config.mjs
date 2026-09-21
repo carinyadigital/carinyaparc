@@ -13,6 +13,8 @@ const eslintConfig = [
         {
           allowList: [
             'NODE_ENV',
+            'DEV',
+            'PROD',
             'PUBLIC_SITE_URL',
             'PUBLIC_GTM_ID',
             'PUBLIC_SENTRY_DSN',

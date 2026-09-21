@@ -1,15 +1,18 @@
 ---
 type: Solution
 scope: carinyaparc-website
-version: '0.1'
+version: '0.2'
 owner: engineering
 status: Draft
-last_updated: 2026-08-17
+last_updated: 2026-09-21
 related:
   - docs/product/product.md
   - docs/architecture/principles.md
   - docs/architecture/structure.md
+  - docs/architecture/astro-migration.md
   - docs/product/roadmap.md
+  - docs/decisions/ADR-0001-astro-mdx-replaces-payload.md
+  - docs/decisions/ADR-0002-git-is-the-publish-gate.md
 ---
 
 # Solution — Carinya Parc website
@@ -24,6 +27,8 @@ related:
 | [`structure.md`](structure.md)                | Where — routes and folders                                          |
 | [`principles.md`](principles.md)              | Engineering rules                                                   |
 
+**Cut-over status.** Production still deploys from `apps/site` (Next.js + Payload) until Phase 7 of [`astro-migration.md`](astro-migration.md) points the Vercel project at `apps/web`. Everything below describes `apps/web`, which is the product from that point on.
+
 ---
 
 ## 1. Context and scope
@@ -31,60 +36,50 @@ related:
 ### 1.1 System context
 
 ```text
-                    ┌─────────────────────────────────────────┐
-                    │           External services              │
-                    │  Neon Postgres · MailerLite · Resend*   │
-                    │  Sentry · GTM · Vercel Analytics        │
-                    └───────────────┬─────────────────────────┘
-                                    │
-[Visitor / Editor]                  │ HTTPS
-       │                            │
-       v                            v
-┌──────────────┐            ┌───────────────────────────────┐
-│   Browser    │───────────>│  Carinya Parc website         │
-│  (public +   │            │  Next.js 16 + Payload CMS 3   │
-│   /admin)    │<───────────│  Vercel (production)          │
-└──────────────┘            └───────────────────────────────┘
-
-* Resend optional; contact/subscribe integrations vary by env.
+                          ┌────────────────────────────────────────────┐
+                          │ Downstream services (HTTPS)                │
+                          │  MailerLite  · Resend · Sentry             │
+                          │  Google Tag Manager · Vercel Analytics     │
+                          └───────▲───────────────▲────────────────────┘
+                                  │               │ consent-gated beacons
+        static HTML, CSS, images  │ server calls  │ (browser → GTM / Vercel)
+┌──────────────┐    HTTPS   ┌─────┴───────────────┴──────────────────────┐
+│   Visitor    │───────────>│ Vercel                                     │
+│   browser    │<───────────│  CDN: prerendered pages from apps/web      │
+└──────────────┘            │  Functions (on demand, prerender = false): │
+       ▲                    │   POST /api/contact/      → Resend         │
+       │ preview URL        │   POST /api/subscribe/    → MailerLite     │
+       │                    │   POST /api/events/signup/→ MailerLite grp │
+┌──────┴───────┐  PR merge  │   POST /api/csp-report/   → Sentry         │
+│ Author /     │───────────>│  Build: astro build from git (content/)    │
+│ reviewer     │  (GitHub)  └────────────────────────────────────────────┘
+└──────────────┘
+                     No database. Content is MDX and YAML in the repository.
 ```
 
 **Actors**
 
-- **Public visitor** — reads marketing pages, blog, recipes; submits contact or subscribe forms.
-- **Content editor** — authenticates to Payload admin; creates and publishes posts and recipes.
-- **Operator** — deploys via Vercel; manages secrets, database, and third-party API keys.
+- **Public visitor** — reads marketing pages, the blog, recipes and events; submits the contact, subscribe or event-signup forms.
+- **Author** — a person or a content agent who writes MDX under `content/` in a branch and opens a pull request.
+- **Reviewer** — a human who approves and merges the pull request. Merging is publishing.
+- **Operator** — manages the Vercel project, environment variables and third-party API keys.
 
 ### 1.2 System boundary
 
-**This system owns:**
+This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the four on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
 
-- Public marketing site (home, about, regenerate, contact flows, legal).
-- Blog and recipe surfaces backed by Payload collections in Postgres.
-- Embedded Payload admin at `/admin` and Payload REST/GraphQL API routes under `(payload)/`.
-- Legal pages compiled from MDX in `content/legal/`.
-- Public API routes: contact, subscribe, cookie consent, CSP violation reports.
-- Security middleware (`proxy.ts`): CSP with nonces, HSTS, security headers.
-- SEO metadata and JSON-LD generation for public routes.
-- Static assets in `public/` (photography, favicons, manifest).
+It does not own newsletter CRM logic beyond the MailerLite API, payments, booking or inventory, social media publishing, agronomic or property operations, or multi-property tenancy. There is no admin UI, no database and no authentication of any kind.
 
-**This system does not own:**
+**Upstream and downstream**
 
-- Email list CRM logic beyond API integration (MailerLite).
-- Payment, booking, or inventory systems.
-- Social media publishing or CDN beyond Vercel/Next image optimisation.
-- Agronomic or property operational systems.
-- Multi-property or multi-brand tenancy.
-
-**Upstream / downstream**
-
-| System                                | Relationship                                     |
-| ------------------------------------- | ------------------------------------------------ |
-| Neon Postgres                         | System of record for CMS content and admin users |
-| Vercel                                | Hosting, serverless execution, build pipeline    |
-| MailerLite                            | Downstream — newsletter subscriptions            |
-| Sentry                                | Downstream — error and performance telemetry     |
-| Google Tag Manager / Vercel Analytics | Downstream — usage analytics (consent-gated)     |
+| System                                | Relationship                                                                 |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| GitHub (`carinyadigital/carinyaparc`) | System of record for code and content; branch protection is the publish gate |
+| Vercel                                | Hosting, CDN, on-demand functions, image optimisation, preview per PR        |
+| MailerLite                            | Downstream — newsletter subscribers and one group per event for signups      |
+| Resend                                | Downstream — contact-form notification email                                 |
+| Sentry                                | Downstream — client and server errors, CSP violation reports                 |
+| Google Tag Manager / Vercel Analytics | Downstream — usage analytics and Speed Insights, loaded only after consent   |
 
 ---
 
@@ -92,21 +87,21 @@ related:
 
 Ordered by priority for architectural trade-offs.
 
-| Priority | Quality goal                         | Implication                                                                                                                 |
-| -------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| 1        | **Trust and security**               | Strict CSP, validated env secrets, sanitised form input, httpOnly cookies for session/consent; no secrets in client bundles |
-| 2        | **Editorial reliability**            | Payload as single source of truth for blog/recipes; draft/publish separation; preview URLs from admin                       |
-| 3        | **Performance on regional mobile**   | Server Components by default; static generation for content detail pages; optimised images; lean client JS                  |
-| 4        | **Maintainability for a small team** | Thin route files; shared `lib/` helpers; colocated tests for non-trivial logic; generated Payload types                     |
-| 5        | **Ownable content**                  | No dependency on third-party CMS for core narrative content; git-retained legal MDX                                         |
+| Priority | Quality goal                         | Implication                                                                                                                     |
+| -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | **Trust and security**               | Security headers and CSP on every response; Zod-validated input; no secrets in the client bundle; no admin surface to protect   |
+| 2        | **Hermetic builds**                  | `astro build` needs only the repository; CI builds every pull request without secrets; content validation fails the build early |
+| 3        | **Performance on regional mobile**   | Static HTML from the CDN; zero client JavaScript by default, React islands only for forms and consent; optimised images         |
+| 4        | **Editorial reliability**            | One content pipeline (MDX in git); drafts excluded from production; every change reviewed and previewed before it is live       |
+| 5        | **Maintainability for a small team** | Thin pages; content queries and integrations in `src/lib/`; colocated Vitest for logic; one place to change a schema            |
 
 **Constraints**
 
 - TypeScript strict mode; no `any` in new code ([`principles.md`](principles.md)).
-- Australian English for user-visible copy ([`product.md`](product.md)).
-- Single property, single editor today — RBAC and multi-tenant patterns deferred.
-- Build-time static generation currently queries Postgres (`generateStaticParams`) — CI and Vercel builds require database connectivity and secrets.
-- Monorepo shape today (`apps/site` + `packages/*`); the repo grows as a product monorepo (`packages/carinya-theme`, `brand/`, `skills/`). It is not flattened to a single app.
+- Australian English for user-visible copy ([`product.md`](../product/product.md)).
+- One property and, in practice, one editor. Roles, approvals beyond PR review, and multi-tenant patterns are out of scope.
+- Public pages are prerendered. Anything that needs a request (forms, reports) is an explicit on-demand endpoint under `src/pages/api/`.
+- Monorepo shape: `apps/web` plus `packages/carinya-theme`, `packages/eslint-config`, `packages/typescript-config`, with `content/`, `brand/` and `skills/` at the root. It is not flattened to a single app.
 
 ---
 
@@ -114,206 +109,218 @@ Ordered by priority for architectural trade-offs.
 
 ### 3.1 Architectural style
 
-**Embedded CMS monolith** — one Next.js application hosts both the public site and Payload CMS using the official embedded-app pattern. No separate CMS service or headless API consumer app.
+**Static site with islands, git as the CMS.** Astro 7 renders every public route to HTML at build time from `.astro` components and MDX content collections. React 19 islands hydrate only the contact, subscribe, event-signup and consent components. Four endpoints run as Vercel functions on demand. Content lives in `content/` at the repository root and is validated by Zod schemas in `apps/web/src/content.config.ts`; publishing is merging to `main`.
 
-**Trade-off:** Simplicity and operational surface area vs. independent scaling of CMS and web tiers. Acceptable for single-property traffic and one editorial user.
+The trade-off accepted is the loss of a browser editing UI. Vercel preview deployments and PR review replace draft preview and publish approval; see [ADR-0002](../decisions/ADR-0002-git-is-the-publish-gate.md).
 
 ### 3.2 Key decisions and trade-offs
 
-| Choice                                    | Satisfies                                              | Trade-off accepted                                             |
-| ----------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
-| Payload 3 + Postgres                      | Editorial reliability, structured recipes, drafts      | Operational dependency on Neon; build-time DB access           |
-| Server Components + cached Payload client | Performance, type safety                               | Client interactivity pushed to leaf components (forms, motion) |
-| SSG for blog/recipe `[slug]` routes       | Fast TTFB, CDN-friendly HTML                           | ISR `revalidate` + on-demand invalidation on publish           |
-| MDX for legal only                        | Git-reviewed legal text, no CMS scope creep            | Two content pipelines to document and test                     |
-| Text-path image fields (interim)          | Fast migration, static `public/` assets                | No media library, alt enforcement, or upload workflow yet      |
-| `map-content.ts` mapping layer            | Stable UI types decoupled from Payload shapes          | Extra indirection when schema changes                          |
-| Security via `proxy.ts` + CSP             | Trust goal                                             | Admin UI must be verified under production CSP                 |
-| Base UI + inline `src/components/ui/`     | No external primitive package; leaner dependency graph | Primitive API differs from Radix (`render` prop vs `asChild`)  |
+| Choice                                                 | Satisfies                                  | Trade-off accepted                                                                          |
+| ------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Astro + MDX content collections instead of Payload     | Hermetic builds, security, ownable content | No browser editor; content changes need a PR and a deploy                                   |
+| `content/` at the repository root                      | Authors and agents never touch `apps/`     | Collections reach out of the app (`CONTENT_ROOT = '../../content'`); path-scoped CODEOWNERS |
+| `output: 'static'`, endpoints opt out with `prerender` | Fast TTFB, CDN-served HTML                 | Anything dynamic must be an explicit endpoint or an island                                  |
+| React islands for forms and consent only               | Lean client JS                             | Two component flavours (`.astro` and `.tsx`) in one tree                                    |
+| Event signups as MailerLite groups                     | No database                                | No capacity counting; `isFull` is set by hand in frontmatter                                |
+| Security headers generated into `vercel.json`          | One source of truth, unit-tested policy    | CSP is host-allowlist + `'unsafe-inline'`; nonces are impossible on prerendered HTML        |
+| `@carinya/theme` workspace package                     | Tokens shared with future surfaces         | A second package to version alongside the app                                               |
+| Self-hosted fonts via fontsource                       | No third-party font hosts in CSP           | Fonts ship from our origin and count against page weight                                    |
 
 ### 3.3 Principles applied
 
-From [`principles.md`](principles.md): separation of concerns (data in server routes/`lib`, UI in `components/`), discrete metadata and JSON-LD helpers, env validation at build time, colocated Vitest for validation and Payload helpers.
+From [`principles.md`](principles.md): pages load data and sections render; content queries in `src/lib/content/` so draft filtering and sorting live in one place; metadata and JSON-LD as small composable helpers; validation at the boundary; colocated tests for logic that is not trivially a template.
 
 ---
 
 ## 4. Building block view
 
-### 4.1 Containers (C4 Level 2)
+### 4.1 Containers
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│ apps/site (Next.js 16 App Router)                                │
-│                                                                  │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
-│  │ Route groups│  │ Components  │  │ lib/                    │ │
-│  │ (www)(blog) │  │ sections/   │  │ payload/ metadata/      │ │
-│  │ (recipes)   │  │ forms/ ui/  │  │ schema/ security/       │ │
-│  │ (payload)   │  │ rich-text/  │  │ validation/ consent/    │ │
-│  └──────┬──────┘  └─────────────┘  └───────────┬─────────────┘ │
-│         │                                        │               │
-│  ┌──────v────────────────────────────────────────v─────────────┐ │
-│  │ Payload CMS (collections, access, Lexical, postgres adapter)│ │
-│  └──────────────────────────────┬──────────────────────────────┘ │
-│                                 │                                │
-│  ┌──────────────┐  ┌────────────v────────┐  ┌─────────────────┐ │
-│  │ content/     │  │ public/             │  │ proxy.ts        │ │
-│  │ legal MDX    │  │ static images       │  │ security layer  │ │
-│  └──────────────┘  └─────────────────────┘  └─────────────────┘ │
-└───────────────────────────────┬─────────────────────────────────┘
-                                │
-                    ┌───────────v──────────┐
-                    │ Neon Postgres        │
-                    └──────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│ Repository                                                           │
+│                                                                      │
+│  content/                       apps/web (Astro 7)                   │
+│  ├─ posts/*.mdx      ───────┐   ├─ astro.config.mjs                  │
+│  ├─ recipes/*.mdx           │   ├─ vercel.json (generated)           │
+│  ├─ events/*.mdx            ├──>├─ src/content.config.ts             │
+│  ├─ legal/*.mdx             │   ├─ src/pages/  (routes + api/)       │
+│  ├─ authors/*.yaml          │   ├─ src/layouts/ (Base, Site)         │
+│  ├─ categories/*.yaml       │   ├─ src/components/                   │
+│  ├─ tags.json               │   ├─ src/lib/                          │
+│  └─ images/          ───────┘   ├─ src/assets/images/ · public/      │
+│                                 ├─ integrations/ · scripts/          │
+│  packages/carinya-theme ───────>└─ tests/ (parity, security)         │
+│  packages/eslint-config, typescript-config                           │
+│  brand/ · skills/carinya-parc                                        │
+└──────────────────────────────────────────────────────────────────────┘
+                 │ astro build (Vercel adapter)
+                 v
+   dist/ static HTML + assets  ·  .vercel/output (functions, routes, headers)
 ```
 
-### 4.2 Components (selected Level 3)
+### 4.2 Components
 
-| Block                  | Responsibility                                             | Location                           |
-| ---------------------- | ---------------------------------------------------------- | ---------------------------------- |
-| **Query layer**        | Payload `find` / `findByID`; sort, depth, featured filters | `src/lib/payload/queries/`         |
-| **Content mapper**     | Payload document → list/detail DTOs for UI and metadata    | `src/lib/payload/map-content.ts`   |
-| **Payload client**     | Singleton `getPayload()` per request (`React.cache`)       | `src/lib/payload/client.ts`        |
-| **Payload cache**      | Cross-request `unstable_cache` wrappers and tag constants  | `src/lib/payload/cache.ts`         |
-| **Collections**        | Schema, access, drafts, admin columns                      | `src/collections/`                 |
-| **Rich text renderer** | Lexical JSON → React                                       | `src/components/rich-text/`        |
-| **Metadata composers** | Title, OG, canonical helpers                               | `src/lib/metadata/`                |
-| **Schema generators**  | Article, Recipe, Breadcrumb, LocalBusiness JSON-LD         | `src/lib/schema/`                  |
-| **Form APIs**          | Zod validation, sanitise, rate limit, upstream email APIs  | `src/app/api/contact`, `subscribe` |
-| **Access control**     | `publicReadPublished` hides drafts from anonymous reads    | `src/lib/payload/access.ts`        |
+| Block                     | Responsibility                                                                                      | Location                                                              |
+| ------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Collections**           | Six collections and their Zod schemas; `reference()` for author/category, `image()` for heroes      | `apps/web/src/content.config.ts`, `src/lib/content/schema.ts`         |
+| **Content queries**       | Published-only filtering, sorting, card shapes, archives with at least one post, upcoming events    | `src/lib/content/{posts,recipes,events,dates}.ts`                     |
+| **Pages**                 | One `.astro` file per route; `getStaticPaths` from the queries                                      | `src/pages/**`                                                        |
+| **Layouts**               | `Base.astro` (head, metadata, Organization JSON-LD, consent island), `Site.astro` (header/footer)   | `src/layouts/`                                                        |
+| **UI primitives**         | Button, Eyebrow, Breadcrumb, JsonLd, MotifTile, form fields                                         | `src/components/ui/`                                                  |
+| **Sections and chrome**   | Hero, PageHeader, ImpactStats; header, footer; blog, recipes, marketing sections                    | `src/components/{sections,header,footer,blog,recipes,marketing}/`     |
+| **Islands**               | ContactForm, SubscribeForm/Modal/Inline/EndOfPost, EventSignup, ConsentGate                         | `src/components/islands/`, `src/components/consent/`                  |
+| **Endpoints**             | `prerender = false` routes delegating to handlers                                                   | `src/pages/api/`, `src/lib/api/`                                      |
+| **Validation**            | Zod schemas, sanitisation, spam-email list                                                          | `src/lib/validation/`                                                 |
+| **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                    | `src/lib/rate-limit.ts`                                               |
+| **Integrations**          | MailerLite client (subscribers, event groups), Resend notification email                            | `src/lib/mailerlite/`, `src/lib/email/`                               |
+| **Security policy**       | Header presets, CSP directives, `vercel.json` generator, Gone routes                                | `src/lib/security/`, `scripts/generate-vercel-json.ts`                |
+| **Build integrations**    | Merge headers and 410 routes into the Vercel output; make redirects accept a trailing slash         | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs` |
+| **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`        |
+| **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                              | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`           |
+| **Observability**         | Sentry capture and metric counters used by the handlers                                             | `src/lib/observability/metrics.ts`                                    |
+| **Feed**                  | RSS builder for `/feed.xml`                                                                         | `src/lib/blog/build-feed.ts`, `src/pages/feed.xml.ts`                 |
+| **Theme**                 | Design tokens consumed by `src/styles/globals.css`                                                  | `packages/carinya-theme`                                              |
 
 ### 4.3 Repository layout
 
-See [`structure.md`](structure.md) for the canonical directory map. Architectural rule: **`page.tsx` loads data; sections render; `lib/` holds side effects and integration.**
+See [`structure.md`](structure.md) for the directory map. Architectural rule: **pages load data through `src/lib/content/`; components render; `src/lib/` holds integrations and side effects; `content/` holds only content.**
 
 ---
 
 ## 5. Runtime view
 
-### 5.1 Public blog post request (SSG)
+### 5.1 Page build from content
 
 ```text
-CDN / Vercel edge
-  → serve pre-rendered or ISR-cached HTML for /blog/{slug}
-  → on-demand revalidation after Payload publish (path + cache tags)
-
-At build time (generateStaticParams + page render):
-  getBlogPostSlugs()
-    → getPayloadClient()
-    → payload.find({ collection: 'posts', ... })
-    → publicReadPublished access filter
-  getBlogPostBySlug(slug)
-    → payload.find with slug
-    → mapPayloadPostToDetail (if applicable)
-  generateMetadata + page
-    → RichText body, SchemaMarkup, Breadcrumb
+astro build
+  → content.config.ts loads the six collections from ../../content via glob()
+  → Zod schemas validate frontmatter; reference() resolves author and category;
+    image() registers hero files for optimisation (a bad entry fails the build)
+  → src/pages/blog/[slug].astro getStaticPaths()
+      → getPublishedPosts()  (draft: true excluded unless import.meta.env.DEV)
+  → render: Site layout → BlogPostArticle → MDX body, Article + Breadcrumb JSON-LD
+  → sitemap-index.xml, feed.xml, 404.html
+  → vercel adapter writes .vercel/output; integrations merge security headers,
+    410 routes and trailing-slash-tolerant redirects into config.json
 ```
 
-**Static behaviour:** Pages use ISR (`revalidate = 86400`) with on-demand `revalidatePath` and
-`revalidateTag` on CMS publish; see §7.4.
+Archive pages (`/blog/category/[slug]/`, `/blog/tag/[tag]/`, `/blog/page/[page]/`) are generated only for categories, tags and pages that have at least one published post.
 
-### 5.2 Editor publishes a post
+### 5.2 Publish via pull request
 
 ```text
-Editor → /admin → Payload admin UI
-  → authenticate via Payload Users collection (Payload session)
-  → edit Post (draft autosave every 120s)
-  → transition _status to published
-  → persisted to Postgres
-  → hooks.afterChange fires (same Node process)
-  → getPostRevalidationPaths({ doc, previousDoc, operation })
-  → getPayloadRevalidationTags({ collection, doc, previousDoc, operation })
-  → revalidatePaths([...]) → revalidatePath('/blog/{slug}/', 'page') for each path
-  → revalidatePayloadTags([...]) → revalidateTag('payload:posts', 'max'), revalidateTag('payload:post:{slug}', 'max')
-  → (Vercel) invalidates Full Route Cache and Data Cache entries for affected routes
-
-Next visitor GET /blog/{slug}/
-  → cache miss → Server Component runs
-  → getCachedBlogPostBySlug(slug) with publicReadPublished filter (unstable_cache miss → Neon)
-  → fresh HTML served (no redeploy required)
+Author (human or agent)
+  → branch; add or edit content/posts/{slug}.mdx (draft: true while unfinished)
+  → open PR → CI: lint, typecheck, format, tests, astro build, dist tests
+  → Vercel preview deployment = draft preview URL
+Reviewer
+  → reads the preview, reviews the diff, approves (branch protection requires it)
+  → merge to main → Vercel production build → CDN serves the new HTML
 ```
 
-Posts and recipes share the same pattern via `collections/hooks/revalidate-content.ts`. Post paths include `/blog/`, `/blog/{slug}/`, and `/` when the document is or was featured. Recipe paths include `/recipes/{slug}/` and `/recipes/` (index reserved for a future listing page). Slug changes revalidate both old and new detail paths; unpublish and delete revalidate detail and listing paths so the next request returns 404 or an updated listing.
+There is no revalidation step: every merge is a full build. A post that must sit on `main` unpublished keeps `draft: true`.
 
 ### 5.3 Contact form submission
 
 ```text
-Browser (client) → ContactFormSection (React Query mutation)
-  → POST /api/contact
-  → proxy.ts applies security headers (not API body logic)
-  → Zod schema validation
-  → honeypot check
-  → in-memory rate limit by email (per instance — to be replaced)
-  → sanitise fields (plain-Node strip/escape)
-  → send via configured mail integration
-  → JSON response
+Browser: ContactForm island (react-hook-form + Zod) → POST /api/contact/ (JSON)
+Function: handleContactPost
+  → CONTACT_FORM_ENABLE check (503 if disabled)
+  → Zod contactFormSchema (400 with field details)
+  → honeypot `website` filled → 200 with success message, counted as spam
+  → submissionTime < 2 s → same
+  → in-memory rate limit by email (3 per 24 h by default) → 429
+  → sanitise → Resend notification to CONTACT_EMAIL_RECIPIENT → 200
 ```
 
-### 5.4 Legal page request
+### 5.4 Event signup
 
 ```text
-GET /legal/{slug}
-  → MDX page module from content/legal/
-  → marketing layout (header/footer)
-  → no Payload query
+Browser: EventSignup island → POST /api/events/signup/ { eventSlug, name, email, ... }
+Function: handleEventSignupPost
+  → Zod → honeypot → timing → spam-email list → in-memory rate limit (5 per 24 h)
+  → getPublicEventBySlug (drafts count as missing → 404)
+  → event in the past → 400; event has signupTarget → 400 (external signup)
+  → event.isFull → 409 with a waitlist hint
+  → resolveEventGroupId(slug): find or create the MailerLite group named for the event
+  → upsert subscriber with source `event:{slug}` and that group → 200
 ```
 
-### 5.5 Security request path
+Subscribe (`/api/subscribe/`) is the same shape without the event lookup: one submission per email per day, then a MailerLite upsert with interests and source.
+
+### 5.5 Consent flow
 
 ```text
-Incoming request
-  → proxy.ts
-  → attach CSP (host allowlists + unsafe-inline for scripts; no script nonces)
-  → HSTS, X-Frame-Options, etc.
-  → NextResponse.next()
+Page loads with no analytics scripts in the HTML
+  → ConsentGate island (client:idle) reads cp_consent from document.cookie
+  → no cookie → ConsentBanner
+  → accepted → write cp_consent (Path=/, Max-Age 1 year, SameSite=Lax, Secure on https)
+             → inject GTM (PUBLIC_GTM_ID) and Vercel Analytics + Speed Insights
+  → rejected → nothing loads
+```
+
+The cookie is readable by client script by design; consent state is not sensitive and there is no server that needs to read it.
+
+### 5.6 CSP violation report
+
+```text
+Browser → POST /api/csp-report/ (report-uri; trailing slash so the POST is not redirected)
+Function: handleCspReportPost
+  → body ≤ 32 KB, JSON, legacy `csp-report` or Reporting API array
+  → keep reports whose document-uri is our origin or a *.vercel.app preview
+  → console.warn each, forward up to 10 per minute per instance to Sentry as warnings
+  → 204
 ```
 
 ---
 
-## 6. Data model and ubiquitous language
+## 6. Data model
 
-### 6.1 Core entities
+### 6.1 Collections
 
-| Entity         | Meaning                                                      | Storage                  |
-| -------------- | ------------------------------------------------------------ | ------------------------ |
-| **Post**       | Long-form blog article                                       | Payload `posts`          |
-| **Recipe**     | Structured cooking content with ingredients and instructions | Payload `recipes`        |
-| **Event**      | Planting day / workshop listing (draft/publish)              | Payload `events`         |
-| **Author**     | Byline identity for posts/recipes                            | Payload `authors`        |
-| **Category**   | Primary taxonomy for posts                                   | Payload `categories`     |
-| **Tag**        | Cross-cutting labels for posts and recipes                   | Payload `tags`           |
-| **User**       | Payload admin account                                        | Payload `users`          |
-| **Legal page** | Privacy policy, terms of service                             | MDX + frontmatter in git |
+All six are declared in `apps/web/src/content.config.ts` and loaded from `content/` with Astro's `glob()` loader. An entry's id is its filename without extension, so **slug uniqueness is filesystem uniqueness** and the public URL is derived from the filename.
+
+| Collection     | Files                       | Key fields                                                                                                                                                                                |
+| -------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **posts**      | `content/posts/*.mdx`       | title, date, author → authors, category → categories (optional), tags[], featured, excerpt, description, image, imageAlt, draft; MDX body                                                 |
+| **recipes**    | `content/recipes/*.mdx`     | title, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, imageAlt, tags[], ingredients[], instructions[], draft; optional MDX body |
+| **events**     | `content/events/*.mdx`      | title, startsAt, location, isFull, signupTarget (optional http(s) URL), draft                                                                                                             |
+| **legal**      | `content/legal/*.mdx`       | title, description; MDX body                                                                                                                                                              |
+| **authors**    | `content/authors/*.yaml`    | name, imageUrl, bio                                                                                                                                                                       |
+| **categories** | `content/categories/*.yaml` | name, description                                                                                                                                                                         |
+
+`content/tags.json` is a slug → display-name map, not a collection. A tag is any string in a post or recipe's `tags`; unknown slugs display as themselves.
 
 ### 6.2 Relationships
 
 ```text
-Post ──author──> Author
-Post ──category──> Category (optional)
-Post ──tags──> Tag[]
-
-Recipe ──author──> Author
-Recipe ──tags──> Tag[]
-
-User (standalone; auth only)
+Post ──author──> Author            Recipe ──author──> Author
+Post ──category──> Category (opt)  Recipe ──tags──> tag slugs (tags.json for names)
+Post ──tags──> tag slugs
+Event (standalone; signups live in MailerLite as a group named for the event slug)
+Legal (standalone)
 ```
 
 ### 6.3 Invariants
 
-- **Slug uniqueness** — enforced per collection; public URLs are `/blog/{slug}` and `/recipes/{slug}` (`lib/payload/urls.ts`).
-- **Published visibility** — anonymous Payload reads return only `_status: published` for posts, recipes, and events.
-- **Required publish date** — `date` on posts and recipes drives sort order and metadata.
-- **Draft safety** — authenticated admin sees drafts; public queries must never leak draft bodies (verify when changing access rules).
-- **Image paths (interim)** — `image` / `imageUrl` string fields reference paths under `public/`; not upload relations until Media collection lands.
+- **References resolve at build time.** `reference('authors')` and `reference('categories')` fail the build if the target file does not exist.
+- **Drafts.** `draft: true` (posts, recipes, events) excludes an entry from production builds, archives, the feed and the sitemap; `astro dev` shows drafts so they can be previewed. The event-signup endpoint treats a draft event as missing.
+- **Dates.** `date` on posts and recipes is required and drives ordering; `startsAt` on events decides whether an event is upcoming.
+- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. `imageAlt` is optional in the schema and falls back to the title.
+- **Recipes** must have at least one ingredient and one instruction; durations must match the ISO 8601 pattern in `src/lib/content/schema.ts`.
+- **Empty archives are not generated.** A category or tag with no published post has no page and no sitemap entry.
 
 ### 6.4 Glossary
 
-| Term                    | Definition                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------- |
-| **Lexical body**        | Rich text stored as JSON from `@payloadcms/richtext-lexical`                                  |
-| **Featured post**       | Boolean on Post; drives home page highlights                                                  |
-| **ISO duration**        | Recipe time fields stored as text (e.g. `PT20M`); formatted for display via `format-duration` |
-| **List item vs detail** | Mapper produces lighter shapes for cards/indexes vs full document for `[slug]` pages          |
+| Term                   | Definition                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| **Entry**              | One file in a collection; its id is the filename stem and the public slug            |
+| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)         |
+| **On-demand endpoint** | A `src/pages/api/*` route with `prerender = false`, deployed as a Vercel function    |
+| **Featured post**      | `featured: true`; drives home-page highlights                                        |
+| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`             |
+| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers |
 
 ---
 
@@ -321,73 +328,62 @@ User (standalone; auth only)
 
 ### 7.1 Security
 
-- **CSP:** Host-allowlist policy with `'unsafe-inline'` for scripts on the public static/ISR shell
-  (Next.js flight scripts have no per-request nonces). Vercel Toolbar hosts (`vercel.live`, Pusher)
-  are allowlisted. `'unsafe-eval'` only in development. Feature flags: `SECURITY_CSP_ENABLED`,
-  `SECURITY_CSP_REPORT_ONLY`.
-- **Rate limiting:** Contact and subscribe use in-process maps on each serverless instance (see §10).
-- **Cookies:** `cp_consent` — httpOnly analytics consent via `setConsent` server action. `cp_session` — httpOnly JWT helpers in `lib/session/` exist as a scaffold for future public-site auth; not read or set by any route today. Payload admin authenticates via Payload Users, not `cp_session`.
-- **Input validation:** Zod schemas in `lib/validation/`; contact/subscribe sanitisation without browser-only DOM libraries.
-- **Secrets:** `PAYLOAD_SECRET`, `NEON_DATABASE_URL`, API keys never exposed client-side; only `NEXT_PUBLIC_*` for browser-safe config.
+- **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
+- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. The header ships as `Content-Security-Policy-Report-Only` while `CSP_REPORT_ONLY_UNTIL_CUTOVER` is `true` in `src/lib/security/constants.ts`; cut-over flips it to enforced. Reports go to `/api/csp-report/`.
+- **Retired surfaces.** `/admin`, `/api/graphql` and `/api/graphql-playground` (and anything below them) return **410 Gone** from a CDN route; matching on-demand endpoints exist so local preview behaves the same.
+- **Rate limiting.** Each endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. Durable abuse control is a Vercel WAF rate-limit rule on `/api/*`, configured at cut-over (§10).
+- **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
+- **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
+- **Secrets.** `MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN` are server-only. Only `PUBLIC_*` variables reach the browser.
 
 ### 7.2 Observability
 
-- **Sentry** — client and server error capture; tunnel route at `/monitoring` (Sentry build config).
-- **Analytics** — GTM and Vercel Analytics loaded subject to consent cookie.
-- **Logging** — form rejections (honeypot, validation) at API layer; avoid logging PII or secrets.
+- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
+- **Vercel Analytics and Speed Insights** load only after consent, from the `ConsentGate` island.
+- **Logging.** Endpoints log rejection reasons and the email domain, never the address or message body.
 
 ### 7.3 Error handling
 
-- **Route level:** `global-error.tsx`, `not-found.tsx`.
-- **API routes:** Structured JSON errors; validation messages sanitised for client display.
-- **Proxy circuit breaker:** In-memory error window in `proxy.ts` to fail open on header generation failures.
+- **404** — `src/pages/404.astro`, served by Vercel for any unmatched path.
+- **410** — retired Payload paths (§7.1).
+- **Endpoints** — structured JSON `{ error }` with 400/404/409/429/500/503 as appropriate; a thrown error inside a handler is captured to Sentry and returns a generic 500.
+- **Build** — a schema error, a missing referenced file or a missing image fails `astro build`, which fails CI and the Vercel deployment; nothing partial ships.
 
 ### 7.4 Caching and content freshness
 
-- **Public layout:** Marketing, blog, and recipe route groups share a static root layout
-  (`site-static-shell`) that does not call `cookies()`, `headers()`, or `draftMode()`. Consent and
-  analytics load from a client island (`ConsentGate` → `GET /api/consent`) so the HTML shell can
-  be CDN-cached.
-- **ISR fallback:** Home, blog listing, blog detail, and recipe detail routes export
-  `revalidate = 86400` (24 hours). On-demand invalidation from Payload hooks is the primary
-  freshness mechanism; the interval is a safety net if tag or path revalidation fails.
-- **Payload cross-request cache:** Public page data goes through `unstable_cache` wrappers in
-  `lib/payload/cache.ts`, keyed per query (list filters, slug). Tags:
-  `payload:posts`, `payload:post:{slug}`, `payload:recipes`, `payload:recipe:{slug}`. Wrapper
-  `revalidate` matches the ISR fallback (`86400` seconds).
-- **Cache invalidation on publish:** Payload `afterChange` and `afterDelete` hooks call
-  `revalidatePath` and `revalidateTag` for affected collection and slug tags via
-  `lib/payload/revalidate.ts`. Tag failures are logged and do not block path revalidation.
-- **Request-scoped dedup:** `getPayloadClient()` remains wrapped in `React.cache` for per-request
-  memoisation within a single render.
-- **Image optimisation:** Next.js `minimumCacheTTL` one day in `next.config.mjs`.
+Every public page is static HTML on the Vercel CDN and changes only when a build runs. Freshness is therefore "last merge to `main`": there is no revalidation, no ISR and no cache tags to keep in sync. Images referenced from frontmatter are optimised at build by Astro (sharp) into hashed files; marketing photography in `src/assets/images/` is handled the same way; `public/` is served as-is. Function responses are not cached.
 
 ### 7.5 Metadata and structured data
 
-- Small composable functions in `lib/metadata/` per [`principles.md`](principles.md) §11.
-- JSON-LD types in `lib/schema/` (Article, Recipe, Breadcrumb, LocalBusiness, Organization).
+`src/lib/metadata/` composes title, description, canonical (always with a trailing slash), robots, Open Graph and Twitter tags; `Base.astro` renders them and the Organization JSON-LD on every page. `src/lib/schema/` builds Article, Recipe (with instructions and image), BreadcrumbList and LocalBusiness JSON-LD; page-level `<JsonLd>` emits them. `LOCAL_BUSINESS` in `src/lib/constants.ts` holds the address and coordinates. The sitemap comes from `@astrojs/sitemap` (`/sitemap-index.xml`, with `/sitemap.xml` redirected to it) and the feed from `@astrojs/rss` at `/feed.xml`.
 
 ### 7.6 Accessibility
 
-- Semantic HTML and meaningful `alt` on images per [`principles.md`](principles.md) §14.
+Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. No automated accessibility gate runs in CI yet; Lighthouse accessibility is compared against the baseline by hand ([`astro-migration.md`](astro-migration.md) §5).
 
 ### 7.7 Testing strategy
 
-- **Vitest** (Node env) for Payload mapping, collection config, recipe duration formatting.
-- **CI** (GitHub Actions) runs lint, typecheck, format check, and Vitest on every pull request.
-- API route integration tests and E2E are not in place (see §10).
+| Layer         | What                                                                                                                                                                                  | Command                                       |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                              | `pnpm --filter web test`                      |
+| Parity        | `dist/` against `docs/architecture/astro-migration/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                  | `pnpm --filter web test:parity` (after build) |
+| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and report-only CSP | `pnpm --filter web test:dist` (after build)   |
+| Typecheck     | `astro check`                                                                                                                                                                         | `pnpm --filter web typecheck`                 |
 
-### 7.8 Public HTTP API surface
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The parity and dist suites skip themselves when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
 
-Public route handlers (distinct from Payload's admin REST/GraphQL under `(payload)/`):
+### 7.8 Public HTTP surface
 
-| Route             | Method | Purpose                                              |
-| ----------------- | ------ | ---------------------------------------------------- |
-| `/api/contact`    | POST   | Contact form submission                              |
-| `/api/subscribe`  | POST   | Newsletter subscription                              |
-| `/api/csp-report` | POST   | CSP violation reports (logged + forwarded to Sentry) |
+| Route                                            | Method | Purpose                                         | Notes                                              |
+| ------------------------------------------------ | ------ | ----------------------------------------------- | -------------------------------------------------- |
+| `/api/contact/`                                  | POST   | Contact form → Resend notification              | GET returns 405                                    |
+| `/api/subscribe/`                                | POST   | Newsletter subscription → MailerLite subscriber | One submission per email per day                   |
+| `/api/events/signup/`                            | POST   | Event signup → MailerLite group for the event   | 404 draft/unknown, 400 past or external, 409 full  |
+| `/api/csp-report/`                               | POST   | CSP violation reports → Sentry                  | 204 for reports from other origins                 |
+| `/admin/**`, `/api/graphql*`                     | any    | Retired Payload surfaces                        | 410 Gone                                           |
+| `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
 
-Request and response shapes are defined by Zod schemas in `lib/validation/` and inline route handlers.
+Request and response shapes are the Zod schemas in `src/lib/validation/` and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash; ten retired blog slugs redirect (301) to their replacements per `astro.config.mjs`.
 
 ---
 
@@ -395,59 +391,58 @@ Request and response shapes are defined by Zod schemas in `lib/validation/` and 
 
 ### 8.1 Topology
 
-| Environment    | Hosting                      | Database                                   | Notes                            |
-| -------------- | ---------------------------- | ------------------------------------------ | -------------------------------- |
-| **Local dev**  | `pnpm site:dev` (Turbopack)  | Docker Compose Postgres or Neon dev branch | `.env.local` from `.env.example` |
-| **Production** | Vercel project → `apps/site` | Neon pooled connection string              | Secrets in Vercel env            |
+| Environment    | How                                       | Data                           | Notes                                                        |
+| -------------- | ----------------------------------------- | ------------------------------ | ------------------------------------------------------------ |
+| **Local**      | `pnpm web:dev` (`astro dev`)              | `content/` in the working tree | Drafts visible; `.env` from `apps/web/.env.example`          |
+| **Preview**    | Vercel deployment per pull request        | The PR branch                  | CSP report-only; the draft preview for authors and reviewers |
+| **Production** | Vercel project, root directory `apps/web` | `main`                         | Secrets in Vercel environment variables                      |
 
-### 8.2 Build and release
+### 8.2 Configuration
+
+From `apps/web/.env.example`:
+
+| Variable                                                                                                         | Purpose                                                |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `PUBLIC_SITE_URL`                                                                                                | Canonical origin for metadata, JSON-LD and the sitemap |
+| `PUBLIC_GTM_ID`                                                                                                  | GTM container, injected after consent                  |
+| `PUBLIC_SENTRY_DSN`, `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`                           | Sentry; the integration is skipped when no DSN is set  |
+| `MAILERLITE_API_KEY`                                                                                             | Subscribe and event-signup endpoints                   |
+| `RESEND_API_KEY`, `CONTACT_EMAIL_RECIPIENT`, `CONTACT_EMAIL_FROM`                                                | Contact notification email                             |
+| `CONTACT_FORM_ENABLE`, `CONTACT_FORM_RATE_LIMITING`, `CONTACT_RATE_LIMIT_MAX`, `CONTACT_RATE_LIMIT_WINDOW_HOURS` | Contact endpoint switches                              |
+| `EVENT_SIGNUP_RATE_LIMITING`, `EVENT_SIGNUP_RATE_LIMIT_MAX`, `EVENT_SIGNUP_RATE_LIMIT_WINDOW_HOURS`              | Event-signup switches                                  |
+
+No variable is required to build. `turbo.json` lists the build-relevant variables so Turborepo's cache keys include them.
+
+### 8.3 Build and release
 
 ```text
-git push → Vercel build
-  → pnpm install (monorepo root)
-  → turbo build (site package)
-  → Next.js production build
-      → generateStaticParams queries Neon for all post/recipe slugs
-      → static HTML for public routes
-  → deploy serverless functions + static assets
+push / merge → Vercel build (root: apps/web)
+  → pnpm install (workspace)
+  → turbo run build --filter=web → astro build
+      → validate content, prerender pages, optimise images, write sitemap and feed
+      → Vercel adapter: static output + four functions
+      → integrations patch .vercel/output/config.json (headers, 410s, redirects)
+  → deploy
 ```
 
-**Implications:**
+Rollout is trunk-based: merge to `main` is the production release, every pull request gets a preview. Rollback is redeploying the previous Vercel deployment. Content and code share one pipeline; there is no separate content release.
 
-- Production and CI builds **must** reach Postgres with valid `NEON_DATABASE_URL` and `PAYLOAD_SECRET`.
-- Payload type generation: `pnpm generate:types` after collection schema changes; commit `payload-types.ts`.
+### 8.4 Cut-over
 
-### 8.3 Configuration surface
-
-Key env vars (non-exhaustive; see `apps/site/.env.example` and `turbo.json`):
-
-- `NEON_DATABASE_URL`, `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL`
-- `MAILERLITE_API_KEY`, `SESSION_SECRET`
-- `SECURITY_CSP_*`
-- Sentry and GTM public/private keys
-
-### 8.4 Rollout pattern
-
-- Trunk-based deploys to Vercel on merge to main (no blue/green today).
-- CMS publish triggers on-demand path and tag revalidation; redeploy is not required for public
-  content updates.
-- Schema migrations rely on Payload/Postgres adapter migrations (`payload-migrations` collection).
+The steps that move production from `apps/site` to `apps/web` — re-export, pointing the Vercel root at `apps/web`, pruning environment variables, enforcing CSP, adding the WAF rule, deleting `apps/site` — are Phase 7 of [`astro-migration.md`](astro-migration.md) and are not repeated here.
 
 ---
 
 ## 9. Architectural decisions
 
-Formal ADR files are not yet authored. Candidate decisions recorded here; bodies marked pending.
-
-| ID      | Decision                                                                     | Status                                                                                                                |
-| ------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| ADR-001 | Embed Payload in Next.js rather than standalone CMS                          | _(Not yet written)_ — reflects shipped state                                                                          |
-| ADR-002 | Postgres (Neon) as CMS database                                              | _(Not yet written)_                                                                                                   |
-| ADR-003 | Keep legal content in git MDX, not Payload                                   | _(Not yet written)_                                                                                                   |
-| ADR-004 | Static generation for blog/recipe detail at build time                       | _(Not yet written)_ — revisit when revalidation ships                                                                 |
-| ADR-005 | Interim text-path images instead of Media uploads                            | _(Not yet written)_ — time-bounded; supersede when Media lands                                                        |
-| ADR-006 | Inline UI components into `apps/site`; adopt Base UI + Sonner                | _(Not yet written)_ — `@repo/ui` removed from site dependencies; `packages/ui` deleted during flat-repo consolidation |
-| ADR-007 | Public CSP: host allowlists + `'unsafe-inline'` (not nonce/`strict-dynamic`) | _(Not yet written)_ — static/ISR shell cannot stamp script nonces; revisit if public routes go dynamic                |
+| ID       | Decision                                                                                | Status                                                                                    |
+| -------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ADR-0001 | [Astro + MDX replaces Payload CMS](../decisions/ADR-0001-astro-mdx-replaces-payload.md) | Accepted 2026-09-21                                                                       |
+| ADR-0002 | [Git is the publish gate](../decisions/ADR-0002-git-is-the-publish-gate.md)             | Accepted 2026-09-21                                                                       |
+| —        | `content/` at the repository root rather than inside `apps/web`                         | Candidate; recorded in ADR-0001 consequences for now                                      |
+| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`          | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
+| —        | Event signups as MailerLite groups, no capacity counting                                | Candidate; open decision 1 in `astro-migration.md` §7, taken as the default               |
+| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app          | Candidate; shipped in roadmap Phase 3                                                     |
 
 ---
 
@@ -455,63 +450,49 @@ Formal ADR files are not yet authored. Candidate decisions recorded here; bodies
 
 ### 10.1 Risks
 
-| Risk                                   | Likelihood | Impact | Mitigation direction                                                     |
-| -------------------------------------- | ---------- | ------ | ------------------------------------------------------------------------ |
-| Static content stale after CMS edit    | Low        | Medium | Payload hooks + `revalidatePath` / `revalidateTag`; ISR fallback `86400` |
-| Rate limit bypass on serverless        | Medium     | Medium | Shared KV/Redis store                                                    |
-| CSP breaks Payload admin in production | Medium     | High   | Verify prod-like build; admin CSP exception if required                  |
-| Build fails when DB unreachable        | Medium     | High   | CI secrets + Neon availability; optional build-time fallback policy      |
-| Draft leakage to public site           | Low        | High   | Access tests; smoke-test after schema changes                            |
+| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                                  |
+| ----------------------------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                         |
+| CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch                      |
+| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                            |
+| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls          |
+| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in `astro-migration.md` §3; optional git-backed editor (roadmap) |
 
 ### 10.2 Technical debt
 
-- CI does not run `pnpm build` (requires database connectivity and secrets); production build is only exercised by Vercel deploys.
-- In-memory rate limiting on contact and subscribe APIs (not reliable on serverless).
-- Archived MDX under `content/posts/` and `content/recipes/` (not runtime source).
-- Unused MDX dependencies in `package.json` (`gray-matter`, remark packages).
-- Category/tag archive pages not yet implemented (decorative filter UI removed; Categories and Tags collections exist but drive no public surface).
-- Public consent and analytics bootstrap via `GET /api/consent` and client `ConsentGate` (replaces
-  dynamic layout `cookies()` reads for GTM).
-- Unused `/api/media/file/**` rewrite without Media collection.
-- Import alias duplication (`@/*` vs `@/src/*`).
-- `lib/session/` scaffold (`cp_session`) — module present, not wired to routes.
-- Honeypot field named `website` on forms.
-- Placeholder `LOCAL_BUSINESS` geo coordinates in JSON-LD.
-- No skip-navigation link; no route-group error boundaries.
-- Text-path image fields (no Media collection or enforced alt text).
-- `posts.date` and `posts.featured` indexes declared in collection config but not yet applied to production DB — run `pnpm payload migrate:create` from `apps/site`, then deploy to materialise indexes (resolves Sentry WEBSITE-F performance regression).
-- Public CSP uses host allowlists + `'unsafe-inline'` for scripts because the static public shell
-  cannot apply per-request nonces to Next.js flight scripts. Nonce + `'strict-dynamic'` remains a
-  future option only if public routes become fully dynamic.
-- Site and `@repo/eslint-config` stay on TypeScript 6 (`~6.0.3`). TS 7 removes `baseUrl` and
-  typescript-eslint does not support 7.0; Dependabot ignores TypeScript majors until both are
-  unblocked. Root `package.json` already declares `~7.0.2` but is not the compiler used by the site.
+- **Rate limiting is in-memory per instance** until the WAF rule exists. `createRateLimiter` is honest about this; nothing durable backs it.
+- **CSP carries `'unsafe-inline'`** for scripts and styles. Prerendered HTML cannot nonce inline scripts; the policy relies on host allowlists. Report-only until cut-over.
+- **Events freshness is tied to deploys.** An event flips from upcoming to past only when the site rebuilds. `isFull` is set by hand.
+- **Mid-article inline subscribe was not ported.** Production split the post body at its midpoint to insert a form; MDX bodies render whole. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly.
+- **Placeholder `imageAlt` values.** Converted content carried filename-derived alt text; posts have been rewritten with real descriptions, but `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
+- **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
+- **`apps/site` is still in the tree** with its Payload, Next.js and seed dependencies, `docker-compose.yml`, the export and convert scripts, and the `import:content-seeds:validate` CI step. All of it goes in Phase 7.
+- **`turbo.json` still lists Payload-era variables** (`PAYLOAD_SECRET`, `NEON_DATABASE_URL`, `NEXT_PUBLIC_*`, `SESSION_SECRET`, `SECURITY_CSP_*`); prune with `apps/site`.
+- **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
+- **Not carried over from production**: `article:published_time` and `article:author` Open Graph tags on posts.
+- **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.
 
 ### 10.3 Open questions
 
-- **Revalidation strategy:** _Resolved._ Path-based on-demand revalidation plus `revalidateTag` for
-  Payload cache tags via `afterChange` and `afterDelete` hooks on `posts` and `recipes`
-  (`lib/payload/revalidate.ts`). Public content routes also export ISR `revalidate = 86400` as a
-  fallback. Globals revalidation deferred to the site globals epic.
-- **Rate limit store:** Vercel KV vs Upstash vs other?
-- **Media migration:** Backfill strategy for existing public-path images when upload collection is added?
-- **Globals scope:** Which marketing surfaces move to Payload Globals vs remain in code?
-- **Repo flatten timing:** _Superseded._ The monorepo grows (`@carinya/theme`, `brand/`, `skills/`); it is not collapsed to a single app. See [`product/roadmap.md`](../product/roadmap.md) Phase 3.
+- **Editorial tooling.** Is a PR-based workflow with previews enough for the editor, or is a git-backed editor (Decap, Keystatic, or GitHub's web editor with templates) worth adding? Decide after a month of publishing through PRs.
+- **Recipe tags.** Recipe-only tags have no archive page today; surface `/recipes/tag/` pages, or leave recipe tags as labels only.
+- **Dynamic social images.** Generate per-post OG images at build (Satori or similar) or keep the hero/home fallback.
+- **Event signup source of truth.** MailerLite groups hold the list; if a capacity or attendance record is ever needed it has to come from MailerLite exports.
 
-Mitigation timing is in [`product/roadmap.md`](product/roadmap.md). Do not track debt elsewhere in this doc set.
+Mitigation timing is in [`product/roadmap.md`](../product/roadmap.md). Do not track debt elsewhere in this doc set.
 
 ---
 
 ## 11. Graduation candidates
 
-Patterns that may lift to shared `architecture/patterns/` if a second product or domain adopts them.
+Patterns that may lift to a shared package if a second product or surface adopts them.
 
-| Pattern                                                                | Trigger for graduation                                        |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Cached Payload client wrapper** (`getPayloadClient` + `server-only`) | Second Next.js + Payload app in the portfolio                 |
-| **Public published access helper** (`publicReadPublished`)             | Reused across multiple Payload collections/projects           |
-| **Content mapper layer** (CMS DTO → UI types)                          | Second content type or second CMS backend                     |
-| **CSP proxy module** (static-compatible public policy)                 | Standard security baseline for all public Next.js apps in org |
-| **Metadata + JSON-LD composer split**                                  | Third site requiring the same SEO structure                   |
+| Pattern                                                                              | Trigger for graduation                                   |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| **Security policy generator** (`src/lib/security` → `vercel.json` + output merge)    | A second Astro or static site on Vercel in the portfolio |
+| **Content query layer** (`src/lib/content/` with draft filtering and card shapes)    | A second content site sharing the collection shapes      |
+| **Metadata + JSON-LD composer split**                                                | A third site requiring the same SEO structure            |
+| **Form endpoint pipeline** (Zod → honeypot → timing → limiter → sanitise → upstream) | Reused by another form-bearing site                      |
+| **Consent gate island**                                                              | Any other consent-gated analytics surface                |
 
-Until then, these remain conventions inside `apps/site` documented in [`structure.md`](structure.md) and [`AGENTS.md`](../../AGENTS.md).
+Until then, these remain conventions inside `apps/web` documented in [`structure.md`](structure.md) and [`AGENTS.md`](../../AGENTS.md).

@@ -1,7 +1,7 @@
 ---
 type: Migration plan
 scope: carinyaparc-website
-version: '0.1'
+version: '0.2'
 owner: engineering
 status: Draft
 last_updated: 2026-09-21
@@ -61,7 +61,7 @@ Astro with MDX removes all of that. Content is files, builds are hermetic, previ
 | `/sitemap.xml`                                     | `app/sitemap.ts`                                      | `@astrojs/sitemap`                                    |
 | `robots.txt`, `site.webmanifest`, favicons, motifs | `public/`                                             | `public/` (unchanged)                                 |
 | 404                                                | `not-found.tsx` + `404.jpg`                           | `src/pages/404.astro`                                 |
-| `/admin`, `/api/[...slug]`, `/api/graphql`         | Payload                                               | **removed** (404)                                     |
+| `/admin`, `/api/[...slug]`, `/api/graphql`         | Payload                                               | **removed** (410 Gone)                                |
 
 Config to preserve: `trailingSlash: true` → Astro `trailingSlash: 'always'` + `build.format: 'directory'`. Redirect `/favicon.ico` → `/favicon/favicon.ico`.
 
@@ -167,14 +167,14 @@ The Zod schema in `content.config.ts` is the new "collection config": required f
 
 ## 4. Phases
 
-Each phase ends with a PR to `main`; `apps/site` keeps deploying to production until Phase 7.
+Each phase ends with a PR to `main`. Phases 0–6 are done; `apps/site` keeps deploying to production until Phase 7.
 
 ### Phase 0 — Freeze and baseline
 
 - `apps/site/scripts/export-payload.ts` (`pnpm --filter site export:payload`) uses the Payload local API with access control bypassed and writes `apps/site/content-export/` (gitignored — it holds drafts and registrant email addresses): one JSON file per collection with relationships resolved to slugs, rich text exported both as Lexical JSON and as Markdown via `convertLexicalToMarkdown`, a `manifest.json` with counts and the published slug list per collection, and `markdown/` side files for reading the conversion. Run once locally with `NEON_DATABASE_URL` and `PAYLOAD_SECRET` in `.env.local`.
 - Production baseline captured by hand (the production firewall answers scripted requests with 429) and committed to `docs/architecture/astro-migration/baseline/`: `urls.json` (the 80 sitemap paths plus non-sitemap routes and known-broken URLs), `metadata.json` (observed `<head>` and JSON-LD facts for representative URLs), `sitemap.xml`, and a `README.md` with findings.
 - Content decision: all ten posts and four recipes are imported as MDX in their current published state, so URLs and search presence carry over unchanged; editorial rewrites happen afterwards by PR.
-- Content freeze from the export date is declared in `apps/site/content/seeds/README.md`; anything authored in `/admin` afterwards is picked up by re-running the export at cut-over.
+- Content freeze declared from the export date (21 September 2026); anything authored in the old admin afterwards is picked up by re-running the export at cut-over.
 - Lighthouse for `/`, `/blog/`, one post, one recipe is captured by hand from the Vercel or PageSpeed report and saved alongside the baseline.
 - Exit: export and baseline captured locally; `manifest.json` counts noted in the Phase 2 PR description.
 
@@ -213,29 +213,33 @@ Each phase ends with a PR to `main`; `apps/site` keeps deploying to production u
 - Mobile menu, share bar, scroll-depth as inline scripts.
 - Exit: all four forms submit successfully on a preview deployment; consent gating verified in the network panel.
 
-### Phase 5 — Security, SEO, and performance parity
+### Phase 5 — Security, SEO, and performance parity (done)
 
-- `vercel.json` headers generated from `lib/security` (HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy, CSP with the existing allowlist minus Next-specific hosts). CSP report-only first on preview, enforced at cut-over.
-- Redirects: `/favicon.ico`; `/admin` and `/api/graphql*` → 404 (or 410); trailing-slash normalisation.
-- Lighthouse and Core Web Vitals on preview vs baseline; image sizes and `loading`/`fetchpriority` on heroes.
-- Link check across `dist/` (no dangling internal links, all images resolve).
-- Exit: no P1 findings; CSP report-only shows no violations from the site's own pages.
+- Security headers are one policy in `apps/web/src/lib/security/` (HSTS two years with preload, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, `X-Content-Type-Options`, and the CSP with the Next-era hosts removed — fonts are self-hosted, so no Google Fonts hosts). `scripts/generate-vercel-json.ts` (`pnpm --filter web generate:vercel-json`) writes them to `apps/web/vercel.json`, and the `vercelSecurityConfig` integration in `astro.config.mjs` merges the same headers into `.vercel/output/config.json` as a `continue` route, so they apply even where the platform ignores `vercel.json` for adapter output.
+- CSP ships as `Content-Security-Policy-Report-Only` while `CSP_REPORT_ONLY_UNTIL_CUTOVER` is `true` (`src/lib/security/constants.ts`); the report URI is `/api/csp-report/` with the trailing slash because browsers do not follow redirects for report POSTs. `'unsafe-inline'` stays for scripts and styles: Astro inlines small scripts and stylesheets on prerendered pages and there is no request to nonce.
+- Retired Payload surfaces return **410 Gone**, not 404: `GONE_PATH_PATTERNS` (`/admin/**`, `/api/graphql/**`, `/api/graphql-playground/**`) become CDN routes in the Vercel output, and matching `prerender = false` endpoints under `src/pages/admin*` and `src/pages/api/graphql*` give the same answer in local preview.
+- Redirects in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`, `/sitemap.xml` → `/sitemap-index.xml`, and ten retired post slugs from the journal rewrite 301 to the nearest new piece (or `/blog/`). `integrations/vercel-redirect-trailing-slash.mjs` exists because `@astrojs/vercel` compiles a redirect for `/blog/old/` to the route `^/blog/old$`, which never matches the trailing-slash URL the site emits; the integration rewrites those sources to `^/blog/old/?$` after the build.
+- Heroes on the home, about, regenerate, blog index, recipes index, post and recipe pages render with `loading="eager"`, `fetchpriority="high"`, `decoding="sync"` and a `sizes` attribute.
+- `apps/web/tests/security.test.ts` (`pnpm --filter web test:dist`, after `astro build`, also run in CI) checks that every internal `href`, `src`, `srcset` and `og:image` resolves in `dist/`, that no first-party script, style or font loads from a host outside the CSP allowlist, the hero loading hints above, and that the Vercel output config carries the security headers, the 410 routes and the report-only CSP.
+- Lighthouse on the four sampled pages was compared against the baseline by hand from the preview; CSP report-only produced no violations from the site's own pages.
 
-### Phase 6 — Docs and cleanup (pre-cut-over)
+### Phase 6 — Docs and cleanup (done)
 
-- Rewrite `AGENTS.md`, `docs/architecture/structure.md`, `solution.md` (§3 strategy, §4 blocks, §5 runtime, §6 data model, §7.4 caching, §8 build, §10 debt), and `docs/product/roadmap.md` (Phase 1 CMS items become moot; see §8).
-- ADRs: `docs/decisions/ADR-0001-astro-mdx-replaces-payload.md` (this decision, with the rejected alternatives), `ADR-0002-git-is-the-publish-gate.md`.
-- Update `skills/carinya-parc` and any agent instructions that reference seeds or `/admin`.
-- Exit: docs describe `apps/web` as the product; no doc still instructs someone to run Payload.
+- `AGENTS.md`, `README.md`, `apps/web/README.md`, `docs/architecture/structure.md`, `principles.md` and `solution.md` describe `apps/web` as the product and `content/` as the CMS; `docs/product/roadmap.md` closes the Phase 1 CMS items and adds the cut-over and editorial-tooling phases.
+- `docs/decisions/ADR-0001-astro-mdx-replaces-payload.md` and `ADR-0002-git-is-the-publish-gate.md` record the decision and the publish gate.
+- `skills/carinya-parc/SKILL.md` points at `apps/web` paths and MDX content; the `apps/site/content/seeds` and `content/archive` READMEs say the pipeline is retired.
+- No document instructs anyone to run Payload, Postgres, Docker, `/admin`, seed JSON or `import:content-seeds`.
 
-### Phase 7 — Cut-over
+### Phase 7 — Cut-over (remaining)
 
-1. Final content re-export and convert if anything changed in `/admin` after the freeze; export `event-registrations` to CSV for the record.
-2. Vercel: point the project's root directory at `apps/web`, prune env vars (§2.5), enable CSP enforcement, add WAF rate-limit rule on `/api/*`.
-3. Deploy; verify the baseline URL list returns 200 with trailing slashes; submit sitemap in Search Console; watch Sentry and Vercel logs for 48 hours.
-4. Follow-up PR: delete `apps/site`, Payload/Next dependencies, `docker-compose.yml`, seed pipeline, `content/archive/`; drop the Neon database once registrations CSV is confirmed saved.
+1. Final content re-export and convert if anything changed in the old admin after the freeze; export `event-registrations` to CSV for the record.
+2. Vercel: point the project's root directory at `apps/web`; prune env vars (§2.5); confirm branch protection on `main` requires a human approval (ADR-0002).
+3. Enforce CSP: set `CSP_REPORT_ONLY_UNTIL_CUTOVER` to `false` in `apps/web/src/lib/security/constants.ts`, regenerate `vercel.json` (the unit test checks the committed file matches), and update the report-only expectation in `tests/security.test.ts`.
+4. Configure the Vercel WAF rate-limit rule on `/api/*` (the in-memory limiter in the endpoints is per instance and is not durable protection).
+5. Deploy; verify the baseline URL list returns 200 with trailing slashes and the retired paths return 410; submit the sitemap in Search Console; watch Sentry and Vercel logs for 48 hours.
+6. Follow-up PR: delete `apps/site` and its Payload/Next dependencies, `docker-compose.yml`, the seed pipeline and its README, `content/archive/`, the `site:*` root scripts and the `--filter=site` test filter; remove the "Validate content seeds" step from `.github/workflows/ci.yml`; prune the Payload-era variables from `turbo.json`; drop the Neon database once the registrations CSV is confirmed saved.
 
-Rollback at any point before step 4 is "set the Vercel root directory back to `apps/site`".
+Rollback at any point before step 6 is "set the Vercel root directory back to `apps/site`".
 
 ---
 

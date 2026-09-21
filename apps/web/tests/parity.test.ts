@@ -149,11 +149,20 @@ describeIfBuilt('URL parity', () => {
     const vercelConfig = path.join(WEB_ROOT, '.vercel', 'output', 'config.json');
     const routes = (
       JSON.parse(readFileSync(vercelConfig, 'utf8')) as {
-        routes: Array<{ src?: string; status?: number; headers?: Record<string, string> }>;
+        routes: Array<{
+          src?: string;
+          status?: number;
+          headers?: Record<string, string>;
+          continue?: boolean;
+        }>;
       }
     ).routes;
+    // Header-only routes (`continue: true`, e.g. the security headers) do not end matching.
     const firstMatch = (pathname: string) =>
-      routes.find((route) => typeof route.src === 'string' && new RegExp(route.src).test(pathname));
+      routes.find(
+        (route) =>
+          typeof route.src === 'string' && !route.continue && new RegExp(route.src).test(pathname),
+      );
 
     for (const [from, to] of Object.entries(urls.redirected.paths)) {
       expect(existsSync(distFile(to)), `${from} → ${to}`).toBe(true);

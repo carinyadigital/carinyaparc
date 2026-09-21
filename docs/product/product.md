@@ -15,7 +15,7 @@ This document describes the product vision for Carinya Parc as expressed through
 | Doc                                                           | Role                                              |
 | ------------------------------------------------------------- | ------------------------------------------------- |
 | **This document**                                             | What and why — vision, scope, features, non-goals |
-| [`product/roadmap.md`](product/roadmap.md)                    | When — phased delivery                            |
+| [`product/roadmap.md`](roadmap.md)                            | When — phased delivery                            |
 | [`architecture/solution.md`](../architecture/solution.md)     | How — architecture; risks and debt in §10 only    |
 | [`architecture/structure.md`](../architecture/structure.md)   | Where — routes and folders                        |
 | [`architecture/principles.md`](../architecture/principles.md) | Engineering rules                                 |
@@ -139,11 +139,11 @@ The website brings this value to life by:
 
 - **Blog**
   - Long-form narrative posts (e.g., restoring 42 ha of land, lessons from failure).
-  - Content managed in Payload CMS; edited via `/admin`.
+  - Written as MDX under `content/posts/` and published by merging a pull request.
 
 - **Recipes**
   - Farm-inspired recipes (e.g., herbed omelette with native greens, slow-roasted Dexter beef).
-  - Structured recipe data in Payload CMS with ingredients, instructions, and timing.
+  - Structured recipe data in MDX frontmatter (`content/recipes/`) with ingredients, instructions, and timing.
 
 - **Legal and trust**
   - Privacy policy and terms of service pages surfaced clearly (MDX in git).
@@ -236,7 +236,7 @@ These metrics should be reviewed regularly and adjusted as new offerings (e.g., 
 
 ### Constraints
 
-- **Time & capacity**: Owners have limited time to produce content; Payload admin should make it easy to publish long-form posts and recipes without touching code.
+- **Time & capacity**: Owners have limited time to produce content; publishing a post or recipe should be a matter of writing an MDX file and merging it, with agents able to draft in the same format.
 - **Connectivity**: Some guests may browse on mobile with average regional connectivity; pages must be lean and performant.
 - **Honest representation**: Marketing language must align with on-the-ground reality (seasonality, weather, work-in-progress areas).
 - **Regenerative values**: Decisions about features and content should reinforce transparency, care for land, and realistic expectations, not over-promising.

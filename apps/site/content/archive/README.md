@@ -1,9 +1,4 @@
-# Archived MDX content
+# Archived MDX content (retired)
 
-Legacy blog posts and recipes from the pre-Payload MDX pipeline. **Not runtime source**
-— live content is in Payload CMS (Neon Postgres).
-
-These files are kept for reference during migration and historical context. New content
-must use the seed JSON workflow at `content/seeds/`.
-
-Legal pages remain at `content/legal/` (still referenced where applicable).
+This archive and the pipeline behind it are retired by the Astro migration (`docs/architecture/astro-migration.md`); live content is authored as MDX under the repository-root `content/`.
+This directory is deleted with `apps/site` in Phase 7 of that plan.

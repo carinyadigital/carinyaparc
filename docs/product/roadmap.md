@@ -1,15 +1,16 @@
 ---
 type: Roadmap
 domain: carinya-parc-website
-version: '0.4'
+version: '0.5'
 owner: product
 status: Draft
-last_updated: 2026-08-13
-parent_product: docs/product.md
+last_updated: 2026-09-21
+parent_product: docs/product/product.md
 parent_roadmap: null
 related:
-  - docs/product.md
+  - docs/product/product.md
   - docs/architecture/solution.md
+  - docs/architecture/astro-migration.md
 ---
 
 # Roadmap — Carinya Parc website
@@ -18,7 +19,7 @@ related:
 
 | Doc                                            | Role                                    |
 | ---------------------------------------------- | --------------------------------------- |
-| [`product.md`](../product.md)                  | What and why                            |
+| [`product.md`](product.md)                     | What and why                            |
 | **This document**                              | When — sequencing and phase gates       |
 | [`solution.md`](../architecture/solution.md)   | How — architecture; current debt in §10 |
 | [`structure.md`](../architecture/structure.md) | Where — routes and folders              |
@@ -29,9 +30,9 @@ This document does not list technical debt — see [`solution.md`](../architectu
 
 ## 1. Roadmap intent
 
-The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Payload already powers blog and recipes; legal content stays in MDX.
+The website exists to build audience, pre-qualify guests, and publish stories and recipes that reflect life on the property. Content is MDX in `content/`, reviewed and published through pull requests; the site is built by Astro and served from the Vercel CDN ([`astro-migration.md`](../architecture/astro-migration.md)).
 
-This roadmap **prioritises marketing and content management** — editorial capability, Stay information, and editable site copy — so owners can grow the newsletter and guest pipeline without engineering for every change. **Production hardening is woven through the first two phases** (CI alongside CMS work; form protection and production verification once editorial foundations land), not front-loaded as a gate before any marketing value ships.
+This roadmap **prioritises marketing and content outcomes** — publishable posts, recipes and events; Stay information; honest, discoverable pages — so the owner can grow the newsletter and guest pipeline without engineering for every change. The migration removed the CMS work that used to sit in front of those outcomes: revalidation, a media library, site globals, a rich-text toolbar and production admin verification are no longer needed because there is no admin, no database and no cache to keep in sync. What remains in front of marketing work is the cut-over itself, then a short period of learning whether PR-based editing is enough for the editor.
 
 Each phase unlocks the next without stacking risky changes.
 
@@ -39,194 +40,187 @@ Each phase unlocks the next without stacking risky changes.
 
 ## 2. Sequencing logic
 
-1. **Marketing and editorial outcomes first** — Stay information, publishable posts and recipes with assets and SEO, and editable key site copy address guest pipeline, brand-building, and daily content work from [`product.md`](../product.md).
-2. **Production hardening woven in, not blocking content** — CI lands early so CMS and marketing changes merge safely; shared rate limits and production admin verification follow once editors are actively publishing.
-3. **Live editing before shared-package extraction** — Content changes must appear on the public site without redeploy. Prove the Payload + Next.js integration in production before growing `packages/`.
-4. **Editorial foundations before full page CMS** — Media, SEO, and site globals address daily editing without migrating every marketing page into Payload.
-5. **Grow the product monorepo after stability** — Extract `@carinya/theme` and colocate brand markdown and product-local skills once CMS behaviour is proven. Do not flatten to a single app.
-6. **Discoverability after the content model settles** — Syndication, social previews, and richer structured data depend on stable media and recipe fields.
+1. **Cut over first, then everything else.** Until the Vercel project points at `apps/web`, production is the old app and nothing new ships to visitors. The cut-over is small, reversible, and already rehearsed on previews.
+2. **Editorial confidence before editorial tooling.** Publish through PRs for a few weeks before deciding whether a git-backed editor is worth adding. The gate (human approval on `main`) stays the same either way.
+3. **Marketing outcomes next.** Stay information, experiences and partner scaffolding address the guest pipeline from [`product.md`](product.md) and need no platform work.
+4. **Discoverability after the content settles.** Dynamic social images and verified local-business data are polish on stable content; RSS, recipe structured data, category and tag archives and per-document SEO already ship with the Astro build.
+5. **Grow the monorepo only on demand.** `@carinya/theme`, `brand/` and `skills/carinya-parc` exist; nothing else is extracted until a second surface needs it.
 
 ---
 
 ## 3. Phases
 
-### Phase 1 — Marketing and content management
+### Phase 1 — Foundations (closed)
 
-**Objective:** Enable daily marketing and editorial work — publish stories and recipes, maintain key site copy, and present honest Stay information — with CMS changes visible on the public site without redeploy.
+**Objective:** Editorial capability, SEO controls and safe merges.
 
-**In scope:**
+What shipped, and how:
 
-- On-demand revalidation so Payload edits reach public blog and recipe pages without redeploy.
-- Media library with upload relationships, image sizes, and required alt text on posts, recipes, and authors.
-- SEO controls per document (meta title, description, social overrides) with sensible defaults from existing fields.
-- Scoped rich-text editing (essential formatting only — not a full embed toolbar).
-- Site globals for homepage hero, tagline, navigation labels, and footer copy, wired to the public site.
-- Structured recipe ingredients and richer recipe structured data; computed reading time on posts.
-- **Stay information** — accommodation, seasonality, what to expect, honest "what it's not", and a clear enquiry path (per [`product.md`](../product.md) near-future).
-- **Woven production hardening:** continuous integration on every pull request (lint, typecheck, test, build with database secrets available to build workers).
+- Continuous integration on every pull request — lint, typecheck, format check, tests, a full `apps/web` build and the dist checks — with no secrets required.
+- SEO controls per document — title, description, excerpt, hero image and alt text are frontmatter fields validated at build.
+- Recipe structured data with ingredients and instructions; reading-time meta on post cards.
+- Category and tag archives that filter correctly (generated only where at least one published post exists).
+- RSS feed at `/feed.xml`.
+- Draft content never appears on the public site: `draft: true` is excluded from production builds.
+- The product monorepo: `@carinya/theme` as a workspace package, `brand/` as the voice and positioning source, `skills/carinya-parc` for agent guidance (formerly its own phase).
+
+Closed as no longer needed by the migration: on-demand revalidation, media library, site globals, scoped rich-text toolbar, production admin verification under CSP, and a shared rate-limit store (replaced by a Vercel WAF rule, Phase 2).
+
+Carried forward: **Stay information** (Phase 4).
+
+---
+
+### Phase 2 — Cut-over
+
+**Objective:** Make `apps/web` the production site and retire `apps/site`.
+
+**In scope:** Phase 7 of [`astro-migration.md`](../architecture/astro-migration.md) — final content re-export if anything changed after the freeze, Vercel root directory to `apps/web`, environment variables pruned, CSP switched from report-only to enforced, Vercel WAF rate-limit rule on `/api/*`, sitemap resubmitted, 48 hours of watching Sentry and Vercel logs, then the deletion PR for `apps/site` and the seed-validation CI step.
 
 **Quality gates:**
 
-- A published edit in the admin appears on the corresponding public URL within five minutes.
-- Images uploaded in admin render on public pages with alt text.
-- Editors can adjust SEO metadata and routine homepage or navigation copy without code changes.
+- Every URL in the production baseline returns 200 (or the documented redirect or 410).
+- Contact, subscribe and event signup succeed against production MailerLite and Resend.
+- No CSP violations from the site's own pages in the first 48 hours of enforcement.
+
+**Exit criteria:**
+
+- [ ] Production serves from `apps/web`; rollback path documented and tested once on a preview.
+- [ ] CSP enforced; WAF rule active on `/api/*`.
+- [ ] `apps/site`, its dependencies, `docker-compose.yml`, the seed pipeline and the Neon database are gone.
+- [ ] `turbo.json` and CI no longer reference Payload-era variables or steps.
+
+**Out of scope:** Any new page or content feature; editorial tooling.
+
+---
+
+### Phase 3 — Editorial workflow and tooling
+
+**Objective:** Make publishing through pull requests routine for the owner, then decide whether a browser editor is needed.
+
+**In scope:**
+
+- Content templates for posts, recipes and events (frontmatter with every field, in the authoring contract from `astro-migration.md` §3), and a short how-to for the editor.
+- Real `imageAlt` on every entry; a schema rule or lint that flags placeholder alt text.
+- Path-scoped review: CODEOWNERS or branch rules so a content-only PR needs one human approval and no engineering review.
+- A scheduled production deploy if events or dated content go stale between merges.
+- Decision on an optional git-backed editor (Decap, Keystatic or GitHub's web editor) after at least a month of PR-based publishing; adopt only if it keeps `main` as the single publish gate.
+
+**Quality gates:**
+
+- The editor can publish a post from a template to production without engineering help.
+- Preview deployment is used as the draft review on every content PR.
+
+**Exit criteria:**
+
+- [ ] Templates and how-to merged; three posts published through the workflow by the owner.
+- [ ] No placeholder alt text in `content/`.
+- [ ] Editor tooling decision recorded (ADR or a note in `astro-migration.md` §8).
+
+**Entry condition:** Phase 2 exit criteria met.
+
+---
+
+### Phase 4 — Marketing pages
+
+**Objective:** Present honest Stay information and light scaffolding for experiences and partners, so the site pre-qualifies guests and points them to a clear enquiry path.
+
+**In scope:**
+
+- **Stay information** — accommodation, seasonality, what to expect, honest "what it's not", and an enquiry path (per [`product.md`](product.md) near-future).
+- Experiences and workshops, and partner or collaborator pages with honest placeholder or live copy and contact paths.
+- Mid-article subscribe as an MDX component authors place deliberately, if the end-of-post form proves insufficient.
+
+**Quality gates:**
+
 - Stay pages answer "Is this for me?" and "How do I enquire?" without misleading expectations.
-- Quality commands pass in CI on every merge to `main`.
+- New pages carry the common metadata set and pass the dist and parity checks.
 
 **Exit criteria:**
 
-- [ ] Blog and recipe updates propagate to the public site without redeploy.
-- [ ] All post, recipe, and author imagery uses the media library with required alt text.
-- [ ] SEO controls visible on posts and recipes.
-- [ ] Rich-text toolbar matches an agreed allow-list, documented in engineering structure docs.
-- [ ] Homepage hero, site tagline, and footer blurb editable via admin and rendered from CMS data.
-- [ ] Recipe structured data includes a structured ingredient list; post cards show computed reading time.
-- [ ] Stay information pages live with verified copy aligned to on-ground reality.
-- [ ] Draft content never appears on the public site (verified after any access changes).
-- [ ] CI runs lint, typecheck, test, and build on pull requests; build succeeds with production-equivalent database and CMS secrets.
+- [ ] Stay pages live with copy verified against on-ground reality.
+- [ ] Experiences and partner routes exist with clear contact paths.
 
-**Out of scope:** Full page CMS for about, contact, and regenerate routes; scheduled publishing; multi-user roles beyond basic admin/editor; legal MDX migration; site search; shared rate limiting; theme package extraction; RSS; dynamic social images.
+**Entry condition:** Phase 2 complete; Phase 3 may run in parallel.
 
 ---
 
-### Phase 2 — Production hardening and cleanup
+### Phase 5 — Discoverability polish
 
-**Objective:** Close remaining production-trust gaps so the site withstands real traffic and abuse while editors publish from Phase 1.
-
-**In scope:**
-
-- Production delivery verification: env vars, content in the production database, admin usable under production content-security policy.
-- Shared rate limiting on contact and subscribe endpoints (replacing per-instance in-memory limits).
-- Post-migration cleanup: archive redundant content files, remove unused dependencies and dead configuration, fix misleading UI (e.g. non-functional category filters).
-- Single clear content source of truth in the repository and database.
-
-**Quality gates:**
-
-- Production admin verified under production security headers; outcome documented.
-- Form endpoints resist trivial abuse across serverless instances.
-
-**Exit criteria:**
-
-- [ ] Production admin verified under production security headers; outcome documented.
-- [ ] Contact and subscribe rate limits enforced via a shared store in production.
-- [ ] Single clear content source of truth in the repository and database.
-- [ ] Misleading or non-functional UI removed or corrected (including blog category filter if not yet addressed).
-
-**Out of scope:** New CMS schema or marketing pages; media uploads; SEO plugin; theme package extraction; RSS; dynamic social images.
-
-**Entry condition:** Phase 1 exit criteria met, or Phase 1 in progress with revalidation and CI already landed (rate limiting and production verification may proceed in parallel once CI is green).
-
----
-
-### Phase 3 — Shared theme and product monorepo
-
-**Objective:** Grow the existing pnpm + Turborepo into a product monorepo — extract design tokens into `@carinya/theme`, and colocate brand markdown and product-local skills. Do not flatten to a single app.
+**Objective:** Improve how content looks when shared and how the property is found locally.
 
 **In scope:**
 
-- Add `packages/carinya-theme` (`@carinya/theme`) from the production token CSS; the site consumes it via `@import '@carinya/theme'`.
-- Add `brand/` (voice, positioning) as the markdown source of truth for agents and humans.
-- Add `skills/carinya-parc` for product-local agent guidance.
-- Keep UI primitives in `apps/site/src/components/ui/` (no `packages/ui` or `packages/icons`).
+- Dynamic social preview images per post and recipe, generated at build, or a documented fallback policy.
+- Verified local-business coordinates in `LOCAL_BUSINESS` (the current values are placeholders).
+- `article:published_time` and `article:author` Open Graph tags on posts.
+- Recipe tag archives if recipe tags are worth surfacing; otherwise leave them as labels.
+- Targeted accessibility items: skip-navigation link, an automated accessibility check in CI.
 
 **Quality gates:**
 
-- Site build, tests, and Tailwind utilities (`eucalypt-*` and semantic tokens) are unchanged in behaviour.
-- No copied `carinya-tokens.css` remains in the site app.
-- Engineering docs (`structure.md`, `AGENTS.md`) match the tree.
+- Shared links show a page-specific image where one exists.
+- LocalBusiness structured data reflects the verified property location.
 
 **Exit criteria:**
 
-- [x] `@carinya/theme` is a workspace package; the site imports it and no longer copies tokens.
-- [x] `brand/voice.md` and `brand/positioning.md` are the voice/positioning source of truth in this repo.
-- [x] `skills/carinya-parc` resolves paths inside this repository.
-- [x] UI stays inlined in `apps/site`; lint and TypeScript configs stay as `@repo/*` packages.
+- [ ] Post and recipe pages expose dynamic social images (or the fallback policy is documented).
+- [ ] LocalBusiness structured data uses verified coordinates.
+- [ ] Accessibility check runs in CI.
 
-**Out of scope:** Flattening to a single Next.js app; extracting a UI or icon package; merging the agents compiler or carinya-plugins; publishing `@carinya/theme` to npm; new product features or CMS schema changes.
-
-**Entry condition:** Phase 2 exit criteria met and a stable production editing period with no critical CMS regressions.
-
----
-
-### Phase 4 — Discoverability and marketing polish
-
-**Objective:** Improve how content reaches and retains audiences — syndication, social previews, local discovery, and incremental marketing UX.
-
-**In scope:**
-
-- RSS/Atom feed for published posts.
-- Dynamic social preview images per post and recipe.
-- Accurate local business coordinates in structured data (replacing placeholders).
-- Related-post navigation or category filtering on the blog (implement or remove misleading UI).
-- Light scaffolding for experiences/workshops and partner/collaborator pages (per [`product.md`](../product.md) near-future).
-- Targeted UX and accessibility improvements: route error boundaries, skip navigation, client/server boundary cleanup.
-
-**Quality gates:**
-
-- Syndication and social metadata support content distribution and sharing.
-- Local business structured data reflects verified property location.
-
-**Exit criteria:**
-
-- [ ] Valid RSS feed at a documented URL.
-- [ ] Post and recipe pages expose dynamic social preview images (or a documented fallback policy).
-- [ ] Local business structured data uses verified coordinates.
-- [ ] Blog category UI either filters correctly or is removed.
-- [ ] Experiences and partner routes exist with honest placeholder or live copy and clear contact paths.
-
-**Out of scope:** Booking engine, e-commerce, scheduled publishing, full marketing page CMS, multi-property support.
+**Out of scope:** Booking engine, e-commerce, scheduled publishing, multi-property support.
 
 ---
 
 ## 4. Milestones
 
-| Milestone                             | Phase | Customer-visible? | Notes                                         |
-| ------------------------------------- | ----- | ----------------- | --------------------------------------------- |
-| Live content updates without redeploy | 1     | Yes               | Core editor experience                        |
-| Media uploads in admin                | 1     | Yes               | Alt text and asset management                 |
-| SEO controls on posts and recipes     | 1     | Partial           | Better search and social snippets             |
-| Editable homepage and footer copy     | 1     | Yes               | Routine copy without deploys                  |
-| Stay information pages live           | 1     | Yes               | Guest pipeline and pre-qualification          |
-| CI green on every PR                  | 1     | Internal only     | Woven hardening — safe merges during CMS work |
-| Production admin verified             | 2     | Internal only     | Security headers + env checklist              |
-| Shared form rate limiting             | 2     | Internal only     | Reliable abuse resistance                     |
-| `@carinya/theme` in the monorepo      | 3     | No                | Tokens as a workspace package, not a copy     |
-| RSS feed live                         | 4     | Yes               | New distribution channel                      |
-| Rich social previews                  | 4     | Yes               | When links are shared                         |
-| Experiences and partner pages         | 4     | Yes               | Marketing scaffolding for future offers       |
+| Milestone                             | Phase | Customer-visible? | Notes                                          |
+| ------------------------------------- | ----- | ----------------- | ---------------------------------------------- |
+| CI green on every PR, hermetic build  | 1     | Internal only     | Done                                           |
+| RSS, recipe structured data, archives | 1     | Yes               | Done; ships with the Astro build               |
+| `@carinya/theme` in the monorepo      | 1     | No                | Done                                           |
+| Production serves from `apps/web`     | 2     | Yes               | The cut-over; legal pages and pagination fixed |
+| CSP enforced, WAF rule live           | 2     | Internal only     | Durable abuse control                          |
+| `apps/site` deleted                   | 2     | No                | Repo has one app                               |
+| Owner publishes via PR unaided        | 3     | Internal only     | Templates and how-to                           |
+| Editor tooling decision               | 3     | No                | Optional git-backed editor                     |
+| Stay information pages live           | 4     | Yes               | Guest pipeline and pre-qualification           |
+| Experiences and partner pages         | 4     | Yes               | Marketing scaffolding for future offers        |
+| Rich social previews                  | 5     | Yes               | When links are shared                          |
+| Verified local-business data          | 5     | Partial           | Search and maps                                |
 
 ---
 
 ## 5. Cross-domain dependencies
 
-| Dependency                                 | Owner                 | Gates                              | Status      |
-| ------------------------------------------ | --------------------- | ---------------------------------- | ----------- |
-| Managed Postgres                           | Engineering / hosting | Admin, static generation, CI build | Active      |
-| Vercel deployment and secrets              | Engineering / hosting | Production and CI                  | Active      |
-| On-demand revalidation (Next.js + Payload) | Engineering           | Phase 1 — live editorial workflow  | Not started |
-| SEO plugin (Payload)                       | Engineering           | Phase 1 — per-document SEO         | Not started |
-| Shared rate-limit store                    | Engineering           | Phase 2 — reliable form protection | Not started |
-| Design-token package (`@carinya/theme`)    | Engineering           | Phase 3 — stop copying tokens      | Not started |
+| Dependency                                   | Owner                 | Gates                                                   | Status      |
+| -------------------------------------------- | --------------------- | ------------------------------------------------------- | ----------- |
+| Vercel project, previews and secrets         | Engineering / hosting | Every phase                                             | Active      |
+| GitHub branch protection (human approval)    | Engineering           | Phase 2 onward — the publish gate                       | Active      |
+| Vercel WAF rate-limit rule on `/api/*`       | Engineering / hosting | Phase 2 — durable form protection                       | Not started |
+| MailerLite groups per event                  | Marketing             | Event signups                                           | Active      |
+| Resend sending domain                        | Engineering           | Contact notifications                                   | Active      |
+| Neon database                                | Engineering / hosting | Phase 2 — decommission after registrations CSV is saved | Retiring    |
+| Verified property coordinates                | Owner                 | Phase 5                                                 | Not started |
+| Stay copy verified against on-ground reality | Owner                 | Phase 4                                                 | Not started |
 
 ---
 
 ## 6. Out of scope for this roadmap
 
-Deferred beyond Phase 4 or excluded per [`product.md`](../product.md):
+Deferred beyond Phase 5 or excluded per [`product.md`](product.md):
 
 - Full booking engine with real-time availability and payments.
 - E-commerce and checkout flows.
-- Multi-property or multi-brand CMS.
-- Legal pages in Payload (remain MDX unless rescoped).
-- Full marketing page CMS unless Phase 1 globals prove insufficient.
-- Scheduled publishing, unless editorial workflow requires it.
-- Multi-user access control beyond basic admin and editor roles.
-- Formal WCAG certification programme (Phase 4 includes targeted items only).
+- Multi-property or multi-brand sites.
+- Scheduled publishing beyond `draft: true` and a scheduled deploy.
+- Roles and permissions beyond GitHub review; there is no site login.
+- Event capacity counting or attendance records outside MailerLite.
+- Formal WCAG certification programme (Phase 5 includes targeted items only).
 
 ---
 
 ## 7. Review cadence
 
-- **Weekly (during active execution):** Track phase exit criteria; confirm no critical regressions in production editing or public routes.
+- **Weekly (during active execution):** Track phase exit criteria; confirm no regressions in production forms, redirects or public routes.
 - **Pre-phase-gate:** Before entering a new phase, confirm all prior exit criteria are met; run full quality checks locally and in CI; scope stories and acceptance criteria for the entering phase.
-- **Quarterly:** Re-read [`product.md`](../product.md) near-future features and §6 deferrals; adjust phase order if product priorities shift.
+- **Quarterly:** Re-read [`product.md`](product.md) near-future features and §6 deferrals; adjust phase order if product priorities shift.

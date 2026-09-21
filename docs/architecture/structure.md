@@ -1,6 +1,6 @@
 # Project Structure
 
-**Where** code and routes live — folder layout, naming, and conventions for the product monorepo and `apps/site`.
+**Where** code, content and routes live — folder layout, naming, and conventions for the monorepo, `apps/web` and `content/`.
 
 | Doc                                           | Role                            |
 | --------------------------------------------- | ------------------------------- |
@@ -13,458 +13,325 @@ This document describes the repository layout and how to add features consistent
 
 ---
 
-## High-level Repository Layout
-
-At a high level, the monorepo is structured as:
+## 1. Repository layout
 
 ```text
 .
 ├── apps/
-│   ├── site/                 # Next.js App Router app (production until Astro cut-over)
-│   │   ├── content/          # MDX: legal pages; archived posts/recipes MDX
-│   │   ├── public/           # Static assets (images, favicon, logo)
-│   │   └── src/              # App Router, Payload collections, UI, lib
-│   └── web/                  # Astro 7 + MDX public site (scaffold; not production yet)
-│       ├── public/           # Favicons, robots.txt, scaffold images
-│       └── src/
-│           ├── content/      # MDX + YAML collections (empty until content migration)
-│           ├── content.config.ts
-│           ├── layouts/      # Base.astro, Site.astro
-│           ├── components/   # Header, footer chrome
-│           ├── pages/        # index, 404
-│           ├── lib/          # metadata, schema, validation, security, email
-│           └── styles/       # globals.css importing @carinya/theme
+│   └── web/                  # Astro 7 + MDX public site — the product
+├── content/                  # The CMS: MDX, YAML, images, tags.json
 ├── packages/
-│   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens
-│   ├── eslint-config/        # Shared ESLint configuration
-│   └── typescript-config/    # Shared TypeScript configs
-├── brand/                    # Voice and positioning markdown (not a workspace package)
+│   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens and theme
+│   ├── eslint-config/        # @repo/eslint-config (base, react-internal, next)
+│   └── typescript-config/    # @repo/typescript-config (base, react-library, nextjs)
+├── brand/                    # voice.md, positioning.md (not a workspace package)
 ├── skills/
 │   └── carinya-parc/         # Product-local agent skill (not a workspace package)
-├── specs/                    # Domain TDDs (board is GitHub issues)
-├── docs/                     # Documentation (product/, architecture/)
-├── pnpm-workspace.yaml
-├── pnpm-lock.yaml
-├── turbo.json
-└── package.json              # Monorepo scripts and dev dependencies
+├── specs/                    # Domain TDDs linked from GitHub issues
+├── docs/                     # product/, architecture/, decisions/
+├── .github/workflows/ci.yml  # Lint, typecheck, format, test, build web, dist tests
+├── pnpm-workspace.yaml       # apps/web and packages/*
+├── turbo.json                # Task graph and declared env vars
+├── prettier.config.mjs       # Shared Prettier config (+ prettier-plugin-astro)
+└── package.json              # Root scripts: web:dev, web:build, lint, typecheck, format, test
 ```
 
-The `docs/` directory contains [`product/product.md`](../product/product.md), architecture docs in [`architecture/`](.) ([`solution.md`](solution.md), [`principles.md`](principles.md)), [`product/roadmap.md`](../product/roadmap.md), and this file. Delivery work lives in GitHub issues; [`specs/`](../../specs/) holds domain TDDs those issues may link to. Update the relevant doc alongside code changes.
-
-`pnpm-workspace.yaml` includes `apps/*` and `packages/*` only. `brand/` and `skills/` are source trees, not installable packages.
-
-Voice and positioning live in `brand/voice.md` and `brand/positioning.md`. The product skill is `skills/carinya-parc/SKILL.md`.
-
-Design tokens live in `packages/carinya-theme` (`@carinya/theme`). Site-specific CSS stays in `apps/site/src/styles/` today and is mirrored in `apps/web/src/styles/` for the Astro scaffold.
-
-## Web App Structure (`apps/web`)
-
-`apps/web` is the Astro 7 + MDX public site, built alongside `apps/site`. Production still deploys from `apps/site` until cut-over. The scaffold includes:
-
-- `astro.config.mjs` — MDX, React, sitemap, Vercel adapter, Tailwind Vite plugin, `trailingSlash: 'always'`
-- `src/content.config.ts` — posts, recipes, events, authors, categories, legal collection schemas
-- `src/layouts/` — `Base.astro` (HTML head, fonts, Organization JSON-LD) and `Site.astro` (header/footer chrome)
-- `src/pages/` — home and 404 only in this phase
-- `src/lib/` — ported metadata, JSON-LD, validation, security, email, RSS, and duration helpers
-- `src/data/tags.json` — tag slug → display name map (empty until content migration)
-
-Run `pnpm web:dev` from the repo root. CI runs `pnpm turbo run build --filter=web` (no database secrets).
-
-## Site App Structure (`apps/site`)
-
-Within `apps/site`, the primary directories relevant to web behaviour are:
-
-- `content/`
-  - `posts/` – archived MDX (production blog reads Payload).
-  - `recipes/` – archived MDX (production recipes read Payload).
-  - `legal/` – legal pages (privacy, terms) in MDX; served at runtime.
-
-- `public/`
-  - `images/` – photography and UI placeholders. Use kebab-case, subject-descriptor names (e.g. `hero-home.jpg`, `farm-track-gate.jpg`); keep `404.jpg` for the not-found page.
-  - `motifs/` – brand line icons (leaf, hills, sun, branch, sprout, grass).
-  - `favicon/` – favicon.ico and PNG sizes; `logo.png`, `robots.txt`, `site.webmanifest`, etc.
-
-- `src/app/`
-  - `(payload)/` – Payload CMS admin (`/admin`) and API routes (`/api/*` for Payload collections). Own root layout (no site header/footer).
-  - `(www)/` – main marketing site (shared site root layout):
-    - `page.tsx` – home page.
-    - `about/` with nested routes (e.g., `the-property`, `jonathan`).
-    - `regenerate/` – regeneration overview.
-    - `legal/[slug]/page.tsx` – legal pages resolved by slug.
-    - `subscribe/page.tsx` – subscription / newsletter flows.
-    - `contact/page.tsx` – contact form.
-    - `get-involved/events/page.tsx` – upcoming events listing (Payload `events`).
-
-  - `(blog)/` – routing group for blog content (shared site root layout):
-    - `blog/page.tsx` – blog index at `/blog` (page 1 + pagination).
-    - `blog/page/[page]/page.tsx` – paginated archive at `/blog/page/{n}`.
-    - `blog/[slug]/page.tsx` – individual post at `/blog/{slug}` (Payload-backed).
-    - `blog/category/[slug]/page.tsx`, `blog/tag/[tag]/page.tsx` – published-only archives.
-
-  - `(recipes)/` – routing group for recipe content (shared site root layout):
-    - `recipes/page.tsx` – recipes index at `/recipes`.
-    - `recipes/[slug]/page.tsx` – individual recipe at `/recipes/{slug}` (Payload-backed).
-    - Future: `recipes/category/[slug]/page.tsx`, `recipes/tag/[tag]/page.tsx`.
-
-  - `api/` – API route handlers (`subscribe`, `contact`, `sentry`, `cron`).
-  - `global-error.tsx`, `not-found.tsx`, `sitemap.ts`, and other app-wide files.
-  - Optional route-level `loading.tsx`, `error.tsx`, and `layout.tsx` as needed.
-
-- `src/collections/` – Payload CMS collection configs:
-  - `Users.ts` – admin authentication.
-  - `Authors.ts`, `Categories.ts`, `Tags.ts` – blog supporting entities.
-  - `Posts.ts` – blog posts (title, slug, date, author, category, excerpt, body, tags, featured, image).
-  - `Recipes.ts` – recipes (title, slug, times, servings, ingredients, instructions, tags, difficulty, SEO fields).
-  - `Events.ts` – planting days / workshops (title, slug, startsAt, location, capacity, isFull, signupTarget, description).
-  - `EventRegistrations.ts` – signup records against events (name, email, status registered/waitlisted).
-
-- `src/fields/` – shared Payload field factories (`slugField`).
-- `src/collections/recipeIngredient.ts` – recipe ingredient/instruction field defs (Recipes-only).
-
-- `src/features/` – domain modules (product-area colocation; not full DDD).
-  - `blog/` – journal UI, queries, RSS, article schema, blog layout wrapper.
-    - `components/` – PostCard, FeaturedPosts, RelatedPosts, ShareBar, AuthorBlock, …
-    - `queries/` – posts, related-posts, categories, tags, sitemap-posts.
-    - `rss/` – RSS feed builder.
-    - `schema/` – Article JSON-LD helper.
-    - `layout/` – `blog-root-layout.tsx`.
-    - `types.ts` – list `Post` type; re-exports common blog query helpers.
-  - `recipes/` – recipe UI, queries, duration helpers, recipe schema.
-    - `components/` – RecipeCard, RecipeGrid.
-    - `queries/` – recipes list/detail/sitemap.
-    - `lib/` – `format-duration.ts`.
-    - `schema/` – Recipe JSON-LD helper.
-  - `events/` – planting days / workshops listing, signup UI, queries, validation, confirmation email.
-    - `components/` – EventCard, EventSignup, GetInvolvedCTA.
-    - `queries/` – upcoming events, capacity, registration lookups.
-    - `validation/` – event signup Zod schemas.
-    - `email/` – Resend confirmation sender + template.
-  - Prefer `@/features/{domain}` for domain code. Keep Next routes in `app/` and Payload
-    collection configs in `collections/`.
-
-- `src/components/`
-  - `sections/` – shared page chrome only (hero, header, footer, page-header, regenerate, …).
-  - `forms/` under `sections/` for reusable form UI (e.g. `ContactFormSection`, subscribe flows).
-  - `layouts/` – shared layout-level components (site root shell).
-  - `rich-text/` – Lexical rich-text renderer for Payload post bodies.
-  - `subscribe/`, `pages/`, `ui/` – subscribe flows, page-specific extras, and shared UI primitives.
-
-- `src/hooks/`
-  - Hooks such as `use-mobile`, `use-toast`, etc.
-
-- `src/lib/`
-  - `cn.ts` – class name utility.
-  - `payload/` – Payload client, cache wrappers, content mappers, access control, slugify.
-    - `client.ts` – cached `getPayloadClient()` (server-only).
-    - `cache.ts` – `unstable_cache` wrappers over feature query functions.
-    - `queries/` – remaining non-feature query helpers (most content queries live under `features/`).
-    - `map-content.ts` – maps Payload documents to list/detail shapes.
-    - `urls.ts` – `/blog/{slug}` and `/recipes/{slug}` path helpers.
-  - `metadata/` – helper functions for route metadata.
-  - `schema/` – shared schema utilities (organization, breadcrumb, localBusiness) and `generateJsonLd` orchestrator; article/recipe generators live under `features/`.
-  - `analytics/` – consent-gated GA/GTM helpers (`trackEvent`, typed funnel events); event schema in `specs/blog/tdd.md` §4; GA4 funnel explorations in `specs/blog/tdd.md` §8.
-  - `consent/` – cookie-consent server actions (httpOnly `cp_consent` cookie).
-  - `session/` – JWT helpers for a future `cp_session` cookie (scaffold only; not used by routes today).
-  - `security/` – security utilities (CSP, headers, caching).
-  - Other cross-cutting library code.
-
-- `src/styles/`
-  - `globals.css`, `components.css`, and page-level overrides. Design tokens live in `packages/carinya-theme` (`@carinya/theme`).
-
-- `vitest.config.mjs`, `vitest.setup.ts` – Vitest config; tests colocated under `src/`
-
-## Routing & Layout (Next.js App Router)
-
-### Layout and error boundaries
-
-- `src/components/layouts/site-root-layout.tsx`
-  - Shared site root layout (HTML shell, providers, header, footer). Used by `(www)/layout.tsx`, `(blog)/layout.tsx`, and `(recipes)/layout.tsx`.
-- `src/features/blog/layout/blog-root-layout.tsx`
-  - Blog route-group layout wrapper (re-exported from `(blog)/layout.tsx`).
-- `(payload)/layout.tsx`
-  - Payload admin root layout — separate from the public site so `/admin` does not nest two `<html>` documents.
-
-- `src/app/global-error.tsx`
-  - Handles rendering for uncaught errors across the app.
-
-- `src/app/not-found.tsx`
-  - Default UI for unknown routes.
-
-- `src/app/navigation.tsx`
-  - Central navigation configuration (imported by layout or header components).
-
-Each route or route group MAY also define:
-
-- `layout.tsx` – layout for that subtree.
-- `loading.tsx` – route-level loading UI.
-- `error.tsx` – route-level error boundary.
-- `template.tsx` – template for repeated segments (if needed).
-- `route.ts` – handler for API routes or other HTTP endpoints.
-
-### Routes
-
-The current route structure includes (not exhaustive):
-
-- `/` → `src/app/(www)/page.tsx` (home).
-- `/about` → `src/app/(www)/about/page.tsx`.
-- `/about/the-property` → `src/app/(www)/about/the-property/page.tsx`.
-- `/about/jonathan` → `src/app/(www)/about/jonathan/page.tsx`.
-- `/regenerate` → `src/app/(www)/regenerate/page.tsx`.
-- `/blog` → `src/app/(blog)/blog/page.tsx`.
-- `/blog/page/[page]` → `src/app/(blog)/blog/page/[page]/page.tsx`.
-- `/blog/[slug]` → `src/app/(blog)/blog/[slug]/page.tsx`.
-- `/recipes` → `src/app/(recipes)/recipes/page.tsx`.
-- `/recipes/[slug]` → `src/app/(recipes)/recipes/[slug]/page.tsx`.
-- `/feed.xml` → `src/app/feed.xml/route.ts` (RSS 2.0 feed of blog posts).
-- `/legal/[slug]` → `src/app/(www)/legal/[slug]/page.tsx`.
-- `/subscribe` → `src/app/(www)/subscribe/page.tsx`.
-- `/contact` → `src/app/(www)/contact/page.tsx`.
-
-API routes:
-
-- `/api/subscribe` → `src/app/api/subscribe/route.ts`.
-- `/api/contact` → `src/app/api/contact/route.ts`.
-- `/api/events/signup` → `src/app/api/events/signup/route.ts`.
-- `/api/csp-report` → `src/app/api/csp-report/route.ts`.
-
-Cookie consent is not an API route. It uses the server action `setConsent` in `src/lib/consent/actions.ts`, called from `src/components/ui/Policy.tsx`. The root layout reads the httpOnly `cp_consent` cookie to gate analytics and banner visibility.
-
-### Route groups
-
-Route groups are structural only (they do not change URLs):
-
-- `(www)/` – marketing, legal, contact, subscribe.
-- `(blog)/` – blog index and posts.
-- `(recipes)/` – recipes index and detail pages.
-- `(payload)/` – Payload admin and CMS API (separate root layout).
-
-If additional groups are introduced (e.g. `(functional)` for booking flows), document them here.
-
-### Marketing vs functional pages
-
-- **Marketing and storytelling:** `/`, `/about`, `/about/the-property`, `/regenerate`, `/blog`, `/recipes/*`.
-- **Functional:** `/contact`, `/subscribe`, and API endpoints.
-
-Future booking flows may live under `/stay` or `/visit` (see [`product.md`](product.md)).
-
-## Components, Hooks & Utilities
-
-### Components
-
-- Shared chrome lives under `src/components/` with subfolders by concern:
-  - `sections/` for large shared page sections (hero, footer, regenerate, etc.).
-  - `forms/` for reusable form sections:
-    - `ContactFormSection.tsx` – contact inquiry form
-    - `SubscribeSection.tsx` – newsletter subscription
-  - `ui/` for low-level UI primitives and wrappers (built on Base UI), e.g. `button.tsx`, `card.tsx`, `input.tsx`.
-  - `pages/` for page-specific extras.
-- Domain UI (blog, recipes) lives under `src/features/{domain}/components/`.
-
-### Providers
-
-- Live under `src/providers/`.
-  - `Providers.tsx` - TanStack Query provider wrapper
-
-**Naming convention:**
-
-- Components use **PascalCase** file and export names: `HeroSection.tsx`, `SubscribeForm.tsx`, `BlogPostCard.tsx`.
-- Each file should export a single main component as default or named export.
-
-### Hooks
-
-- Live under `src/hooks/`.
-
-**Naming convention:**
-
-- Hooks start with `use`, e.g., `useMobile`, `useToast`.
-- File names are in kebab-case mirroring the hook name, e.g., `use-mobile.ts`.
-
-### Utilities & lib
-
-- Live under `src/lib/`.
-- **Data-fetching and content utilities**:
-  - Blog data: `src/features/blog/queries/` (cached via `lib/payload/cache.ts`).
-  - Recipe data: `src/features/recipes/queries/` (cached via `lib/payload/cache.ts`).
-  - Events data: `src/features/events/queries/`.
-  - Legal pages: loaded from `content/legal/` MDX in route handlers.
-
-- **Naming convention**:
-  - Data-fetching helpers: `getX`, `listX`, `fetchX`.
-  - Parsing/formatting helpers: `parseX`, `formatX`.
-
-- **Module organisation:**
-  - **Single files** (e.g., `cn.ts`, `posts.ts`) for focused utilities.
-  - **Folders** (e.g., `metadata/`, `schema/`, `consent/`, `session/`, `security/`) for related functionality with:
-    - Multiple implementation files
-    - Separate type definitions
-    - Co-located tests
-    - A barrel export (`index.ts`) for clean imports
-
-Examples of established folder patterns:
-
-- `src/lib/metadata/` – metadata generation helpers with barrel export.
-- `src/lib/security/` – CSP, headers, and cache control utilities.
-- `src/lib/validation/` – Zod schemas and sanitization:
-  - `contact-schema.ts` – contact form validation schema
-  - `sanitize.ts` – plain-Node strip/escape utilities (no DOMPurify)
-- `src/lib/email/` – email service integration:
-  - `send-contact-notification.ts` - Resend SDK integration
-  - `templates/contact-notification.ts` - Email HTML templates
-- `src/lib/schema/` – shared schema generators (organization, breadcrumb, localBusiness) plus `generateJsonLd`.
-- `src/features/blog/schema/` / `src/features/recipes/schema/` – article and recipe JSON-LD generators.
-- `src/lib/consent/` – cookie-consent server actions:
-  - `actions.ts` – `setConsent('accepted' | 'rejected')`; sets httpOnly `cp_consent` (defined in `constants.ts`).
-- `src/lib/analytics/` – consent-gated blog funnel events (`subscribe_*`, `article_scroll_depth`, participation); schema in `specs/blog/tdd.md` §4; operator dashboard = GA4 Explorations (`specs/blog/tdd.md` §8).
-- `src/lib/session/` – JWT helpers for future `cp_session` (scaffold; not wired to routes):
-  - `server.ts` – `getSession`, `setSession`, `updateSession`, `clearSession`
-  - `types.ts`, `index.ts` – types and barrel export
-- `src/lib/security/` – security utilities (CSP, headers, caching) with types and tests.
-
-### Cookies
-
-Cookie names live in `src/lib/constants.ts`:
-
-| Cookie       | Constant              | Purpose                       | In use                                                               |
-| ------------ | --------------------- | ----------------------------- | -------------------------------------------------------------------- |
-| `cp_consent` | `CONSENT_COOKIE_NAME` | Analytics opt-in/out          | Yes — `setConsent` server action; read in site layout                |
-| `cp_session` | `SESSION_COOKIE_NAME` | Future public-site auth (JWT) | No — helpers in `lib/session/` only; Payload admin uses Payload auth |
-
-Both cookies are httpOnly and set only on the server.
-
-## Naming Conventions
-
-- **Route segments**:
-  - Use **kebab-case** for folder and URL segments (e.g., `the-property`, `slow-roasted-dexter-beef-with-root-vegetables`).
-  - Dynamic segments are wrapped in square brackets (e.g., `[post]`, `[recipe]`).
-
-- **Components**:
-  - PascalCase file and export names.
-
-- **Hooks**:
-  - `useSomething` naming with strong, focused purpose.
-
-- **Tests**:
-  - Colocated as `.test.ts` / `.test.tsx` under `src/`.
-  - Current coverage: Payload mapping, collection config, recipe duration formatting; expand to API routes and validation per [`principles.md`](principles.md).
-  - Run with `pnpm test` from the repo root.
-
-## Import Aliases & Examples
-
-From `apps/site/tsconfig.json`, the primary aliases are:
-
-- `@/*` → `./src/*`
-- `@/app/*` → `./src/app/*`
-- `@/components/*` → `./src/components/*`
-- `@/hooks/*` → `./src/hooks/*`
-- `@/providers/*` → `./src/providers/*`
-- `@/lib/*` → `./src/lib/*`
-- `@/styles/*` → `./src/styles/*`
-- `@/types/*` → `./src/types/*`
-
-**Examples:**
-
-```ts
-// Importing shared chrome
-import { RegenerateSection } from '@/components/sections/regenerate-section';
-
-// Importing a domain feature
-import { FeaturedPosts, getBlogPosts } from '@/features/blog';
-import { RecipeGrid } from '@/features/recipes';
-
-import { setConsent } from '@/lib/consent/actions';
-
-// Importing a hook
-import { useMobile } from '@/hooks/use-mobile';
-
-// Importing a UI primitive
-import { Button } from '@/components/ui/button';
+`pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `specs/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
+
+**Cut-over status.** `apps/site` (the previous Next.js + Payload app) is still in the tree because production deploys from it until the Vercel project's root directory is switched to `apps/web`. It is excluded from the pnpm workspace and is not described here; the cut-over checklist is Phase 7 of [`astro-migration.md`](astro-migration.md).
+
+---
+
+## 2. `apps/web` layout
+
+```text
+apps/web/
+├── astro.config.mjs          # site URL, static output, trailingSlash 'always', redirects, integrations
+├── vercel.json               # generated by scripts/generate-vercel-json.ts — headers, CSP, favicon redirect
+├── integrations/
+│   └── vercel-redirect-trailing-slash.mjs
+├── scripts/
+│   └── generate-vercel-json.ts
+├── public/                   # copied verbatim to the site root
+│   ├── favicon/              # favicon.ico and PNG sizes
+│   ├── images/               # fallback and placeholder images used by plain <img>
+│   ├── motifs/               # brand line icons
+│   ├── robots.txt
+│   └── site.webmanifest
+├── src/
+│   ├── content.config.ts     # the six collections and their Zod schemas
+│   ├── config/navigation.ts  # header and footer navigation
+│   ├── pages/                # routes (§3)
+│   ├── layouts/              # Base.astro, Site.astro
+│   ├── components/           # by concern (§2.1)
+│   ├── lib/                  # by concern (§2.2)
+│   ├── styles/               # globals.css, components.css, pages/{blog,legal,recipes}.css
+│   └── assets/images/        # photographs imported by pages and optimised at build
+├── tests/
+│   ├── parity.test.ts        # dist/ against docs/architecture/astro-migration/baseline/
+│   └── security.test.ts      # dist/ links, images, CSP hosts, headers in .vercel/output/config.json
+├── tsconfig.json             # extends astro/tsconfigs/strict; @/* → ./src/*
+├── vitest.config.ts          # Astro getViteConfig; src/**/*.test.{ts,tsx} and tests/**/*.test.ts
+├── vitest.setup.ts
+├── eslint.config.mjs
+└── .env.example
 ```
 
-Prefer these aliases over deep relative paths (e.g. `../../../components/...`).
+### 2.1 Components
 
-## Guidelines for Adding New Features
+Everything under `src/components/` is an `.astro` component unless it is an island.
 
-When adding a new feature (page, component, or flow):
+| Folder       | Holds                                                                                                                                                                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ui/`        | Primitives: `Button`, `Breadcrumb`, `Eyebrow`, `JsonLd`, `MotifTile` (`.astro`) and the form primitives islands share (`Input`, `Select`, `Textarea`, `FormField`, `Alert`, `Button.tsx`)                                                                |
+| `sections/`  | Shared page chrome: `Hero`, `HeroText`, `PageHeader`, `PageIntro`, `ImpactStats`                                                                                                                                                                         |
+| `header/`    | `Header.astro` (mounts `SubscribeModalHost` with `client:idle`)                                                                                                                                                                                          |
+| `footer/`    | `Footer`, `FooterNav`, `SocialLinks`                                                                                                                                                                                                                     |
+| `blog/`      | Journal UI: `PostCard`, `FeaturedPosts`, `LatestPosts`, `PaginatedPosts`, `PaginationNav`, `BlogPostArticle`, `AuthorBlock`, `RelatedPosts`, `BlogTopicNav`, `JournalIntro`, `JournalPostGrid`, `JournalSubscribeBand`, `EndOfPostSubscribe`, `ShareBar` |
+| `recipes/`   | `RecipeCard`, `RecipeGrid`, `RecipeMeta`, `RecipeIngredients`, `RecipeInstructions`, `RecipeTags`                                                                                                                                                        |
+| `marketing/` | Sections for the marketing pages: `SectionWithImage`, `WaysToHelpSection`, `PartnersSection`, `GetInvolvedCTA`, `SubscribeSection`, `ContactFormSection`, `InlineSubscribeForm`, `EventCard`, `EventSignup`, `EventsEmptyState`, `Icon`, `Tag`           |
+| `islands/`   | The only React components that ship to the browser: `ConsentGate`, `ContactForm`, `SubscribeForm`, `InlineSubscribe`, `EndOfPostSubscribe`, `SubscribeModal`, `SubscribeModalHost`, `EventSignup`                                                        |
+| `consent/`   | `ConsentBanner.tsx`, rendered by `ConsentGate`                                                                                                                                                                                                           |
+| `subscribe/` | `SubscribePrivacyNote.tsx`, shared by the subscribe islands                                                                                                                                                                                              |
+| `share/`     | `ShareBar.astro` (generic share strip)                                                                                                                                                                                                                   |
+| `analytics/` | `ArticleScrollDepth.astro` — binds `lib/client/scroll-depth` on pages that render an `<article>`                                                                                                                                                         |
 
-1. **Decide where it belongs in the URL space**
-   - Is it mainly marketing/storytelling? Place routes under a top-level path like `/regenerate`, `/about`, `/stay`, etc.
-   - Is it functional (forms, preferences, profile)? Use more app-like top-level paths (e.g., `/profile`, `/subscribe`, `/stay/enquire`).
+An island is always wrapped by a small `.astro` component that owns the `client:*` directive (for example `marketing/ContactFormSection.astro` mounts `islands/ContactForm.tsx` with `client:visible`). Pages import the wrapper, never the island; only `Base.astro` (`ConsentGate`) and `Header.astro` (`SubscribeModalHost`) mount one directly.
 
-2. **Add the route under `src/app/`** — use the appropriate route group, e.g. `(www)/`, `(blog)/`, or `(recipes)/`.
-   - Create `page.tsx` for a new page.
-   - Keep the page component light; delegate domain UI to `src/features/{domain}/` or shared chrome to `src/components/sections/`.
+### 2.2 Library
 
-3. **Create or reuse components**
-   - Add domain UI under `src/features/{domain}/components/`.
-   - Add shared page chrome to `src/components/sections/`.
-   - Reuse primitives and wrappers in `src/components/ui/`.
-   - Avoid duplicating patterns already present in `features`, `sections`, `forms`, or `ui`.
+| Folder or file   | Holds                                                                                                                                                                                                                                                                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/`       | Read-side helpers over the collections: `posts.ts` (`getPublishedPosts`, `getFeaturedPosts`, `getRelatedPosts`, `getCategoriesWithPosts`, `getTagsWithPosts`, `toPostSummary`, `tagName`, `isPublished`), `recipes.ts`, `events.ts` (`getUpcomingEvents`), `dates.ts`, `schema.ts` (regexes shared with `content.config.ts`) |
+| `urls.ts`        | `postUrl`, `categoryUrl`, `tagUrl`, `recipeUrl`, `eventsListingUrl` and the `API_*_PATH` constants — all with trailing slashes                                                                                                                                                                                               |
+| `constants.ts`   | `BASE_URL` (from `PUBLIC_SITE_URL`), site title and description, default OG image, favicon paths, `LOCAL_BUSINESS`, social profiles, breadcrumb names                                                                                                                                                                        |
+| `metadata/`      | `generatePageMetadata` composed from `title`, `description`, `canonical`, `openGraph`, `twitter`, `robots`, `icons`, `viewport`; `types.ts`                                                                                                                                                                                  |
+| `schema/`        | JSON-LD generators: `organization` (and `organization-json` for the `<head>`), `breadcrumb`, `localBusiness`, `article`, `recipe`; `index.ts` re-exports                                                                                                                                                                     |
+| `validation/`    | Zod schemas (`contact-schema`, `subscribe-schema`, `event-signup-schema`), `sanitize.ts` (plain-Node strip and escape), `spam-email.ts`                                                                                                                                                                                      |
+| `api/`           | Endpoint handlers: `contact.ts`, `subscribe.ts`, `events-signup.ts`, `csp-report.ts`, plus `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`)                                                                                                                                                                    |
+| `rate-limit.ts`  | `createRateLimiter` — in-memory, per instance                                                                                                                                                                                                                                                                                |
+| `mailerlite/`    | MailerLite client: subscriber upsert, per-event group resolution                                                                                                                                                                                                                                                             |
+| `email/`         | `send-contact-notification.ts` (Resend) and `templates/`                                                                                                                                                                                                                                                                     |
+| `events/`        | `catalog.ts` — `getPublicEventBySlug` for the signup endpoint (drafts return `null`)                                                                                                                                                                                                                                         |
+| `security/`      | `csp.ts`, `headers.ts`, `gone.ts`, `constants.ts`, `vercel-config.ts` (`generateVercelJson`, `mergeSecurityIntoVercelOutput`, `GONE_PATH_PATTERNS`)                                                                                                                                                                          |
+| `consent/`       | `cookie.ts` (read and write `cp_consent` in the browser), `types.ts`                                                                                                                                                                                                                                                         |
+| `analytics/`     | Consent-gated `trackEvent`, typed funnel events, `consent.ts`                                                                                                                                                                                                                                                                |
+| `client/`        | Browser-side helpers used by inline scripts: `scroll-depth`, `share`, `site-header`                                                                                                                                                                                                                                          |
+| `subscribe/`     | `client.ts` — the fetch wrapper the subscribe islands call                                                                                                                                                                                                                                                                   |
+| `blog/`          | `build-feed.ts` — RSS 2.0 builder for `/feed.xml`                                                                                                                                                                                                                                                                            |
+| `recipes/`       | `format-duration.ts` — ISO 8601 durations to display text                                                                                                                                                                                                                                                                    |
+| `observability/` | `metrics.ts` — `countMetric`, `captureException` (Sentry when configured)                                                                                                                                                                                                                                                    |
+| `cn.ts`          | `clsx` + `tailwind-merge`                                                                                                                                                                                                                                                                                                    |
 
-4. **Add hooks or utilities if needed**
-   - Place new hooks in `src/hooks/` (e.g., `use-experiences-filter.ts`).
-   - Place domain queries under `src/features/{domain}/queries/`; keep Payload client/cache/mappers in `src/lib/payload/`.
+Folders with several files carry their own `types.ts` and tests; `metadata/`, `schema/`, `security/` and `analytics/` have an `index.ts` barrel.
 
-5. **Add tests (when behaviour is non-trivial)**
-   - Prefer tests for API routes and validation logic only (e.g. `route.test.ts` next to `route.ts`).
+### 2.3 Styles
 
-6. **Update navigation and metadata**
-   - If the route should be discoverable, update `apps/site/src/app/navigation.tsx` and any header components.
-   - Add or update metadata helpers in `apps/site/src/lib/metadata/` or inline `export const metadata` as per current patterns.
+`src/styles/globals.css` is the single entry: it imports the two font packages, `@carinya/theme`, the typography plugin and `components.css`. Per-page CSS (`pages/blog.css`, `pages/legal.css`, `pages/recipes.css`) is imported at the top of the page that needs it, so it is only bundled where it is used. Tokens are never redefined in the app; they come from `packages/carinya-theme`.
 
-7. **Update docs where relevant**
-   - `docs/product/product.md` — user-visible feature or scope change.
-   - `docs/architecture/solution.md` — architecture, data model, or integration change (debt only in §10).
-   - `docs/architecture/structure.md` — routing or folder convention change.
-   - `docs/product/roadmap.md` — delivery phasing change.
+### 2.4 Tests
 
-## Worked Example: Adding a New “Experiences” Page
+Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/parity.test.ts` and `tests/security.test.ts` read the built output and skip themselves when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`. `test:parity` compares the build against the production baseline captured in `docs/architecture/astro-migration/baseline/` and is run by hand before cut-over.
 
-Goal: Add `/experiences` as a marketing page that introduces on-farm experiences (present or upcoming).
+### 2.5 Integrations and scripts
 
-1. **Create the route**
-   - File: `apps/site/src/app/(www)/experiences/page.tsx`
+- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers and the 410 routes into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
+- `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
+- `scripts/generate-vercel-json.ts` writes `vercel.json` from `src/lib/security/vercel-config.ts`. Run it (`pnpm --filter web generate:vercel-json`) after changing anything in `lib/security` and commit the result.
+- `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `@sentry/astro` is added only when a DSN is present.
 
-   Basic structure (sketch):
+---
 
-   ```tsx
-   import { ExperiencesHero } from '@/components/sections/experiences-hero';
-   import { ExperiencesList } from '@/components/sections/experiences-list';
+## 3. Routes
 
-   export default function ExperiencesPage() {
-     return (
-       <>
-         <ExperiencesHero />
-         <ExperiencesList />
-       </>
-     );
-   }
-   ```
+Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directory'`). Static routes are built to `dist/`; the on-demand endpoints run as Vercel functions.
 
-2. **Add supporting components**
-   - Files:
-     - `apps/site/src/components/sections/experiences-hero.tsx`
-     - `apps/site/src/components/sections/experiences-list.tsx`
+| URL                      | File                               | Source                                                   |
+| ------------------------ | ---------------------------------- | -------------------------------------------------------- |
+| `/`                      | `pages/index.astro`                | Hard-coded sections + latest and featured posts          |
+| `/about/`                | `pages/about/index.astro`          | Hard-coded                                               |
+| `/about/the-property/`   | `pages/about/the-property.astro`   | Hard-coded                                               |
+| `/about/jonathan/`       | `pages/about/jonathan.astro`       | Hard-coded                                               |
+| `/regenerate/`           | `pages/regenerate.astro`           | Hard-coded                                               |
+| `/contact/`              | `pages/contact.astro`              | `ContactForm` island                                     |
+| `/subscribe/`            | `pages/subscribe.astro`            | `SubscribeForm` island                                   |
+| `/get-involved/events/`  | `pages/get-involved/events.astro`  | `events` collection, upcoming only; `EventSignup` island |
+| `/blog/`                 | `pages/blog/index.astro`           | `posts`, first 6                                         |
+| `/blog/page/[page]/`     | `pages/blog/page/[page].astro`     | `paginate()`, 6 per page, page 1 omitted                 |
+| `/blog/[slug]/`          | `pages/blog/[slug].astro`          | One `posts` entry, related posts, Article JSON-LD        |
+| `/blog/category/[slug]/` | `pages/blog/category/[slug].astro` | Categories with at least one published post              |
+| `/blog/tag/[tag]/`       | `pages/blog/tag/[tag].astro`       | Tags used by at least one published post                 |
+| `/recipes/`              | `pages/recipes/index.astro`        | `recipes` collection                                     |
+| `/recipes/[slug]/`       | `pages/recipes/[slug].astro`       | One `recipes` entry, Recipe JSON-LD                      |
+| `/legal/[slug]/`         | `pages/legal/[slug].astro`         | `legal` collection                                       |
+| `/feed.xml`              | `pages/feed.xml.ts`                | RSS 2.0, newest 20 posts                                 |
+| `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths                       |
+| `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                 |
 
-   Use Tailwind classes and `@/components/ui` components to match existing visual language.
+On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405 except the CSP report route):
 
-3. **Add content (optional but encouraged)**
-   - For blog posts or recipes, create content in Payload admin at `/admin`.
-   - For legal or static MDX pages, add files under `apps/site/content/legal/` or route-specific MDX as needed.
+| URL                   | File                         | Handler                    |
+| --------------------- | ---------------------------- | -------------------------- |
+| `/api/contact/`       | `pages/api/contact.ts`       | `lib/api/contact.ts`       |
+| `/api/subscribe/`     | `pages/api/subscribe.ts`     | `lib/api/subscribe.ts`     |
+| `/api/events/signup/` | `pages/api/events/signup.ts` | `lib/api/events-signup.ts` |
+| `/api/csp-report/`    | `pages/api/csp-report.ts`    | `lib/api/csp-report.ts`    |
 
-4. **Wire navigation and metadata**
-   - Update `apps/site/src/app/navigation.tsx` to include an `/experiences` link where appropriate.
-   - Add a metadata helper for `/experiences` under `apps/site/src/lib/metadata/` if that pattern exists (or inline `export const metadata` on the page).
+Retired routes: `pages/admin.ts`, `pages/admin/[...path].ts`, `pages/api/graphql.ts`, `pages/api/graphql/[...path].ts`, `pages/api/graphql-playground.ts` and `pages/api/graphql-playground/[...path].ts` all return 410 Gone through `lib/security/gone.ts`, and the same patterns are added as 410 routes in the Vercel config so the function is rarely invoked.
 
-5. **Add tests (optional)**
-   - e.g. `apps/site/src/app/experiences/page.test.tsx` only if the page has non-trivial logic worth guarding.
+Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`, `/sitemap.xml` → `/sitemap-index.xml`, and ten retired post slugs that 301 to the nearest current piece.
 
-6. **Run checks**
-   - From the monorepo root:
+---
 
-     ```bash
-     pnpm lint
-     pnpm test
-     pnpm build
-     ```
+## 4. `content/` layout and frontmatter contract
 
-   - All checks should pass before merging or shipping.
+```text
+content/
+├── posts/*.mdx           # journal
+├── recipes/*.mdx
+├── events/*.mdx          # empty is fine — the listing renders an empty state
+├── legal/*.mdx           # privacy-policy, terms-of-service
+├── authors/*.yaml        # referenced by id from posts and recipes
+├── categories/*.yaml     # referenced by id from posts
+├── images/*.jpg          # hero images referenced from frontmatter
+└── tags.json             # { "slug": "Display name" }
+```
+
+Rules common to every collection:
+
+- The entry id, and therefore the URL slug, is the filename without its extension. Use lowercase kebab-case (`SLUG_PATTERN` in `lib/content/schema.ts`).
+- Frontmatter is validated by the Zod schemas in `apps/web/src/content.config.ts` on every build and by `astro check`. An invalid file fails the build; a missing optional field takes its default.
+- `image` is an image import resolved relative to the entry file (`"../images/hero-home.jpg"`). Astro validates that the file exists and optimises it at build. Paths must resolve to a file on disk relative to the entry; `public/` URLs are not accepted here.
+- `draft: true` (where the collection has it) excludes the entry from production builds, the sitemap and the RSS feed. In `astro dev` drafts render so they can be previewed. Legal, authors and categories have no draft flag.
+- Dates are ISO strings (`"2026-04-18"`) and are coerced to `Date`.
+
+### 4.1 `posts`
+
+| Field         | Type                      | Required | Notes                                             |
+| ------------- | ------------------------- | -------- | ------------------------------------------------- |
+| `title`       | string, ≤ 200             | yes      |                                                   |
+| `date`        | date                      | yes      | Sort key, newest first                            |
+| `author`      | reference to `authors`    | yes      | `"jonno"`                                         |
+| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts |
+| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`           |
+| `featured`    | boolean                   | no       | Default `false`; surfaces on the home and journal |
+| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                |
+| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`         |
+| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise |
+| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway             |
+| `draft`       | boolean                   | no       | Default `false`                                   |
+
+```mdx
+---
+title: 'Our first planting day: 1,150 trees, 26 people, one brown snake'
+date: '2026-04-18'
+author: 'jonno'
+category: 'regeneration'
+tags: ['restoration', 'regeneration', 'agroforestry']
+featured: true
+excerpt: 'We opened the gate for the first time and 26 people turned up with gloves.'
+description: "Carinya Parc's first community planting day along the Branch River."
+image: '../images/river-valley-aerial.jpg'
+imageAlt: 'The Branch River bend at Carinya Parc'
+draft: false
+---
+```
+
+### 4.2 `recipes`
+
+| Field          | Type                         | Required | Notes                        |
+| -------------- | ---------------------------- | -------- | ---------------------------- |
+| `title`        | string, ≤ 200                | yes      |                              |
+| `date`         | date                         | yes      |                              |
+| `author`       | reference to `authors`       | yes      |                              |
+| `difficulty`   | `easy` \| `medium` \| `hard` | no       |                              |
+| `servings`     | integer ≥ 1                  | no       |                              |
+| `prepTime`     | ISO 8601 duration (`PT10M`)  | no       | Hours, minutes, seconds only |
+| `cookTime`     | ISO 8601 duration            | no       |                              |
+| `totalTime`    | ISO 8601 duration            | no       | Used in Recipe JSON-LD       |
+| `excerpt`      | string, ≤ 500                | yes      |                              |
+| `description`  | string, ≤ 300                | no       | Falls back to `excerpt`      |
+| `image`        | image                        | no       |                              |
+| `imageAlt`     | string                       | no       |                              |
+| `tags`         | string[]                     | no       | Default `[]`                 |
+| `ingredients`  | `{ item: string }[]`, ≥ 1    | yes      |                              |
+| `instructions` | `{ step: string }[]`, ≥ 1    | yes      | Rendered in order            |
+| `draft`        | boolean                      | no       | Default `false`              |
+
+The MDX body is optional prose above or below the structured ingredients and steps.
+
+### 4.3 `events`
+
+| Field          | Type          | Required | Notes                                                                        |
+| -------------- | ------------- | -------- | ---------------------------------------------------------------------------- |
+| `title`        | string, ≤ 200 | yes      |                                                                              |
+| `startsAt`     | date-time     | yes      | Listing shows events starting after build time; rebuild to drop a past event |
+| `location`     | string, ≤ 200 | yes      |                                                                              |
+| `isFull`       | boolean       | no       | Default `false`; set by hand — there is no capacity counter                  |
+| `signupTarget` | http(s) URL   | no       | When set, the card links out instead of showing the on-site form             |
+| `draft`        | boolean       | no       | Default `false`; the signup endpoint also refuses drafts                     |
+
+On-site signups (`/api/events/signup/`) are added to a MailerLite group named for the event slug. Nothing is stored in this repository or on the server.
+
+### 4.4 `legal`
+
+| Field         | Type   | Required |
+| ------------- | ------ | -------- |
+| `title`       | string | yes      |
+| `description` | string | yes      |
+
+The body is the policy text; the page renders it with the `legal-prose` styles.
+
+### 4.5 `authors` and `categories` (YAML)
+
+| Collection   | Fields                               |
+| ------------ | ------------------------------------ |
+| `authors`    | `name` (required), `imageUrl`, `bio` |
+| `categories` | `name` (required), `description`     |
+
+The filename is the id other entries reference. Categories only get an archive page once a published post uses them.
+
+### 4.6 `tags.json`
+
+A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/posts.ts` falls back to the slug itself, so an entry is only needed when the label differs from the slug (`"comfort-food": "Comfort Food"`).
+
+---
+
+## 5. Routing and layout conventions
+
+### 5.1 Layouts
+
+- `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`.
+- `layouts/Site.astro` wraps `Base` with the header, `<main>`, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `overlay` (transparent header over a hero) and `showFooter`. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`.
+
+Every page uses `Site`. Nothing uses `Base` directly.
+
+### 5.2 Trailing slashes
+
+`trailingSlash: 'always'` means Astro dev and Vercel both redirect `/blog` to `/blog/`. Consequences:
+
+- Internal links come from `lib/urls.ts` or are written with a trailing slash.
+- Endpoint paths (`API_*_PATH`) end in `/` so a `POST` is not 308-redirected and turned into a `GET`.
+- Redirect sources in `astro.config.mjs` are written with the trailing slash; the trailing-slash integration makes the compiled route accept both forms.
+
+### 5.3 Metadata and JSON-LD
+
+Metadata is data, not markup. `lib/metadata/index.ts` composes the `PageMetadata` object from small functions (`generateTitle`, `generateCanonicalUrl`, `generateOpenGraph`, …) and `Base.astro` is the only place that turns it into `<meta>` tags.
+
+JSON-LD is layered: `Base.astro` always emits Organization; a page adds `<JsonLd />` for BreadcrumbList (derived from the path unless `breadcrumbs` is passed) and, where relevant, `article`, `recipe` or `includeLocalBusiness`. The generators in `lib/schema/` are pure functions with tests.
+
+### 5.4 How to add things
+
+**A page.** Create `src/pages/<kebab-name>.astro` (or `<name>/index.astro` for a section root). Wrap the content in `<Site title description path>`, add `<JsonLd />`, and compose existing components from `sections/` and `marketing/`. If the page should appear in the header or footer, add it to `src/config/navigation.ts`. Static pages need no `getStaticPaths`.
+
+**A content-driven section.** Add a collection in `content.config.ts` pointing at `${CONTENT_ROOT}/<name>`, a read helper in `lib/content/<name>.ts` that applies `isPublished` and sorting, a URL helper in `lib/urls.ts`, then a `[slug].astro` whose `getStaticPaths` maps the helper's result to `{ params: { slug: entry.id }, props: { entry } }`. Create the `content/<name>/` folder and a first entry so the build has something to validate. Document the frontmatter here in §4.
+
+**An island.** Write the React component under `src/components/islands/`, keep it free of server imports, and mount it from a small `.astro` wrapper with `client:visible` (or `client:idle` for chrome that is not in the first viewport). Put the fetch in `lib/<feature>/client.ts` and post to a path from `lib/urls.ts`. Add a colocated test if it holds state.
+
+**An endpoint.** Add `src/pages/api/<name>.ts` with `export const prerender = false`, a `POST` that delegates to `lib/api/<name>.ts`, and a `GET` that returns `methodNotAllowed()`. In the handler: `readJsonBody`, a Zod schema from `lib/validation/`, honeypot and timing checks, `createRateLimiter`, sanitisation, then the side effect. Add the path constant to `lib/urls.ts`, any new env var to `.env.example`, `turbo.json` and `eslint.config.mjs`, and a handler test alongside.
+
+**A redirect.** Add it to `redirects` in `astro.config.mjs` with the trailing slash on the source. Do not edit `vercel.json` by hand for redirects; it is generated.
+
+**A security header or CSP host.** Change `lib/security/constants.ts`, run `pnpm --filter web generate:vercel-json`, and update `tests/security.test.ts` if the expected host list changes.
+
+Then run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm web:build` and `pnpm --filter web test:dist` from the root, and update the relevant document in `docs/`.

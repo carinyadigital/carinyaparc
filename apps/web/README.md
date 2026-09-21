@@ -1,17 +1,42 @@
-# `apps/web` — Astro 7 public site
+# `apps/web` — Carinya Parc public site
 
-Scaffold for the Astro + MDX replacement of `apps/site`. Production still deploys from `apps/site` until cut-over.
+Astro 7 + MDX. Static HTML for every page, React islands for the contact, subscribe and event-signup forms, and four on-demand endpoints running as Vercel functions. Folder-by-folder detail is in `docs/architecture/structure.md`; the rules are in `docs/architecture/principles.md`.
 
-On-demand endpoints live at `/api/contact/`, `/api/subscribe/`, `/api/events/signup/`, and `/api/csp-report/` (`prerender = false`). React islands for contact, subscribe (standalone, inline, end-of-post, modal), event signup, and consent live under `src/components/islands/`. Marketing pages that mount those islands land in a later phase.
+## Commands
 
 From the repo root:
 
 ```bash
-pnpm web:dev     # http://localhost:4321
-pnpm web:build
-pnpm --filter web test
+pnpm web:dev                    # http://localhost:4321, drafts visible
+pnpm web:build                  # dist/ and .vercel/output/
+pnpm --filter web test          # Vitest: src/**/*.test.ts(x) plus tests/ (dist suites skip without a build)
+pnpm --filter web test:dist     # links, images, CSP hosts, headers — run after a build
+pnpm --filter web test:parity   # built site vs docs/architecture/astro-migration/baseline/
+pnpm --filter web generate:vercel-json   # regenerate vercel.json from src/lib/security
+pnpm lint && pnpm typecheck && pnpm format:check   # from the root, across the monorepo
 ```
 
 ## Content
 
-Posts, recipes, events, legal pages, authors, categories and tags live at the repository root under `content/`, outside this app. `src/content.config.ts` points the collections there; frontmatter is validated against those schemas on every build. Hero images referenced from frontmatter live in `content/images/` and are optimised at build time.
+Posts, recipes, events, legal pages, authors, categories and `tags.json` live at the repository root under `content/`, outside this app. `src/content.config.ts` points the six collections there (`CONTENT_ROOT = '../../content'`) and validates frontmatter on every build. Hero images referenced from frontmatter live in `content/images/` and are optimised at build time. Slug = filename; `draft: true` hides an entry from production.
+
+## Endpoints
+
+The four form and report endpoints under `src/pages/api/` are on-demand (`prerender = false`); each delegates to a handler in `src/lib/api/`:
+
+| Path                  | Does                                                           |
+| --------------------- | -------------------------------------------------------------- |
+| `/api/contact/`       | Validates, rate-limits and emails the enquiry via Resend       |
+| `/api/subscribe/`     | Adds the subscriber to MailerLite with interests               |
+| `/api/events/signup/` | Adds the subscriber to the MailerLite group for the event slug |
+| `/api/csp-report/`    | Receives CSP violation reports                                 |
+
+`/admin`, `/api/graphql` and `/api/graphql-playground` return 410 Gone. Redirects are in `astro.config.mjs`; security headers and the CSP are generated into `vercel.json` and merged into the Vercel Build Output config at build time.
+
+## Tests
+
+Unit tests are colocated under `src/` (`*.test.ts`, `*.test.tsx`) and cover the endpoint handlers, validation, sanitisation, security, metadata, JSON-LD and the stateful islands. `tests/security.test.ts` and `tests/parity.test.ts` read `dist/` and `.vercel/output/config.json`; CI builds first and then runs `test:dist`.
+
+## Environment
+
+Copy `.env.example` to `.env`. Nothing is required for a local build. `PUBLIC_*` variables are the only ones the browser sees (`PUBLIC_SITE_URL`, `PUBLIC_GTM_ID`, `PUBLIC_SENTRY_DSN`). `MAILERLITE_API_KEY`, `RESEND_API_KEY` and the `CONTACT_*` / `EVENT_SIGNUP_*` settings are read by the endpoint handlers only; Sentry is enabled when a DSN is present. A new variable must also be added to `turbo.json` and the allow list in `eslint.config.mjs`.

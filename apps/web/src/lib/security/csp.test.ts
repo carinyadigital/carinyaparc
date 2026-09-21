@@ -42,6 +42,11 @@ describe('CSP_DIRECTIVES.BALANCED', () => {
     expect(balanced['style-src']).toContain("'unsafe-inline'");
   });
 
+  it('allows same-origin connections for the Sentry tunnel without a new host', () => {
+    expect(balanced['connect-src']).toContain("'self'");
+    expect(balanced['connect-src']).toContain('https://*.sentry.io');
+  });
+
   it('does not allowlist Google Fonts hosts (fonts are self-hosted)', () => {
     expect(balanced['style-src']).not.toContain('https://fonts.googleapis.com');
     expect(balanced['font-src']).not.toContain('https://fonts.gstatic.com');

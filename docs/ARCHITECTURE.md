@@ -50,7 +50,8 @@ related:
        ▲                    │   POST /api/contact/      → Resend         │
        │ preview URL        │   POST /api/subscribe/    → MailerLite     │
        │                    │   POST /api/events/signup/→ MailerLite grp │
-┌──────┴───────┐  PR merge  │   POST /api/csp-report/   → Sentry         │
+       │                    │   POST /api/csp-report/   → Sentry         │
+┌──────┴───────┐  PR merge  │   POST /monitoring/       → Sentry tunnel  │
 │ Author /     │───────────>│  Build: astro build from git (content/)    │
 │ reviewer     │  (GitHub)  └────────────────────────────────────────────┘
 └──────────────┘
@@ -66,7 +67,7 @@ related:
 
 ### 1.2 System boundary
 
-This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the four on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
+This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the five on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
 
 It does not own newsletter CRM logic beyond the MailerLite API, payments, booking or inventory, social media publishing, agronomic or property operations, or multi-property tenancy. There is no admin UI, no database and no authentication of any kind.
 
@@ -100,7 +101,7 @@ Ordered by priority for architectural trade-offs.
 - TypeScript strict mode; no `any` in new code ([`PRINCIPLES.md`](PRINCIPLES.md)).
 - Australian English for user-visible copy ([`product.md`](product/product.md)).
 - One property and, in practice, one editor. Roles, approvals beyond PR review, and multi-tenant patterns are out of scope.
-- Public pages are prerendered. Anything that needs a request (forms, reports) is an explicit on-demand endpoint under `src/pages/api/`.
+- Public pages are prerendered. Anything that needs a request (forms, reports, the Sentry tunnel) is an explicit on-demand endpoint (`src/pages/api/` or `src/pages/monitoring.ts`).
 - Monorepo shape: `apps/web` plus `packages/carinya-theme`, `packages/eslint-config`, `packages/typescript-config`, with `content/`, `brand/` and `skills/` at the root. It is not flattened to a single app.
 
 ---
@@ -109,7 +110,7 @@ Ordered by priority for architectural trade-offs.
 
 ### 3.1 Architectural style
 
-**Static site with islands, git as the CMS.** Astro 7 renders every public route to HTML at build time from `.astro` components and MDX content collections. React 19 islands hydrate only the contact, subscribe, event-signup and consent components. Four endpoints run as Vercel functions on demand. Content lives in `content/` at the repository root and is validated by Zod schemas in `apps/web/src/content.config.ts`; publishing is merging to `main`.
+**Static site with islands, git as the CMS.** Astro 7 renders every public route to HTML at build time from `.astro` components and MDX content collections. React 19 islands hydrate only the contact, subscribe, event-signup and consent components. Five endpoints run as Vercel functions on demand. Content lives in `content/` at the repository root and is validated by Zod schemas in `apps/web/src/content.config.ts`; publishing is merging to `main`.
 
 The trade-off accepted is the loss of a browser editing UI. Vercel preview deployments and PR review replace draft preview and publish approval; see [ADR-0002](decisions/ADR-0002-git-is-the-publish-gate.md).
 
@@ -170,7 +171,7 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 | **UI primitives**         | Button, Eyebrow, Breadcrumb, JsonLd, MotifTile, form fields                                                                 | `src/components/ui/`                                                  |
 | **Sections and chrome**   | Hero, PageHeader, ImpactStats; header, footer; blog, recipes, marketing sections                                            | `src/components/{sections,header,footer,blog,recipes,marketing}/`     |
 | **Islands**               | ContactForm, SubscribeForm/Modal/Inline/EndOfPost, EventSignup, ConsentGate                                                 | `src/components/islands/`, `src/components/consent/`                  |
-| **Endpoints**             | `prerender = false` routes delegating to handlers                                                                           | `src/pages/api/`, `src/lib/api/`                                      |
+| **Endpoints**             | `prerender = false` routes delegating to handlers                                                                           | `src/pages/api/`, `src/pages/monitoring.ts`, `src/lib/api/`           |
 | **Validation**            | Zod schemas, sanitisation, spam-email list                                                                                  | `src/lib/validation/`                                                 |
 | **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                            | `src/lib/rate-limit.ts`                                               |
 | **Integrations**          | MailerLite client (subscribers, event groups), Resend notification email                                                    | `src/lib/mailerlite/`, `src/lib/email/`                               |
@@ -274,12 +275,12 @@ An island is always wrapped by a small `.astro` component that owns the `client:
 | Folder or file   | Holds                                                                                                                                                                                                                                                                                                                        |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `content/`       | Read-side helpers over the collections: `posts.ts` (`getPublishedPosts`, `getFeaturedPosts`, `getRelatedPosts`, `getCategoriesWithPosts`, `getTagsWithPosts`, `toPostSummary`, `tagName`, `isPublished`), `recipes.ts`, `events.ts` (`getUpcomingEvents`), `dates.ts`, `schema.ts` (regexes shared with `content.config.ts`) |
-| `urls.ts`        | `postUrl`, `categoryUrl`, `tagUrl`, `recipeUrl`, `eventsListingUrl` and the `API_*_PATH` constants — all with trailing slashes                                                                                                                                                                                               |
+| `urls.ts`        | `postUrl`, `categoryUrl`, `tagUrl`, `recipeUrl`, `eventsListingUrl`, the `API_*_PATH` constants, and `SENTRY_TUNNEL_PATH` — all with trailing slashes                                                                                                                                                                        |
 | `constants.ts`   | `BASE_URL` (from `PUBLIC_SITE_URL`), site title and description, default OG image, favicon paths, `LOCAL_BUSINESS`, social profiles, breadcrumb names                                                                                                                                                                        |
 | `metadata/`      | `generatePageMetadata` composed from `title`, `description`, `canonical`, `openGraph`, `twitter`, `robots`, `icons`, `viewport`; `types.ts`                                                                                                                                                                                  |
 | `schema/`        | JSON-LD generators: `organization` (and `organization-json` for the `<head>`), `breadcrumb`, `localBusiness`, `article`, `recipe`; `index.ts` re-exports                                                                                                                                                                     |
 | `validation/`    | Zod schemas (`contact-schema`, `subscribe-schema`, `event-signup-schema`), `sanitize.ts` (plain-Node strip and escape), `spam-email.ts`                                                                                                                                                                                      |
-| `api/`           | Endpoint handlers: `contact.ts`, `subscribe.ts`, `events-signup.ts`, `csp-report.ts`, plus `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`)                                                                                                                                                                    |
+| `api/`           | Endpoint handlers: `contact.ts`, `subscribe.ts`, `events-signup.ts`, `csp-report.ts`, `sentry-tunnel.ts`, plus `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`)                                                                                                                                                |
 | `rate-limit.ts`  | `createRateLimiter` — in-memory, per instance                                                                                                                                                                                                                                                                                |
 | `mailerlite/`    | MailerLite client: subscriber upsert, per-event group resolution                                                                                                                                                                                                                                                             |
 | `email/`         | `send-contact-notification.ts` (Resend) and `templates/`                                                                                                                                                                                                                                                                     |
@@ -333,7 +334,7 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths                       |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                 |
 
-On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405 except the CSP report route):
+On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
 
 | URL                   | File                         | Handler                    |
 | --------------------- | ---------------------------- | -------------------------- |
@@ -341,6 +342,7 @@ On-demand endpoints (`export const prerender = false`; `POST` only, `GET` return
 | `/api/subscribe/`     | `pages/api/subscribe.ts`     | `lib/api/subscribe.ts`     |
 | `/api/events/signup/` | `pages/api/events/signup.ts` | `lib/api/events-signup.ts` |
 | `/api/csp-report/`    | `pages/api/csp-report.ts`    | `lib/api/csp-report.ts`    |
+| `/monitoring/`        | `pages/monitoring.ts`        | `lib/api/sentry-tunnel.ts` |
 
 Retired routes: `pages/admin.ts`, `pages/admin/[...path].ts`, `pages/api/graphql.ts`, `pages/api/graphql/[...path].ts`, `pages/api/graphql-playground.ts` and `pages/api/graphql-playground/[...path].ts` all return 410 Gone through `lib/security/gone.ts`, and the same patterns are added as 410 routes in the Vercel config so the function is rarely invoked.
 
@@ -348,7 +350,7 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`,
 
 ### 4.6 Layouts, trailing slashes, and how to add things
 
-**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `overlay` (transparent header over a hero), `showFooter` and `showNewsletter`. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`. Every page uses `Site`. Nothing uses `Base` directly.
+**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `publishedTime`, `authors`, `overlay` (transparent header over a hero), `showFooter` and `showNewsletter`. Blog posts pass `publishedTime` (ISO 8601) and `authors` (display names). `generateOpenGraph` keeps those fields only when `type` is `article`, and `Base.astro` renders them as `article:published_time` and `article:author`. Recipe pages stay `type="article"` without those fields. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`. Every page uses `Site`. Nothing uses `Base` directly.
 
 **Trailing slashes.** `trailingSlash: 'always'` means Astro dev and Vercel both redirect `/blog` to `/blog/`. Consequences:
 
@@ -611,14 +613,14 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 6.5 Glossary
 
-| Term                   | Definition                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| **Entry**              | One file in a collection; its id is the filename stem and the public slug            |
-| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)         |
-| **On-demand endpoint** | A `src/pages/api/*` route with `prerender = false`, deployed as a Vercel function    |
-| **Featured post**      | `featured: true`; drives home-page highlights                                        |
-| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`             |
-| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers |
+| Term                   | Definition                                                                                      |
+| ---------------------- | ----------------------------------------------------------------------------------------------- |
+| **Entry**              | One file in a collection; its id is the filename stem and the public slug                       |
+| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                    |
+| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`) |
+| **Featured post**      | `featured: true`; drives home-page highlights                                                   |
+| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                        |
+| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers            |
 
 ---
 
@@ -627,16 +629,16 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 ### 7.1 Security
 
 - **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
-- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
+- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
 - **Retired surfaces.** `/admin`, `/api/graphql` and `/api/graphql-playground` (and anything below them) return **410 Gone** from a CDN route; matching on-demand endpoints exist so local preview behaves the same.
-- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`.
+- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
 - **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
 - **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
 - **Secrets.** `MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN` are server-only. Only `PUBLIC_*` variables reach the browser.
 
 ### 7.2 Observability
 
-- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
+- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. The browser SDK is initialised from `sentry.client.config.ts` on every page, independent of the analytics consent gate, and posts envelopes to `/monitoring/`. That route forwards only an envelope whose DSN matches the configured Sentry project. The server SDK is initialised from `sentry.server.config.ts` and posts straight to the DSN. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
 - **Vercel Analytics and Speed Insights** load only after consent, from the `ConsentGate` island.
 - **Logging.** Endpoints log rejection reasons and the email domain, never the address or message body.
 
@@ -678,6 +680,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turb
 | `/api/subscribe/`                                | POST   | Newsletter subscription → MailerLite subscriber | One submission per email per day                   |
 | `/api/events/signup/`                            | POST   | Event signup → MailerLite group for the event   | 404 draft/unknown, 400 past or external, 409 full  |
 | `/api/csp-report/`                               | POST   | CSP violation reports → Sentry                  | 204 for reports from other origins                 |
+| `/monitoring/`                                   | POST   | Browser Sentry envelopes → the project DSN      | Same-origin tunnel; GET returns 405                |
 | `/admin/**`, `/api/graphql*`                     | any    | Retired admin and GraphQL paths                 | 410 Gone                                           |
 | `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
 
@@ -718,7 +721,7 @@ push / merge → Vercel build (root: apps/web)
   → pnpm install (workspace)
   → turbo run build --filter=web → astro build
       → validate content, prerender pages, optimise images, write sitemap and feed
-      → Vercel adapter: static output + four functions
+      → Vercel adapter: static output + five functions
       → integrations patch .vercel/output/config.json (headers, 410s, redirects)
   → deploy
 ```
@@ -756,14 +759,13 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 ### 10.2 Technical debt
 
-- **Rate limiting is in-memory per instance** as well as a Vercel WAF rule on form POSTs. `createRateLimiter` still resets when an instance is recycled; the WAF is the durable control.
+- **Rate limiting is in-memory per instance** as well as a Vercel WAF rule on form POSTs. `createRateLimiter` still resets when an instance is recycled; the WAF is the durable control. The Sentry tunnel at `/monitoring/` sits outside `/api/*`, so a durable WAF rule for that path has to name it explicitly.
 - **CSP carries `'unsafe-inline'`** for scripts and styles. Prerendered HTML cannot nonce inline scripts; the policy relies on host allowlists. The policy is enforced.
 - **Events freshness is tied to deploys.** An event flips from upcoming to past only when the site rebuilds. `isFull` is set by hand.
 - **Posts render the full MDX body.** There is no automatic midpoint subscribe form. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly (roadmap Phase 4).
 - **Placeholder `imageAlt` values.** `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
 - **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
 - **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
-- **Posts do not emit** `article:published_time` or `article:author` Open Graph tags (JSON-LD `Article` is present).
 - **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.
 
 ### 10.3 Open questions

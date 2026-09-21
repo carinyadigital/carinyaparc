@@ -27,3 +27,9 @@ export const API_CONTACT_PATH = '/api/contact/';
 export const API_SUBSCRIBE_PATH = '/api/subscribe/';
 export const API_EVENT_SIGNUP_PATH = '/api/events/signup/';
 export const API_CSP_REPORT_PATH = '/api/csp-report/';
+
+/**
+ * First-party Sentry tunnel. The trailing slash keeps the browser POST from
+ * being 308'd into a GET under directory URLs.
+ */
+export const SENTRY_TUNNEL_PATH = '/monitoring/';

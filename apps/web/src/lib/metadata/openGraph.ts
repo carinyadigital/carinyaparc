@@ -15,6 +15,10 @@ interface OpenGraphConfig {
   siteName?: string;
   locale?: string;
   type?: 'website' | 'article' | 'book' | 'profile';
+  /** ISO 8601 publish time. Included only when `type` is `article`. */
+  publishedTime?: string;
+  /** Author display names. Included only when `type` is `article`. */
+  authors?: readonly string[];
 }
 
 export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
@@ -27,6 +31,8 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
     siteName = SITE_TITLE,
     locale = 'en_AU',
     type = 'website',
+    publishedTime,
+    authors,
   } = config;
 
   const allImages: OpenGraphImage[] = imageUrl
@@ -50,6 +56,10 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
           },
         ];
 
+  const articleAuthors = authors
+    ?.map((author) => author.trim())
+    .filter((author) => author.length > 0);
+
   return {
     title,
     description,
@@ -58,5 +68,9 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
     siteName,
     locale,
     type,
+    ...(type === 'article' && publishedTime ? { publishedTime } : {}),
+    ...(type === 'article' && articleAuthors && articleAuthors.length > 0
+      ? { authors: articleAuthors }
+      : {}),
   };
 }

@@ -15,6 +15,34 @@ describe('generatePageMetadata', () => {
     expect(metadata.canonical).toMatch(/\/about\/$/);
     expect(metadata.openGraph.type).toBe('website');
   });
+
+  it('adds article published time and authors only when the page is an article', () => {
+    const metadata = generatePageMetadata({
+      title: 'From MasterChef to Mud Boots',
+      description: 'A journal post',
+      path: '/blog/masterchef-to-mud-boots',
+      type: 'article',
+      publishedTime: '2026-01-15T00:00:00.000Z',
+      authors: ['Jonno', '  '],
+    });
+
+    expect(metadata.openGraph.publishedTime).toBe('2026-01-15T00:00:00.000Z');
+    expect(metadata.openGraph.authors).toEqual(['Jonno']);
+  });
+
+  it('drops article Open Graph fields on website pages', () => {
+    const metadata = generatePageMetadata({
+      title: 'About',
+      description: 'Our story',
+      path: '/about',
+      publishedTime: '2026-01-15T00:00:00.000Z',
+      authors: ['Jonno'],
+    });
+
+    expect(metadata.openGraph.type).toBe('website');
+    expect(metadata.openGraph.publishedTime).toBeUndefined();
+    expect(metadata.openGraph.authors).toBeUndefined();
+  });
 });
 
 describe('generateMetadata', () => {

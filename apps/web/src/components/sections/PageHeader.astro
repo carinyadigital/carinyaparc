@@ -49,6 +49,7 @@ const CLIP =
         sizes="100vw"
         loading={isDark ? 'eager' : 'lazy'}
         fetchpriority={isDark ? 'high' : 'auto'}
+        decoding={isDark ? 'sync' : 'async'}
         class="h-full w-full object-cover object-right brightness-75 md:object-center"
       />
       {isDark && (

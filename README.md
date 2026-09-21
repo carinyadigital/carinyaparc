@@ -4,7 +4,8 @@ Website for [Carinya Parc](https://carinyaparc.com.au) — a regenerative farm i
 
 ## Features
 
-- **Next.js 16** (App Router) + **React 19** + **Tailwind CSS 4**
+- **Next.js 16** (App Router) + **React 19** + **Tailwind CSS 4** (`apps/site`, currently production)
+- **Astro 6** + **MDX** public site (`apps/web`, scaffolded alongside `apps/site`)
 - **Payload CMS** + **MDX** with **PostgreSQL**
 - **pnpm** + **Turborepo** monorepo, deployed on **Vercel**
 
@@ -25,6 +26,7 @@ pnpm site:dev
 
 - Public site: [http://localhost:3000](http://localhost:3000)
 - Payload admin: [http://localhost:3000/admin](http://localhost:3000/admin)
+- Astro scaffold: `pnpm web:dev` → [http://localhost:4321](http://localhost:4321)
 
 ## Quality checks
 

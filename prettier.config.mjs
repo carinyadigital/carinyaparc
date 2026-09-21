@@ -8,11 +8,18 @@ const config = {
   bracketSpacing: true,
   arrowParens: 'always',
   endOfLine: 'lf',
+  plugins: ['prettier-plugin-astro'],
   overrides: [
     {
       files: '**/*.md',
       options: {
         parser: 'mdx',
+      },
+    },
+    {
+      files: '*.astro',
+      options: {
+        parser: 'astro',
       },
     },
   ],

@@ -17,12 +17,12 @@ related:
 
 Settled choices for this migration:
 
-| Choice | Decision |
-| --- | --- |
-| Interactive UI | Astro components by default (zero client JS). React islands only for the contact, subscribe, and event-signup forms. `framer-motion` and `@tanstack/react-query` are dropped. |
-| Events and registrations | Events become MDX content. Signups post to an external service (MailerLite group or an external `signupTarget` URL); no database, no capacity counting. |
-| Repo shape | New `apps/web` built next to `apps/site`; `apps/site` deleted after cut-over. |
-| Content export | A one-shot export script in `apps/site` (run locally against Neon) writes JSON; a converter turns it into MDX. |
+| Choice                   | Decision                                                                                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Interactive UI           | Astro components by default (zero client JS). React islands only for the contact, subscribe, and event-signup forms. `framer-motion` and `@tanstack/react-query` are dropped. |
+| Events and registrations | Events become MDX content. Signups post to an external service (MailerLite group or an external `signupTarget` URL); no database, no capacity counting.                       |
+| Repo shape               | New `apps/web` built next to `apps/site`; `apps/site` deleted after cut-over.                                                                                                 |
+| Content export           | A one-shot export script in `apps/site` (run locally against Neon) writes JSON; a converter turns it into MDX.                                                                |
 
 ---
 
@@ -44,51 +44,51 @@ Astro with MDX removes all of that. Content is files, builds are hermetic, previ
 
 ### 2.1 Public routes
 
-| Route | Source today | Astro target |
-| --- | --- | --- |
-| `/` | `(www)/page.tsx` — hard-coded sections + latest posts | `src/pages/index.astro` |
-| `/about`, `/about/the-property`, `/about/jonathan` | hard-coded TSX | `.astro` pages |
-| `/regenerate` | hard-coded TSX | `.astro` page |
-| `/contact` | TSX + `ContactFormSection` (client) | `.astro` page + React island |
-| `/subscribe` | TSX + subscribe form | `.astro` page + React island |
-| `/get-involved/events` | Payload `events` + `EventSignup` (client) | `.astro` page over `events` collection + React island |
-| `/legal/[slug]` | MDX in `content/legal/` | `legal` collection |
-| `/blog`, `/blog/page/[n]` | Payload `posts`, 9 per page | `paginate()` over `posts` collection |
-| `/blog/[slug]` | Payload `posts` (Lexical body) | `posts` collection entry |
-| `/blog/category/[slug]`, `/blog/tag/[tag]` | Payload | derived from frontmatter |
-| `/recipes`, `/recipes/[slug]` | Payload `recipes` | `recipes` collection |
-| `/feed.xml` | `features/blog/rss` | `@astrojs/rss` |
-| `/sitemap.xml` | `app/sitemap.ts` | `@astrojs/sitemap` |
-| `robots.txt`, `site.webmanifest`, favicons, motifs | `public/` | `public/` (unchanged) |
-| 404 | `not-found.tsx` + `404.jpg` | `src/pages/404.astro` |
-| `/admin`, `/api/[...slug]`, `/api/graphql` | Payload | **removed** (404) |
+| Route                                              | Source today                                          | Astro target                                          |
+| -------------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `/`                                                | `(www)/page.tsx` — hard-coded sections + latest posts | `src/pages/index.astro`                               |
+| `/about`, `/about/the-property`, `/about/jonathan` | hard-coded TSX                                        | `.astro` pages                                        |
+| `/regenerate`                                      | hard-coded TSX                                        | `.astro` page                                         |
+| `/contact`                                         | TSX + `ContactFormSection` (client)                   | `.astro` page + React island                          |
+| `/subscribe`                                       | TSX + subscribe form                                  | `.astro` page + React island                          |
+| `/get-involved/events`                             | Payload `events` + `EventSignup` (client)             | `.astro` page over `events` collection + React island |
+| `/legal/[slug]`                                    | MDX in `content/legal/`                               | `legal` collection                                    |
+| `/blog`, `/blog/page/[n]`                          | Payload `posts`, 9 per page                           | `paginate()` over `posts` collection                  |
+| `/blog/[slug]`                                     | Payload `posts` (Lexical body)                        | `posts` collection entry                              |
+| `/blog/category/[slug]`, `/blog/tag/[tag]`         | Payload                                               | derived from frontmatter                              |
+| `/recipes`, `/recipes/[slug]`                      | Payload `recipes`                                     | `recipes` collection                                  |
+| `/feed.xml`                                        | `features/blog/rss`                                   | `@astrojs/rss`                                        |
+| `/sitemap.xml`                                     | `app/sitemap.ts`                                      | `@astrojs/sitemap`                                    |
+| `robots.txt`, `site.webmanifest`, favicons, motifs | `public/`                                             | `public/` (unchanged)                                 |
+| 404                                                | `not-found.tsx` + `404.jpg`                           | `src/pages/404.astro`                                 |
+| `/admin`, `/api/[...slug]`, `/api/graphql`         | Payload                                               | **removed** (404)                                     |
 
 Config to preserve: `trailingSlash: true` → Astro `trailingSlash: 'always'` + `build.format: 'directory'`. Redirect `/favicon.ico` → `/favicon/favicon.ico`.
 
 ### 2.2 Public API endpoints
 
-| Endpoint | Does | Astro target |
-| --- | --- | --- |
-| `POST /api/contact` | Zod → honeypot → timing → in-memory rate limit → sanitise → Resend | on-demand endpoint, same pipeline |
-| `POST /api/subscribe` | Zod → MailerLite | on-demand endpoint |
-| `POST /api/events/signup` | writes `event-registrations` in Payload, sends Resend confirmation | on-demand endpoint → MailerLite group (or removed if `signupTarget` is external) |
-| `POST /api/csp-report` | validates and forwards to Sentry | on-demand endpoint |
-| `GET /api/consent` + `setConsent` server action | httpOnly `cp_consent` cookie | client-set (non-httpOnly) cookie; `ConsentGate` island reads it directly — no endpoint |
+| Endpoint                                        | Does                                                               | Astro target                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| `POST /api/contact`                             | Zod → honeypot → timing → in-memory rate limit → sanitise → Resend | on-demand endpoint, same pipeline                                                      |
+| `POST /api/subscribe`                           | Zod → MailerLite                                                   | on-demand endpoint                                                                     |
+| `POST /api/events/signup`                       | writes `event-registrations` in Payload, sends Resend confirmation | on-demand endpoint → MailerLite group (or removed if `signupTarget` is external)       |
+| `POST /api/csp-report`                          | validates and forwards to Sentry                                   | on-demand endpoint                                                                     |
+| `GET /api/consent` + `setConsent` server action | httpOnly `cp_consent` cookie                                       | client-set (non-httpOnly) cookie; `ConsentGate` island reads it directly — no endpoint |
 
 Endpoints use `export const prerender = false` with the Vercel adapter; everything else is prerendered.
 
 ### 2.3 Content model (Payload collections → collections)
 
-| Collection | Fields | Target |
-| --- | --- | --- |
-| `posts` | title, slug, date, author→authors, category→categories, tags→tags[], featured, excerpt, description, image (path), body (Lexical), `_status` | `src/content/posts/{slug}.mdx`; body converted Lexical → Markdown; drafts get `draft: true` |
-| `recipes` | title, slug, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, tags, ingredients[{item}], instructions[{step}] | `src/content/recipes/{slug}.mdx`; ingredients and instructions as frontmatter arrays; body optional |
-| `events` | title, slug, startsAt, location, capacity, isFull, signupTarget, description (Lexical) | `src/content/events/{slug}.mdx`; `capacity` dropped |
-| `authors` | name, slug, imageUrl, bio | `src/content/authors/{slug}.yaml` (`file()`/`glob()` loader); posts reference by `reference('authors')` |
-| `categories` | name, slug, description | `src/content/categories/{slug}.yaml` |
-| `tags` | name, slug | `src/data/tags.json` (slug → display name); post frontmatter carries tag slugs |
-| `users`, `event-registrations`, `payload-migrations` | admin/auth, signups | **not migrated** (registrations exported to CSV for the record) |
-| legal (MDX) | frontmatter-less MDX, metadata hard-coded in page | `src/content/legal/*.mdx` with title/description moved into frontmatter |
+| Collection                                           | Fields                                                                                                                                                                | Target                                                                                                  |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `posts`                                              | title, slug, date, author→authors, category→categories, tags→tags[], featured, excerpt, description, image (path), body (Lexical), `_status`                          | `src/content/posts/{slug}.mdx`; body converted Lexical → Markdown; drafts get `draft: true`             |
+| `recipes`                                            | title, slug, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, tags, ingredients[{item}], instructions[{step}] | `src/content/recipes/{slug}.mdx`; ingredients and instructions as frontmatter arrays; body optional     |
+| `events`                                             | title, slug, startsAt, location, capacity, isFull, signupTarget, description (Lexical)                                                                                | `src/content/events/{slug}.mdx`; `capacity` dropped                                                     |
+| `authors`                                            | name, slug, imageUrl, bio                                                                                                                                             | `src/content/authors/{slug}.yaml` (`file()`/`glob()` loader); posts reference by `reference('authors')` |
+| `categories`                                         | name, slug, description                                                                                                                                               | `src/content/categories/{slug}.yaml`                                                                    |
+| `tags`                                               | name, slug                                                                                                                                                            | `src/data/tags.json` (slug → display name); post frontmatter carries tag slugs                          |
+| `users`, `event-registrations`, `payload-migrations` | admin/auth, signups                                                                                                                                                   | **not migrated** (registrations exported to CSV for the record)                                         |
+| legal (MDX)                                          | frontmatter-less MDX, metadata hard-coded in page                                                                                                                     | `src/content/legal/*.mdx` with title/description moved into frontmatter                                 |
 
 Images: `image`/`imageUrl` are public paths (`/images/*.jpg`, 15 files, 5.6 MB). The converter rewrites them to relative `src/assets/images/*` references so the `image()` schema helper and `<Image>` optimise them at build time (AVIF/WebP, sized). Motifs and favicons stay in `public/`.
 
@@ -145,7 +145,9 @@ image: ../../assets/images/highland-cattle-dam.jpg
 imageAlt: Highland cattle beside the dam in winter light
 draft: false
 ---
+
 ## Green grass in winter
+
 ...
 ```
 
@@ -237,15 +239,15 @@ Rollback at any point before step 4 is "set the Vercel root directory back to `a
 
 ## 6. Risks
 
-| Risk | Mitigation |
-| --- | --- |
+| Risk                                                                 | Mitigation                                                                                           |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Lexical → Markdown loses formatting (links, lists, embedded uploads) | Export both Lexical and Markdown; manual read-through per post; fix in MDX. Content volume is small. |
-| SEO regression from URL or metadata drift | Baseline diff test in CI; trailing-slash config; canonical unchanged; sitemap resubmitted. |
-| Content edited in `/admin` after export | Declared freeze; re-export at cut-over is one command. |
-| Events list goes stale between deploys | Content merges redeploy; add a weekly scheduled deploy hook if needed. |
-| Form abuse without shared rate limiting | Honeypot + timing carried over; Vercel WAF rule at cut-over (better than today's per-instance map). |
-| Editors lose the browser UI | PR-based workflow with Vercel previews (§8); optional git-backed editor later. |
-| Consent cookie is no longer httpOnly | Consent state is not sensitive; documented as an accepted change in the ADR. |
+| SEO regression from URL or metadata drift                            | Baseline diff test in CI; trailing-slash config; canonical unchanged; sitemap resubmitted.           |
+| Content edited in `/admin` after export                              | Declared freeze; re-export at cut-over is one command.                                               |
+| Events list goes stale between deploys                               | Content merges redeploy; add a weekly scheduled deploy hook if needed.                               |
+| Form abuse without shared rate limiting                              | Honeypot + timing carried over; Vercel WAF rule at cut-over (better than today's per-instance map).  |
+| Editors lose the browser UI                                          | PR-based workflow with Vercel previews (§8); optional git-backed editor later.                       |
+| Consent cookie is no longer httpOnly                                 | Consent state is not sensitive; documented as an accepted change in the ADR.                         |
 
 ---
 

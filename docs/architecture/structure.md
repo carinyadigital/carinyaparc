@@ -20,24 +20,20 @@ At a high level, the monorepo is structured as:
 ```text
 .
 ├── apps/
-│   └── site/                 # Next.js App Router app. for the Carinya Parc website
-│       ├── content/          # MDX: legal pages; archived posts/recipes MDX
-│       ├── public/           # Static assets (images, favicon, logo)
-│       ├── src/
-│       │   ├── app/          # App Router routes, layouts, and route-level files
-│       │   │   └── (payload)/ # Payload admin UI and REST/GraphQL API routes
-│       │   ├── components/   # Shared React components (chrome, ui, layouts)
-│       │   ├── features/     # Domain modules (blog, recipes, …)
-│       │   ├── collections/  # Payload CMS collection configs
-│       │   ├── fields/       # Reusable Payload field definitions
-│       │   ├── hooks/        # Reusable hooks
-│       │   ├── providers/    # App-wide React context providers
-│       │   ├── lib/          # Cross-cutting utilities (payload client, security, …)
-│       │   ├── styles/       # Site CSS (components, page overrides)
-│       ├── eslint.config.mjs
-│       ├── next.config.mjs
-│       ├── tailwind.config.ts
-│       └── vitest.config.mjs
+│   ├── site/                 # Next.js App Router app (production until Astro cut-over)
+│   │   ├── content/          # MDX: legal pages; archived posts/recipes MDX
+│   │   ├── public/           # Static assets (images, favicon, logo)
+│   │   └── src/              # App Router, Payload collections, UI, lib
+│   └── web/                  # Astro 6 + MDX public site (scaffold; not production yet)
+│       ├── public/           # Favicons, robots.txt, scaffold images
+│       └── src/
+│           ├── content/      # MDX + YAML collections (empty until content migration)
+│           ├── content.config.ts
+│           ├── layouts/      # Base.astro, Site.astro
+│           ├── components/   # Header, footer chrome
+│           ├── pages/        # index, 404
+│           ├── lib/          # metadata, schema, validation, security, email
+│           └── styles/       # globals.css importing @carinya/theme
 ├── packages/
 │   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens
 │   ├── eslint-config/        # Shared ESLint configuration
@@ -59,7 +55,20 @@ The `docs/` directory contains [`product/product.md`](../product/product.md), ar
 
 Voice and positioning live in `brand/voice.md` and `brand/positioning.md`. The product skill is `skills/carinya-parc/SKILL.md`.
 
-Design tokens live in `packages/carinya-theme` (`@carinya/theme`). Site-specific CSS stays in `apps/site/src/styles/`.
+Design tokens live in `packages/carinya-theme` (`@carinya/theme`). Site-specific CSS stays in `apps/site/src/styles/` today and is mirrored in `apps/web/src/styles/` for the Astro scaffold.
+
+## Web App Structure (`apps/web`)
+
+`apps/web` is the Astro 6 + MDX public site, built alongside `apps/site`. Production still deploys from `apps/site` until cut-over. The scaffold includes:
+
+- `astro.config.mjs` — MDX, React, sitemap, Vercel adapter, Tailwind Vite plugin, `trailingSlash: 'always'`
+- `src/content.config.ts` — posts, recipes, events, authors, categories, legal collection schemas
+- `src/layouts/` — `Base.astro` (HTML head, fonts, Organization JSON-LD) and `Site.astro` (header/footer chrome)
+- `src/pages/` — home and 404 only in this phase
+- `src/lib/` — ported metadata, JSON-LD, validation, security, email, RSS, and duration helpers
+- `src/data/tags.json` — tag slug → display name map (empty until content migration)
+
+Run `pnpm web:dev` from the repo root. CI runs `pnpm turbo run build --filter=web` (no database secrets).
 
 ## Site App Structure (`apps/site`)
 

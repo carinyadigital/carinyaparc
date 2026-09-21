@@ -439,9 +439,8 @@ Cleanup
 
 | Epic                         | Folder                | Why it stays separate                                      |
 | ---------------------------- | --------------------- | ---------------------------------------------------------- |
-| Media library (MEDIA)        | `specs/media/`        | Phase 1 P0 — upload collection, alt, backfill              |
-| Admin hardening (ADMIN)      | `specs/admin/`        | Phase 2 — Users access, GraphQL playground, prod CSP check |
-| MailerLite welcome (BLOG-01) | `specs/blog/TASKS.md` | Ops only — in-repo blog epic is otherwise shipped          |
+| Media library (MEDIA)        | `specs/media/`         | Phase 1 P0 — upload collection, alt, backfill     |
+| MailerLite welcome (BLOG-01) | `specs/blog/design.md` | Ops only — in-repo blog epic is otherwise shipped |
 
 ## 6. Closed — do not re-open
 
@@ -461,4 +460,4 @@ pagination, recipes index, decorative category filter removed) remain closed.
 ## 7. References
 
 - [Architecture solution](../../docs/ARCHITECTURE.md) — §6.3 draft safety, §7 caching, §10 debt
-- [Roadmap](../../docs/product/roadmap.md) — Phase 1 CI gate; Phase 2 rate limiting and production admin
+- [Roadmap](../../docs/product/roadmap.md) — Phase 1 CI gate; Phase 2 cut-over

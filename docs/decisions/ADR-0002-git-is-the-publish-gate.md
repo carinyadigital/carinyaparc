@@ -2,7 +2,7 @@
 
 **Status:** Accepted — 2026-09-21
 
-**Related:** [ADR-0001](ADR-0001-astro-mdx-replaces-payload.md) (why the CMS was removed), [`docs/astro-migration/PLAN.md`](../astro-migration/PLAN.md) §8 (editorial workflow), [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) §5.2 (publish runtime view)
+**Related:** [ADR-0001](ADR-0001-astro-mdx.md) (Astro + MDX platform), [`docs/astro-migration/PLAN.md`](../astro-migration/PLAN.md) §8 (editorial workflow), [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) §5.2 (publish runtime view)
 
 ## Context
 

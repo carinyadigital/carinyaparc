@@ -8,7 +8,6 @@ owner: blog
 status: Draft
 last_updated: 2026-08-13
 related:
-  - specs/blog/TASKS.md
   - docs/ARCHITECTURE.md
   - docs/product/roadmap.md
 ---

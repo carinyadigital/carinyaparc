@@ -11,7 +11,7 @@ related:
   - docs/PRINCIPLES.md
   - docs/astro-migration/PLAN.md
   - docs/product/roadmap.md
-  - docs/decisions/ADR-0001-astro-mdx-replaces-payload.md
+  - docs/decisions/ADR-0001-astro-mdx.md
   - docs/decisions/ADR-0002-git-is-the-publish-gate.md
 ---
 
@@ -202,7 +202,6 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 ├── brand/                    # voice.md, positioning.md (not a workspace package)
 ├── skills/
 │   └── carinya-parc/         # Product-local agent skill (not a workspace package)
-├── specs/                    # Domain TDDs linked from GitHub issues
 ├── docs/
 │   ├── ARCHITECTURE.md       # this file
 │   ├── PRINCIPLES.md
@@ -216,7 +215,7 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 └── package.json              # Root scripts: web:dev, web:build, lint, typecheck, format, test
 ```
 
-`pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `specs/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
+`pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
 
 `apps/site` (the previous Next.js + Payload app) is still in the tree because production deploys from it until the Vercel project's root directory is switched to `apps/web`. It is excluded from the pnpm workspace and is not described here; the cut-over checklist is Phase 7 of [`PLAN.md`](astro-migration/PLAN.md).
 
@@ -744,7 +743,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 | ID       | Decision                                                                                | Status                                                                                    |
 | -------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| ADR-0001 | [Astro + MDX replaces Payload CMS](decisions/ADR-0001-astro-mdx-replaces-payload.md) | Accepted 2026-09-21                                                                       |
+| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                       |
 | ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)             | Accepted 2026-09-21                                                                       |
 | —        | `content/` at the repository root rather than inside `apps/web`                         | Candidate; recorded in ADR-0001 consequences for now                                      |
 | —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`          | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |

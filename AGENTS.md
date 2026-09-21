@@ -43,7 +43,6 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 │   └── typescript-config/    # @repo/typescript-config
 ├── brand/                    # voice.md, positioning.md (not a workspace package)
 ├── skills/carinya-parc/      # Product-local agent skill (not a workspace package)
-├── specs/                    # Domain TDDs linked from GitHub issues
 └── docs/                     # ARCHITECTURE.md, PRINCIPLES.md, product/, astro-migration/, decisions/
 ```
 

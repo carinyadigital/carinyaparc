@@ -225,7 +225,7 @@ Each phase ends with a PR to `main`. Phases 0–6 are done; `apps/site` keeps de
 ### Phase 6 — Docs and cleanup (done)
 
 - `AGENTS.md`, `README.md`, `apps/web/README.md`, `docs/ARCHITECTURE.md`, `docs/PRINCIPLES.md` and `docs/astro-migration/PLAN.md` describe `apps/web` as the product and `content/` as the CMS; `docs/product/roadmap.md` closes the Phase 1 CMS items and adds the cut-over and editorial-tooling phases.
-- `docs/decisions/ADR-0001-astro-mdx-replaces-payload.md` and `ADR-0002-git-is-the-publish-gate.md` record the decision and the publish gate.
+- `docs/decisions/ADR-0001-astro-mdx.md` and `ADR-0002-git-is-the-publish-gate.md` record the platform choice and the publish gate.
 - `skills/carinya-parc/SKILL.md` points at `apps/web` paths and MDX content; the `apps/site/content/seeds` and `content/archive` READMEs say the pipeline is retired.
 - No document instructs anyone to run Payload, Postgres, Docker, `/admin`, seed JSON or `import:content-seeds`.
 

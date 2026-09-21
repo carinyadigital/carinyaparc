@@ -23,7 +23,7 @@ A remaining-work epic: close correctness, security, SEO, and a11y gaps on the al
 
 Prove that public queries never leak drafts, CI builds the production app, public forms do not leak setup details, and primary CTAs resolve to real routes. Later tasks harden rate limits, editor preview, metadata, and bundle cost.
 
-**Does not yet work (and is out of this epic):** Payload media uploads (`specs/media/`), admin Users access (`specs/admin/`), MailerLite welcome automations (`specs/blog/`).
+**Does not yet work (and is out of this epic):** Payload media uploads (`specs/media/`), MailerLite welcome automations (`specs/blog/`).
 
 ## 2. Files
 
@@ -88,7 +88,7 @@ Story-level Gherkin lives in [`TASKS.md`](TASKS.md).
 
 ## 4. What was NOT delivered
 
-- Media library, admin Users access, MailerLite welcomes (other `specs/` domains).
+- Media library, MailerLite welcomes (other `specs/` domains).
 - On-site search, chronological prev/next, recipe index filtering (closed; see TASKS.md §6).
 - Full marketing-page CMS, Stay pages, booking.
 
@@ -101,4 +101,4 @@ Story-level Gherkin lives in [`TASKS.md`](TASKS.md).
 
 ## 6. Handoff
 
-**Next:** MEDIA (hero/OG images for SITE-10 / SITE-17), ADMIN (production CSP verification), BLOG-01 (MailerLite). Update `ARCHITECTURE.md` §10 as SITE-23 lands.
+**Next:** MEDIA (hero/OG images for SITE-10 / SITE-17), BLOG-01 (MailerLite). Update `ARCHITECTURE.md` §10 as SITE-23 lands.

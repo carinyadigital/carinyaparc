@@ -18,7 +18,9 @@
     "format:check": "prettier --check .",
     "clean": "rm -rf dist .astro .vercel",
     "test": "vitest run",
-    "test:parity": "vitest run tests/parity.test.ts"
+    "test:parity": "vitest run tests/parity.test.ts",
+    "test:dist": "vitest run tests",
+    "generate:vercel-json": "vite-node scripts/generate-vercel-json.ts"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",

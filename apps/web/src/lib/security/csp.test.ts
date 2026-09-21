@@ -37,6 +37,15 @@ describe('CSP_DIRECTIVES.BALANCED', () => {
     const scriptSrc = balanced['script-src'] ?? [];
     expect(scriptSrc).not.toContain("'unsafe-eval'");
   });
+
+  it('allows unsafe-inline styles for prerendered inline stylesheets', () => {
+    expect(balanced['style-src']).toContain("'unsafe-inline'");
+  });
+
+  it('does not allowlist Google Fonts hosts (fonts are self-hosted)', () => {
+    expect(balanced['style-src']).not.toContain('https://fonts.googleapis.com');
+    expect(balanced['font-src']).not.toContain('https://fonts.gstatic.com');
+  });
 });
 
 describe('buildCSPHeader', () => {

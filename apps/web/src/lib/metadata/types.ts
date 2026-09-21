@@ -13,6 +13,10 @@ export type OpenGraphMetadata = {
   siteName: string;
   locale: string;
   type: 'website' | 'article' | 'book' | 'profile';
+  /** ISO 8601. Rendered as `article:published_time` when `type` is `article`. */
+  publishedTime?: string;
+  /** One `article:author` tag per name when `type` is `article`. */
+  authors?: string[];
 };
 
 export type TwitterMetadata = {

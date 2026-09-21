@@ -12,6 +12,10 @@ interface Props {
   path: string;
   image?: string;
   type?: 'website' | 'article';
+  /** ISO 8601. Passed through to `article:published_time` when `type` is `article`. */
+  publishedTime?: string;
+  /** Author display names. One `article:author` tag each when `type` is `article`. */
+  authors?: string[];
   overlay?: boolean;
   showFooter?: boolean;
   /**
@@ -29,6 +33,8 @@ const {
   path,
   image,
   type = 'website',
+  publishedTime,
+  authors,
   overlay = false,
   showFooter = true,
   showNewsletter = true,
@@ -43,6 +49,8 @@ const metadata =
     path,
     image,
     type,
+    publishedTime,
+    authors,
   });
 ---
 

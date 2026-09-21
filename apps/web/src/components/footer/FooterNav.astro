@@ -1,4 +1,6 @@
 ---
+import { withTrailingSlash } from '@/lib/metadata/canonical';
+
 interface NavigationItem {
   name: string;
   href: string;
@@ -22,7 +24,7 @@ const { sections } = Astro.props;
         {section.items.map((item) => (
           <li>
             <a
-              href={item.href}
+              href={withTrailingSlash(item.href)}
               class="text-sm text-footer-foreground hover:text-wattle transition-opacity"
             >
               {item.name}

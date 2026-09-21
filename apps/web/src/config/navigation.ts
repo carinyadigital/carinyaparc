@@ -11,13 +11,13 @@ export const navigation: NavItem[] = [
   {
     verb: 'Discover',
     rest: 'Our Story',
-    href: '/about',
+    href: '/about/',
     visible: true,
   },
   {
     verb: 'Regenerate',
     rest: 'Land with Us',
-    href: '/regenerate',
+    href: '/regenerate/',
     visible: true,
   },
   {
@@ -41,7 +41,7 @@ export const navigation: NavItem[] = [
   {
     verb: 'Read',
     rest: 'Life on Pasture',
-    href: '/blog',
+    href: '/blog/',
     visible: true,
   },
   {

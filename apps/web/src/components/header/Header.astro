@@ -62,7 +62,7 @@ const headerClass = isSolid
           {visibleNav.map((item) => (
             <li>
               <a
-                href={item.href}
+                href={withTrailingSlash(item.href)}
                 class={cn(
                   'block transition-opacity duration-150 hover:opacity-70',
                   withTrailingSlash(item.href) === normalisedPath && 'opacity-70',
@@ -83,7 +83,7 @@ const headerClass = isSolid
           ))}
           <li>
             <a
-              href="/regenerate"
+              href="/regenerate/"
               class="inline-flex rounded-pill bg-eucalypt-600 px-[22px] py-[11px] text-sm font-semibold text-primary-foreground hover:bg-eucalypt-700"
             >
               Get involved
@@ -101,7 +101,7 @@ const headerClass = isSolid
     >
       {visibleNav.map((item) => (
         <a
-          href={item.href}
+          href={withTrailingSlash(item.href)}
           class={cn(
             'transition-opacity duration-150 hover:opacity-70',
             withTrailingSlash(item.href) === normalisedPath && 'opacity-70',
@@ -124,7 +124,7 @@ const headerClass = isSolid
         </a>
       ))}
       <a
-        href="/regenerate"
+        href="/regenerate/"
         class={cn(
           'rounded-pill px-[22px] py-[11px] text-sm font-semibold transition-colors duration-150',
           isSolid

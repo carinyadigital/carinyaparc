@@ -1,8 +1,9 @@
 version: 2
 updates:
-  # Single pnpm lockfile at the repo root. Groups split PRs: workspace (root +
-  # packages/*), site (apps/site), and shared deps that appear in both.
-  - package-ecosystem: 'pnpm'
+  # Single pnpm lockfile at the repo root. Dependabot's YAML value for pnpm is
+  # `npm`; it detects pnpm-lock.yaml automatically. Groups split PRs: workspace
+  # (root + packages/*), site (apps/site), and shared deps that appear in both.
+  - package-ecosystem: 'npm'
     directory: '/'
     schedule:
       interval: 'weekly'

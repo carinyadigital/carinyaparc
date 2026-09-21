@@ -8,14 +8,14 @@ status: Not started
 last_updated: 2026-08-13
 related:
   - specs/media/tdd.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
 ---
 
 # Tasks — Media library (MEDIA)
 
 Tasks for `specs/media/`, epic MEDIA.
 
-Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/architecture/solution.md`](../../docs/architecture/solution.md)
+Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md)
 
 ## 1. Summary
 
@@ -33,7 +33,7 @@ Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/architecture/solution.md`](.
 - `lib/payload/media.ts` resolver helpers and unit tests
 - Updated mappers, `Post.imageAlt`, blog components, and public route metadata
 - Idempotent `scripts/backfill-media-from-paths.ts`
-- `solution.md` §6.3, §10.2, and §10.3 updated
+- `ARCHITECTURE.md` §6.3, §10.2, and §10.3 updated
 - Production verification record (admin upload → public page with alt)
 
 **Dependencies.** CI (CI guards schema, env, and test changes before merge).
@@ -244,22 +244,22 @@ Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/architecture/solution.md`](.
       Then skippedPaths includes "/images/missing-file.jpg"
     ```
 
-- [ ] **[MEDIA-07] solution.md updates and collection config tests**
+- [ ] **[MEDIA-07] ARCHITECTURE.md updates and collection config tests**
   - **Status:** Not started | **Priority:** P0 | **Estimate:** 1
   - **Epic:** MEDIA | **Labels:** phase:1, docs, type:tests
   - **Depends on:** MEDIA-01, MEDIA-02
-  - **Deliverable:** Update `docs/architecture/solution.md` — add Media to §6.2, replace interim image invariant in §6.3, remove text-path and unused media-route debt in §10.2, close media migration question in §10.3 with backfill decision; extend `blog-collections.test.ts` to assert `Media` registration and upload field shapes on posts, recipes, and authors.
+  - **Deliverable:** Update `docs/ARCHITECTURE.md` — add Media to §6.2, replace interim image invariant in §6.3, remove text-path and unused media-route debt in §10.2, close media migration question in §10.3 with backfill decision; extend `blog-collections.test.ts` to assert `Media` registration and upload field shapes on posts, recipes, and authors.
   - **Design:** [`./tdd.md#10-acceptance-gates`](tdd.md#10-acceptance-gates), [`./tdd.md#11-handoff`](tdd.md#11-handoff)
   - **Acceptance (Gherkin):**
 
     ```gherkin
-    Scenario: solution.md no longer lists text-path image fields as open debt
-      Given docs/architecture/solution.md is read
+    Scenario: ARCHITECTURE.md no longer lists text-path image fields as open debt
+      Given docs/ARCHITECTURE.md is read
       When section 10.2 Technical debt is searched
       Then the line "Text-path image fields" is not present
 
-    Scenario: solution.md closes the media migration open question
-      Given docs/architecture/solution.md section 10.3 is read
+    Scenario: ARCHITECTURE.md closes the media migration open question
+      Given docs/ARCHITECTURE.md section 10.3 is read
       When the Media migration question is located
       Then it is marked resolved with the backfill script approach
 
@@ -316,9 +316,9 @@ Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/architecture/solution.md`](.
 | MEDIA-07 | §10, §11    |
 | MEDIA-08 | §9, §10     |
 
-### Tasks to solution.md
+### Tasks to ARCHITECTURE.md
 
-| Task     | solution.md                            |
+| Task     | ARCHITECTURE.md                            |
 | -------- | -------------------------------------- |
 | MEDIA-01 | §3.2 (supersedes interim images), §4.2 |
 | MEDIA-04 | §4.2 (mapper layer), §7.6 (a11y)       |
@@ -332,7 +332,7 @@ Companion artefacts: [`./tdd.md`](tdd.md) · [`docs/architecture/solution.md`](.
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` pass locally and in CI
 - [ ] `BLOB_READ_WRITE_TOKEN` documented in `.env.example` and set in Vercel production
 - [ ] Backfill executed against production (or documented operator sign-off for skipped paths)
-- [ ] `solution.md` invariants and debt updated; §10.3 media migration closed
+- [ ] `ARCHITECTURE.md` invariants and debt updated; §10.3 media migration closed
 - [ ] Production verification record as a dated operator note on MEDIA-08
 - [ ] Code review approved and PR merged to `main`
 

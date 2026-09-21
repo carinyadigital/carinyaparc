@@ -10,15 +10,15 @@ last_updated: 2026-08-13
 related:
   - specs/agents/SPEC.md
   - specs/agents/TASKS.md
-  - docs/architecture/solution.md
-  - docs/architecture/structure.md
+  - docs/ARCHITECTURE.md
+  - docs/ARCHITECTURE.md
 ---
 
 # Technical Design — Site product-manager (AGENTS)
 
 Technical design for AGENTS at `specs/agents/`. Team intent is
 [`SPEC.md`](SPEC.md). Site-app patterns stay in
-[`solution.md`](../../docs/architecture/solution.md). This epic is mostly
+[`ARCHITECTURE.md`](../../docs/ARCHITECTURE.md). This epic is mostly
 **outside** `apps/site`.
 
 ## 1. The slice
@@ -63,7 +63,7 @@ package.json                                   EVOLVE  agent:validate / agent:bu
 .github/workflows/agent-ci.yml                 NEW     paths: agents/**
 .github/workflows/agent-deploy.yml             NEW     workflow_dispatch; dry-run default true
 pnpm-workspace.yaml                            KEEP    do not add agents/
-docs/architecture/structure.md                 EVOLVE  agents/ tree (when this ships)
+docs/ARCHITECTURE.md                 EVOLVE  agents/ tree (when this ships)
 
 # carinyaparc/carinya-plugins
 product-management/skills/                     EVOLVE  must exist

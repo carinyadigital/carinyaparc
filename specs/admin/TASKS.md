@@ -8,7 +8,7 @@ status: Not started
 last_updated: 2026-08-13
 related:
   - specs/admin/tdd.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
   - docs/product/roadmap.md
 ---
 
@@ -22,7 +22,7 @@ Task breakdown for the admin hardening design. Canonical AC lives here. Design: 
 - **Phase / Priority.** Phase 2 · P1
 - **Estimate.** 13 points across 6 tasks
 - **Depends on.** CI (lint/typecheck/test/build gate); shipped Payload access pattern (`lib/payload/access.ts`)
-- **Scope.** Users-collection access control, GraphQL playground off in production, Payload API cache headers, access regression tests, production CSP verification, and the matching `solution.md` update. See tdd.md §1 for out-of-scope items (rate limiting, RBAC, IP allowlisting).
+- **Scope.** Users-collection access control, GraphQL playground off in production, Payload API cache headers, access regression tests, production CSP verification, and the matching `ARCHITECTURE.md` update. See tdd.md §1 for out-of-scope items (rate limiting, RBAC, IP allowlisting).
 - **MVP.** ADMIN-01 — anonymous REST cannot enumerate admin users.
 
 ## 2. Conventions
@@ -32,7 +32,7 @@ Task breakdown for the admin hardening design. Canonical AC lives here. Design: 
 | Task ID    | `ADMIN-{nn}` — never reused          |
 | Acceptance | Gherkin per task                     |
 | Estimate   | Fibonacci story points               |
-| Paths      | `apps/site/src/...` (`structure.md`) |
+| Paths      | `apps/site/src/...` (`ARCHITECTURE.md`) |
 
 ## 3. Tasks
 
@@ -110,13 +110,13 @@ Task breakdown for the admin hardening design. Canonical AC lives here. Design: 
       And the outcome is recorded as a dated operator note on ADMIN-05 with date and operator
     ```
 
-- [ ] **[ADMIN-06]** Documentation — `docs/architecture/solution.md` · P2 · Est 1 · Depends: ADMIN-05
+- [ ] **[ADMIN-06]** Documentation — `docs/ARCHITECTURE.md` · P2 · Est 1 · Depends: ADMIN-05
   - Update §7.1 (admin hardening summary), §10.1 (CSP-vs-admin risk mitigation status), and the ADR-007 candidate row with the verification outcome. tdd.md §10.
   - **Acceptance (Gherkin):**
 
     ```gherkin
     Scenario: Architecture reflects admin hardening
-      Given solution.md after this epic
+      Given ARCHITECTURE.md after this epic
       When §7.1 and §10.1 are read
       Then the admin access rules and CSP verification outcome are recorded
     ```
@@ -128,7 +128,7 @@ ADMIN-01 ──> ADMIN-04
 ADMIN-01, ADMIN-02, ADMIN-03 ──> ADMIN-05 ──> ADMIN-06
 ```
 
-- **DoD:** all Gherkin passes; existing posts/recipes access tests still green; `pnpm lint/typecheck/test/build` green; `solution.md` updated; ADR-007 status recorded.
+- **DoD:** all Gherkin passes; existing posts/recipes access tests still green; `pnpm lint/typecheck/test/build` green; `ARCHITECTURE.md` updated; ADR-007 status recorded.
 
 ## 5. Handoff
 

@@ -9,13 +9,13 @@ status: Draft
 last_updated: 2026-08-13
 related:
   - specs/site/TASKS.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
   - docs/product/roadmap.md
 ---
 
 # Technical Design — Site hardening (SITE)
 
-Technical design for SITE at `specs/site/`. Architecture-wide patterns are authoritative in [`solution.md`](../../docs/architecture/solution.md) and are cited, not repeated.
+Technical design for SITE at `specs/site/`. Architecture-wide patterns are authoritative in [`ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) and are cited, not repeated.
 
 A remaining-work epic: close correctness, security, SEO, and a11y gaps on the already-shipping public site. Not a new surface.
 
@@ -58,7 +58,7 @@ draft-mode / preview route                        NEW     editor preview without
 apps/site/src/components/sections/header/*        EVOLVE  drop full framer-motion
 apps/site/src/lib/metadata/index.ts               EVOLVE  remove getPathFromParams
 apps/site/package.json                            EVOLVE  unused uuid / remark
-docs/architecture/solution.md                     EVOLVE  §10 refresh
+docs/ARCHITECTURE.md                     EVOLVE  §10 refresh
 ```
 
 ## 3. Acceptance gates
@@ -72,7 +72,7 @@ docs/architecture/solution.md                     EVOLVE  §10 refresh
 ### 3.2 Observability
 
 - Subscribe misconfiguration logs server-side / Sentry only; the JSON body is generic (`SITE-03`).
-- Consent-gated analytics behaviour is unchanged (`solution.md` §7.4). SITE does not add events.
+- Consent-gated analytics behaviour is unchanged (`ARCHITECTURE.md` §7.4). SITE does not add events.
 
 ### 3.3 Error path
 
@@ -101,4 +101,4 @@ Story-level Gherkin lives in [`TASKS.md`](TASKS.md).
 
 ## 6. Handoff
 
-**Next:** MEDIA (hero/OG images for SITE-10 / SITE-17), ADMIN (production CSP verification), BLOG-01 (MailerLite). Update `solution.md` §10 as SITE-23 lands.
+**Next:** MEDIA (hero/OG images for SITE-10 / SITE-17), ADMIN (production CSP verification), BLOG-01 (MailerLite). Update `ARCHITECTURE.md` §10 as SITE-23 lands.

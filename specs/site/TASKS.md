@@ -8,7 +8,7 @@ status: In progress
 last_updated: 2026-08-13
 related:
   - specs/site/tdd.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
   - docs/product/roadmap.md
 ---
 
@@ -70,7 +70,7 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
 
 - [ ] **[SITE-02] Add production build to CI**
   - **Status:** Open | **Priority:** P0 | **Estimate:** 3
-  - **Overlaps:** Phase 1 roadmap CI gate; `solution.md` §10.2
+  - **Overlaps:** Phase 1 roadmap CI gate; `ARCHITECTURE.md` §10.2
   - **Depends on:** —
   - **Deliverable:** `.github/workflows/ci.yml` job runs `pnpm build` (or `pnpm site:build`) when DB/build secrets are available; document required secrets in workflow comments or `AGENTS.md`.
   - **Acceptance (Gherkin):**
@@ -148,7 +148,7 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
 
 - [ ] **[SITE-07] Shared rate limiting on contact and subscribe**
   - **Status:** Open | **Priority:** P2 | **Estimate:** 5
-  - **Overlaps:** Phase 2 roadmap; `solution.md` §10.2
+  - **Overlaps:** Phase 2 roadmap; `ARCHITECTURE.md` §10.2
   - **Depends on:** —
   - **Deliverable:** Replace per-instance in-memory limits with a shared store (Vercel KV / Upstash or equivalent) keyed by first-hop `x-forwarded-for` **and** normalised email. Do not treat a tighter in-memory limiter as done.
   - **Acceptance (Gherkin):**
@@ -274,7 +274,7 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
 
 - [ ] **[SITE-15] Skip-navigation link**
   - **Status:** Open | **Priority:** P2 | **Estimate:** 2
-  - **Overlaps:** Phase 4 a11y; `solution.md` §10.2
+  - **Overlaps:** Phase 4 a11y; `ARCHITECTURE.md` §10.2
   - **Depends on:** —
   - **Deliverable:** Visually hidden skip link as first focusable element in the public layout; targets `<main>` or equivalent landmark.
   - **Acceptance (Gherkin):**
@@ -347,7 +347,7 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
 - [ ] **[SITE-20] Audit Sentry session replay bundle cost**
   - **Status:** Open | **Priority:** P4 | **Estimate:** 2
   - **Depends on:** —
-  - **Deliverable:** Review `replaysSessionSampleRate` (currently 0.1) and lazy-load replay integration; document decision in `solution.md` §10 (not §7.8 — public HTTP API lives there).
+  - **Deliverable:** Review `replaysSessionSampleRate` (currently 0.1) and lazy-load replay integration; document decision in `ARCHITECTURE.md` §10 (not §7.8 — public HTTP API lives there).
   - **Acceptance (Gherkin):**
 
     ```gherkin
@@ -383,10 +383,10 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
       Then no code reads apps/site/src/app at request or generation time for route discovery
     ```
 
-- [ ] **[SITE-23] Dependency hygiene and solution.md §10 refresh**
+- [ ] **[SITE-23] Dependency hygiene and ARCHITECTURE.md §10 refresh**
   - **Status:** Open | **Priority:** P4 | **Estimate:** 2
   - **Depends on:** SITE-18
-  - **Deliverable:** Remove unused `uuid` and leftover remark packages if unused after Framer Motion work; drop resolved MDX debt lines from `solution.md` §10 (`gray-matter` is already gone from `package.json`).
+  - **Deliverable:** Remove unused `uuid` and leftover remark packages if unused after Framer Motion work; drop resolved MDX debt lines from `ARCHITECTURE.md` §10 (`gray-matter` is already gone from `package.json`).
   - **Acceptance (Gherkin):**
 
     ```gherkin
@@ -395,20 +395,20 @@ Work top-to-bottom within each tier unless a dependency blocks progress.
       When the codebase is searched for uuid imports
       Then uuid is absent from dependencies or every import is accounted for
 
-    Scenario: solution.md debt list reflects resolved MDX packages
-      Given solution.md section 10 is read
+    Scenario: ARCHITECTURE.md debt list reflects resolved MDX packages
+      Given ARCHITECTURE.md section 10 is read
       Then gray-matter and unused remark packages are not listed as open debt if removed from package.json
     ```
 
 - [ ] **[SITE-24] Documentation drift sweep**
   - **Status:** Open | **Priority:** P4 | **Estimate:** 2
   - **Depends on:** SITE-02, SITE-23
-  - **Deliverable:** `structure.md` naming examples use `[slug]` not `[post]`/`[recipe]`; this doc cross-linked from roadmap Phase 2 notes.
+  - **Deliverable:** `ARCHITECTURE.md` naming examples use `[slug]` not `[post]`/`[recipe]`; this doc cross-linked from roadmap Phase 2 notes.
   - **Acceptance (Gherkin):**
 
     ```gherkin
     Scenario: Structure doc matches App Router segment names
-      Given docs/architecture/structure.md is read
+      Given docs/ARCHITECTURE.md is read
       When naming conventions for dynamic segments are described
       Then examples use [slug] not [post] or [recipe]
     ```
@@ -460,5 +460,5 @@ pagination, recipes index, decorative category filter removed) remain closed.
 
 ## 7. References
 
-- [Architecture solution](../../docs/architecture/solution.md) — §6.3 draft safety, §7 caching, §10 debt
+- [Architecture solution](../../docs/ARCHITECTURE.md) — §6.3 draft safety, §7 caching, §10 debt
 - [Roadmap](../../docs/product/roadmap.md) — Phase 1 CI gate; Phase 2 rate limiting and production admin

@@ -9,13 +9,13 @@ status: Draft
 last_updated: 2026-08-13
 related:
   - specs/blog/TASKS.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
   - docs/product/roadmap.md
 ---
 
 # Technical Design — Blog (BLOG)
 
-Technical design for BLOG at `specs/blog/`. The reader-facing blog surface is **already shipped** (archives, related posts, in-flow subscribe, author block, events, share, consent-gated analytics). This document is the living contract for that surface plus the two remaining operator slices. Architecture-wide patterns are authoritative in [`solution.md`](../../docs/architecture/solution.md).
+Technical design for BLOG at `specs/blog/`. The reader-facing blog surface is **already shipped** (archives, related posts, in-flow subscribe, author block, events, share, consent-gated analytics). This document is the living contract for that surface plus the two remaining operator slices. Architecture-wide patterns are authoritative in [`ARCHITECTURE.md`](../../docs/ARCHITECTURE.md).
 
 ## 1. Scope
 
@@ -28,7 +28,7 @@ Technical design for BLOG at `specs/blog/`. The reader-facing blog surface is **
 
 ### Already shipped (do not rebuild)
 
-Category/tag archives, related posts, inline/end-of-post subscribe (`source` + `interest`), author block, Events collection + listing + signup, ShareBar, consent-gated GA events in `apps/site/src/lib/analytics/`. Queries use `overrideAccess: false` (`solution.md` §6.3). Archives ride `payload:posts` revalidation (`solution.md` §7.4).
+Category/tag archives, related posts, inline/end-of-post subscribe (`source` + `interest`), author block, Events collection + listing + signup, ShareBar, consent-gated GA events in `apps/site/src/lib/analytics/`. Queries use `overrideAccess: false` (`ARCHITECTURE.md` §6.3). Archives ride `payload:posts` revalidation (`ARCHITECTURE.md` §7.4).
 
 ### Out of scope
 
@@ -38,10 +38,10 @@ On-site search (product non-goal). Per-category RSS. In-app `app/admin/analytics
 
 | Concern   | Fit                                                                                                                                                      |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Subscribe | Reuses `/api/subscribe` + MailerLite (`solution.md` §7.8, §1.1). Welcome routing is **ESP-side** — the app upserts fields; it does not call automations. |
-| Analytics | GTM/dataLayer, consent-gated via `ConsentGate` (`solution.md` §7.2, §7.4).                                                                               |
-| Events    | Payload `Events` + `EventRegistrations`; signup mirrors contact-form validation (`solution.md` §5.3, §7.1).                                              |
-| Rendering | SSG + ISR; no `force-dynamic` on new archive routes (`solution.md` §5.1, §7.4).                                                                          |
+| Subscribe | Reuses `/api/subscribe` + MailerLite (`ARCHITECTURE.md` §7.8, §1.1). Welcome routing is **ESP-side** — the app upserts fields; it does not call automations. |
+| Analytics | GTM/dataLayer, consent-gated via `ConsentGate` (`ARCHITECTURE.md` §7.2, §7.4).                                                                               |
+| Events    | Payload `Events` + `EventRegistrations`; signup mirrors contact-form validation (`ARCHITECTURE.md` §5.3, §7.1).                                              |
+| Rendering | SSG + ISR; no `force-dynamic` on new archive routes (`ARCHITECTURE.md` §5.1, §7.4).                                                                          |
 
 ## 3. Files and components
 
@@ -71,7 +71,7 @@ const SubscribeInput = z.object({
     .enum(['restoration', 'regenerative-farming', 'community', 'produce', 'learning'])
     .optional(),
   source: z.string().max(200).optional(), // e.g. "blog:{slug}"
-  website: z.string().max(0).optional(), // honeypot (solution.md §7.1)
+  website: z.string().max(0).optional(), // honeypot (ARCHITECTURE.md §7.1)
 });
 ```
 
@@ -135,7 +135,7 @@ Operators configure MailerLite and GA4. No application deploy for BLOG-01 or BLO
 | -------------------------------- | -------------------------------------------------------- |
 | No interest selected             | General welcome only; interest automations must not fire |
 | Re-subscribe with a new interest | Prefer send-once; do not spam a second welcome           |
-| Consent rejected                 | No `dataLayer` push (`solution.md` §7.4)                 |
+| Consent rejected                 | No `dataLayer` push (`ARCHITECTURE.md` §7.4)                 |
 | MailerLite 4xx/5xx               | SITE-03 generic public error; log server-side            |
 
 ## 8. Observability

@@ -9,7 +9,7 @@ last_updated: 2026-08-13
 related:
   - specs/agents/SPEC.md
   - specs/agents/tdd.md
-  - docs/architecture/structure.md
+  - docs/ARCHITECTURE.md
 ---
 
 # Tasks — Site product-manager (AGENTS)

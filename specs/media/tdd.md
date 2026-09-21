@@ -9,12 +9,12 @@ status: Draft
 last_updated: 2026-08-13
 related:
   - specs/media/TASKS.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
 ---
 
 # Technical Design — Media library (MEDIA)
 
-Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are authoritative in [`solution.md`](../../docs/architecture/solution.md) and are cited here, not repeated.
+Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are authoritative in [`ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) and are cited here, not repeated.
 
 ## 1. Scope
 
@@ -29,7 +29,7 @@ Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are aut
 | **Public rendering**           | Blog post cards, featured posts, and recipe detail pages render hero images through `next/image` with media `alt` text (not post title as a substitute).                                 |
 | **Metadata wiring**            | Blog post `generateMetadata`, Open Graph, Twitter, and Article JSON-LD consume resolved media URLs and alt where a hero image exists.                                                    |
 | **Backfill migration**         | Idempotent script seeds `media` records from existing `public/` paths referenced on live documents, links relations, and removes interim text fields after verification.                 |
-| **Architecture documentation** | Resolve the media migration open question in `solution.md` §10.3; update §6.3 invariants and §10.2 debt lines; supersede ADR-005 interim decision.                                       |
+| **Architecture documentation** | Resolve the media migration open question in `ARCHITECTURE.md` §10.3; update §6.3 invariants and §10.2 debt lines; supersede ADR-005 interim decision.                                       |
 | **Revalidation compatibility** | No new hook surface required for hero-only edits — existing revalidation hooks revalidate public routes when a document with a hero image is saved.                                      |
 
 ### Out of scope (defer)
@@ -42,7 +42,7 @@ Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are aut
 | Stay page photography                             | Stay information — Stay-specific imagery and copy.                                         |
 | Video, PDF, or SVG uploads                        | Images only for MEDIA; SVG remains static in `public/` (favicons, placeholders).           |
 | Replacing all static marketing images             | `(www)` sections keep hard-coded `public/images/*` until site globals.                     |
-| CDN beyond Vercel / Next image pipeline           | `solution.md` §1 non-goals.                                                                |
+| CDN beyond Vercel / Next image pipeline           | `ARCHITECTURE.md` §1 non-goals.                                                                |
 | Media-only admin edits revalidating all referrers | Optional follow-up hook; not required for roadmap gate (editors re-save parent doc today). |
 | Automated production upload E2E in CI             | Manual admin upload + public URL verification satisfies Phase 1 gate.                      |
 
@@ -57,21 +57,21 @@ Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are aut
 | Blog public routes                | Cards, featured, detail metadata + JSON-LD        |
 | Recipe hero on detail page        | Query depth, page render, schema image            |
 | Backfill script                   | Seed from `public/` paths, operator runbook       |
-| `solution.md` + env docs          | Close §10.3; update debt and invariants           |
+| `ARCHITECTURE.md` + env docs          | Close §10.3; update debt and invariants           |
 | Production verification           | Admin upload → public page with alt               |
 
 ## 2. Architecture fit
 
 | Concern                    | How this epic fits                                                                                                                                                 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Embedded CMS monolith      | Media uploads and public file serving stay inside the same Next.js app via Payload's `/api/media/file/*` routes (`solution.md` §3.1).                              |
-| Interim text-path fields   | Supersedes ADR-005 and `solution.md` §6.3 interim invariant; mapping layer absorbs Payload shape change (`solution.md` §3.2).                                      |
+| Embedded CMS monolith      | Media uploads and public file serving stay inside the same Next.js app via Payload's `/api/media/file/*` routes (`ARCHITECTURE.md` §3.1).                              |
+| Interim text-path fields   | Supersedes ADR-005 and `ARCHITECTURE.md` §6.3 interim invariant; mapping layer absorbs Payload shape change (`ARCHITECTURE.md` §3.2).                                      |
 | `sharp` already configured | `payload.config.ts` exports `sharp`; size variants run at upload time without new image pipeline dependencies.                                                     |
 | Next.js image config       | `next.config.mjs` already allows `/images/**` and `/api/media/file/**` via `localPatterns`; add `remotePatterns` only if Blob URLs are absolute third-party hosts. |
 | Query layer                | Increase population depth where needed so hero and author photo relations resolve in one query (depth `1` suffices for direct relations).                          |
-| Content mapper             | UI components keep stable list DTOs (`Post.imageUrl`, new `Post.imageAlt`); resolver hides Payload `Media` shape (`solution.md` §4.2).                             |
+| Content mapper             | UI components keep stable list DTOs (`Post.imageUrl`, new `Post.imageAlt`); resolver hides Payload `Media` shape (`ARCHITECTURE.md` §4.2).                             |
 | Revalidation               | revalidation hooks on posts/recipes already bust cache when hero relation changes; media collection hooks deferred (see out of scope).                             |
-| Accessibility              | Meaningful `alt` enforced at upload time per `principles.md` §14 and roadmap Phase 1 quality gate.                                                                 |
+| Accessibility              | Meaningful `alt` enforced at upload time per `docs/PRINCIPLES.md` §15 and roadmap Phase 1 quality gate.                                                                 |
 | Performance                | Serve card/hero sizes from Payload variants; `next/image` `sizes` unchanged on existing components.                                                                |
 
 ## 3. Files and components
@@ -106,7 +106,7 @@ Technical design for MEDIA at `specs/media/`. Architecture-wide patterns are aut
 | `apps/site/next.config.mjs`                                | Confirm `localPatterns` / `remotePatterns` cover Payload and Blob URLs after storage lands.                                                            |
 | `apps/site/.env.example`                                   | Document `BLOB_READ_WRITE_TOKEN` (and store name if required by plugin).                                                                               |
 | `turbo.json`                                               | Add blob env vars to build/lint/typecheck `env` lists.                                                                                                 |
-| `docs/architecture/solution.md`                            | §6.2 add Media entity; §6.3 replace interim image invariant; §10.2 remove text-path and unused media-route debt; §10.3 close media migration question. |
+| `docs/ARCHITECTURE.md`                            | §6.2 add Media entity; §6.3 replace interim image invariant; §10.2 remove text-path and unused media-route debt; §10.3 close media migration question. |
 
 ### Not modified
 
@@ -336,7 +336,7 @@ Recipe with null heroImage
 
 ## 10. Acceptance gates
 
-Subset of `solution.md` §2.1 quality goals and roadmap Phase 1 gates this epic must satisfy:
+Subset of `ARCHITECTURE.md` §2.1 quality goals and roadmap Phase 1 gates this epic must satisfy:
 
 | Gate                   | Criterion                                                                                                                      |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -344,10 +344,10 @@ Subset of `solution.md` §2.1 quality goals and roadmap Phase 1 gates this epic 
 | **Hero relations**     | Posts, recipes, and authors use upload relations — no interim text-path fields remain after backfill deploy.                   |
 | **Public rendering**   | Images uploaded in admin render on public blog/recipe surfaces via `next/image` with media alt (roadmap Phase 1 quality gate). |
 | **Optimised delivery** | Card and detail views request size-appropriate URLs (variant or width), not raw multi-megabyte originals.                      |
-| **Migration**          | Existing content referencing `public/` paths is backfilled or documented with operator sign-off; `solution.md` §10.3 closed.   |
+| **Migration**          | Existing content referencing `public/` paths is backfilled or documented with operator sign-off; `ARCHITECTURE.md` §10.3 closed.   |
 | **Accessibility**      | No hero `Image` uses post title as alt when media alt exists.                                                                  |
 | **Quality**            | `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` pass locally and in CI (CI).                                          |
-| **Documentation**      | `solution.md` invariants and debt updated; `.env.example` lists blob token.                                                    |
+| **Documentation**      | `ARCHITECTURE.md` invariants and debt updated; `.env.example` lists blob token.                                                    |
 
 ## 11. Handoff
 
@@ -357,7 +357,7 @@ Subset of `solution.md` §2.1 quality goals and roadmap Phase 1 gates this epic 
 - `lib/payload/media.ts` resolver API for all downstream epics (SEO metadata–Stay information).
 - Posts/recipes `heroImage` and authors `photo` relation fields.
 - `Post.imageAlt` and recipe hero fields on public routes.
-- Documented backfill approach in `solution.md` §10.3.
+- Documented backfill approach in `ARCHITECTURE.md` §10.3.
 
 ### Not delivered (explicit)
 

@@ -8,7 +8,7 @@ status: In progress
 last_updated: 2026-08-13
 related:
   - specs/blog/tdd.md
-  - docs/architecture/solution.md
+  - docs/ARCHITECTURE.md
 ---
 
 # Tasks — Blog (BLOG)

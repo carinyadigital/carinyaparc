@@ -13,7 +13,7 @@ related:
 
 # Migration — Next.js + Payload to Astro + MDX
 
-**Decision:** replace `apps/site` (Next.js 16 + Payload CMS 3 on Neon Postgres) with a new `apps/web` (Astro 6 + MDX content collections), built alongside the current app, verified for route-for-route parity against production, then cut over on Vercel. Content moves from Postgres into git as MDX; publishing becomes "merge to `main`". The database, the admin UI, and every runtime dependency on Payload are removed.
+**Decision:** replace `apps/site` (Next.js 16 + Payload CMS 3 on Neon Postgres) with a new `apps/web` (Astro 7 + MDX content collections), built alongside the current app, verified for route-for-route parity against production, then cut over on Vercel. Content moves from Postgres into git as MDX; publishing becomes "merge to `main`". The database, the admin UI, and every runtime dependency on Payload are removed.
 
 Settled choices for this migration:
 
@@ -115,7 +115,7 @@ content/                    # the CMS — repository root, outside apps/, owned 
 ├── tags.json               # slug → display name
 └── images/                 # hero images referenced from frontmatter; optimised at build
 
-apps/web (Astro 6)
+apps/web (Astro 7)
 ├── astro.config.mjs        # mdx, react, sitemap, vercel adapter; trailingSlash 'always'
 ├── vercel.json             # security headers + CSP (generated from lib/security), redirects
 ├── src/

@@ -24,7 +24,7 @@ At a high level, the monorepo is structured as:
 │   │   ├── content/          # MDX: legal pages; archived posts/recipes MDX
 │   │   ├── public/           # Static assets (images, favicon, logo)
 │   │   └── src/              # App Router, Payload collections, UI, lib
-│   └── web/                  # Astro 6 + MDX public site (scaffold; not production yet)
+│   └── web/                  # Astro 7 + MDX public site (scaffold; not production yet)
 │       ├── public/           # Favicons, robots.txt, scaffold images
 │       └── src/
 │           ├── content/      # MDX + YAML collections (empty until content migration)
@@ -59,7 +59,7 @@ Design tokens live in `packages/carinya-theme` (`@carinya/theme`). Site-specific
 
 ## Web App Structure (`apps/web`)
 
-`apps/web` is the Astro 6 + MDX public site, built alongside `apps/site`. Production still deploys from `apps/site` until cut-over. The scaffold includes:
+`apps/web` is the Astro 7 + MDX public site, built alongside `apps/site`. Production still deploys from `apps/site` until cut-over. The scaffold includes:
 
 - `astro.config.mjs` — MDX, React, sitemap, Vercel adapter, Tailwind Vite plugin, `trailingSlash: 'always'`
 - `src/content.config.ts` — posts, recipes, events, authors, categories, legal collection schemas

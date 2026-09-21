@@ -7,7 +7,7 @@ Guidance for AI coding agents working on the Carinya Parc website monorepo.
 Carinya Parc ([carinyaparc.com.au](https://carinyaparc.com.au)) is a working rural property in New South Wales. This repository is a **pnpm + Turborepo monorepo** that powers the public website and CMS.
 
 - **Primary app:** `apps/site` — Next.js 16 (App Router) with Payload CMS 3, Postgres, Tailwind CSS 4, and React 19 (production until Astro cut-over).
-- **Astro scaffold:** `apps/web` — Astro 6 + MDX, built alongside `apps/site`. Not production yet.
+- **Astro scaffold:** `apps/web` — Astro 7 + MDX, built alongside `apps/site`. Not production yet.
 - **Content:** Blog posts and recipes from Payload (Postgres); legal pages from MDX in `content/legal/`.
 - **Shared packages:** `@carinya/theme` (design tokens), `@repo/eslint-config`, `@repo/typescript-config`. UI primitives live in the app at `apps/site/src/components/ui/` (built on Base UI).
 - **Brand:** `brand/voice.md` and `brand/positioning.md`. Product skill: `skills/carinya-parc/SKILL.md`.
@@ -36,7 +36,7 @@ For product context and feature intent, read `docs/product.md` (what and why). F
 │   │       ├── lib/          # Cross-cutting utilities (payload client, security/, …)
 │   │       ├── providers/    # App-wide React providers
 │   │       └── styles/       # Site CSS (components, page overrides)
-│   └── web/                  # Astro 6 + MDX public site (scaffold; not production yet)
+│   └── web/                  # Astro 7 + MDX public site (scaffold; not production yet)
 ├── packages/
 │   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens
 │   ├── eslint-config/        # @repo/eslint-config

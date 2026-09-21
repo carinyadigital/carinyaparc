@@ -1,0 +1,21 @@
+---
+import Site from '@/layouts/Site.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/constants';
+---
+
+<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/">
+  <section class="bg-fleece">
+    <div class="mx-auto max-w-[1240px] px-6 py-24 lg:px-14 lg:py-32">
+      <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-eucalypt-600">
+        The Branch, NSW
+      </p>
+      <h1 class="mt-4 max-w-[16ch] font-heading text-[48px] font-normal leading-[1.08] text-charcoal sm:text-[64px]">
+        Carinya Parc
+      </h1>
+      <p class="mt-6 max-w-[42ch] text-lg leading-relaxed text-muted-foreground">
+        A regenerative farm restoring soil, water, and habitat. This Astro site is the new public
+        shell — marketing pages and content collections land in later phases.
+      </p>
+    </div>
+  </section>
+</Site>

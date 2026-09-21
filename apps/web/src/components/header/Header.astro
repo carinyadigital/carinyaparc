@@ -1,0 +1,139 @@
+---
+import { navigation } from '@/config/navigation';
+import { cn } from '@/lib/cn';
+import { withTrailingSlash } from '@/lib/metadata/canonical';
+
+interface Props {
+  overlay?: boolean;
+  currentPath: string;
+}
+
+const { overlay = false, currentPath } = Astro.props;
+const normalisedPath = withTrailingSlash(currentPath);
+const visibleNav = navigation.filter((item) => item.visible !== false);
+const isSolid = !overlay;
+
+const headerClass = isSolid
+  ? 'sticky top-0 bg-fleece text-charcoal border-b border-line'
+  : 'absolute top-0 left-0 right-0 bg-transparent text-fleece';
+---
+
+<header class={cn('z-40 transition-all duration-300', headerClass)}>
+  <nav
+    aria-label="Main navigation"
+    class="mx-auto flex max-w-[1240px] items-center justify-between gap-5 px-6 py-[22px] lg:px-14"
+  >
+    <div class="flex flex-1">
+      <a href="/" class="hover:opacity-70 transition-opacity duration-150">
+        <span
+          class={cn(
+            'font-heading text-xl tracking-[0.3em] uppercase',
+            isSolid ? 'text-eucalypt-600' : 'text-fleece',
+          )}
+        >
+          Carinya&nbsp;Parc
+        </span>
+      </a>
+    </div>
+
+    <details class="relative flex lg:hidden">
+      <summary
+        class={cn(
+          '-m-2.5 inline-flex list-none items-center justify-center rounded-pill border px-3 py-2.5 transition-colors duration-150 [&::-webkit-details-marker]:hidden',
+          isSolid ? 'border-line text-bark bg-fleece' : 'border-fleece/50 text-fleece bg-fleece/14',
+        )}
+        aria-label="Open menu"
+      >
+        <span class="sr-only">Open menu</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M4 7h16M4 12h16M4 17h16"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          ></path>
+        </svg>
+      </summary>
+      <div
+        id="mobile-menu"
+        class="absolute right-0 top-full z-50 mt-3 w-72 rounded-2xl border border-line bg-fleece p-6 text-charcoal shadow-lg"
+      >
+        <ul class="space-y-4 text-[15px] font-medium">
+          {visibleNav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class={cn(
+                  'block transition-opacity duration-150 hover:opacity-70',
+                  withTrailingSlash(item.href) === normalisedPath && 'opacity-70',
+                )}
+              >
+                {item.label ? (
+                  <span>{item.label}</span>
+                ) : (
+                  <span class="flex flex-col items-start leading-tight">
+                    <span class="text-[15px] font-medium text-eucalypt-600">{item.verb}</span>
+                    <span class="mt-0.5 text-xs font-normal whitespace-nowrap opacity-80">
+                      {item.rest}
+                    </span>
+                  </span>
+                )}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a
+              href="/regenerate"
+              class="inline-flex rounded-pill bg-eucalypt-600 px-[22px] py-[11px] text-sm font-semibold text-primary-foreground hover:bg-eucalypt-700"
+            >
+              Get involved
+            </a>
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <div
+      class={cn(
+        'hidden lg:flex flex-1 justify-end items-center gap-8 text-[15px] font-medium',
+        isSolid ? 'text-charcoal' : 'text-fleece',
+      )}
+    >
+      {visibleNav.map((item) => (
+        <a
+          href={item.href}
+          class={cn(
+            'transition-opacity duration-150 hover:opacity-70',
+            withTrailingSlash(item.href) === normalisedPath && 'opacity-70',
+          )}
+        >
+          {item.label ? (
+            <span>{item.label}</span>
+          ) : (
+            <span class="flex flex-col items-start leading-tight">
+              <span
+                class={cn('text-[15px] font-medium', isSolid ? 'text-eucalypt-600' : 'text-fleece')}
+              >
+                {item.verb}
+              </span>
+              <span class="mt-0.5 text-xs font-normal whitespace-nowrap opacity-80">
+                {item.rest}
+              </span>
+            </span>
+          )}
+        </a>
+      ))}
+      <a
+        href="/regenerate"
+        class={cn(
+          'rounded-pill px-[22px] py-[11px] text-sm font-semibold transition-colors duration-150',
+          isSolid
+            ? 'bg-eucalypt-600 text-primary-foreground hover:bg-eucalypt-700'
+            : 'bg-wattle text-kangaroo-900 hover:bg-kangaroo-400',
+        )}
+      >
+        Get involved
+      </a>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,64 @@
+---
+import type { PageMetadata } from '@/lib/metadata';
+import { ORGANIZATION_SCHEMA_JSON } from '@/lib/schema/organization-json';
+import '@/styles/globals.css';
+
+interface Props {
+  metadata: PageMetadata;
+}
+
+const { metadata } = Astro.props;
+const ogImage = metadata.openGraph.images[0];
+const robotsParts = [
+  metadata.robots.index ? 'index' : 'noindex',
+  metadata.robots.follow ? 'follow' : 'nofollow',
+];
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content={metadata.themeColor} />
+    <title>{metadata.title}</title>
+    <meta name="description" content={metadata.description} />
+    <meta name="keywords" content={metadata.keywords.join(', ')} />
+    <meta name="robots" content={robotsParts.join(', ')} />
+    <link rel="canonical" href={metadata.canonical} />
+    <link rel="alternate" type="application/rss+xml" href={metadata.rssFeed} />
+    <link rel="manifest" href={metadata.manifest} />
+    <link rel="icon" href={metadata.icons.icon} />
+    <link rel="shortcut icon" href={metadata.icons.shortcut} />
+    <link rel="apple-touch-icon" href={metadata.icons.apple} />
+    <meta property="og:type" content={metadata.openGraph.type} />
+    <meta property="og:title" content={metadata.openGraph.title} />
+    <meta property="og:description" content={metadata.openGraph.description} />
+    <meta property="og:url" content={metadata.openGraph.url} />
+    <meta property="og:site_name" content={metadata.openGraph.siteName} />
+    <meta property="og:locale" content={metadata.openGraph.locale} />
+    {ogImage && (
+      <>
+        <meta property="og:image" content={ogImage.url} />
+        {ogImage.width && <meta property="og:image:width" content={String(ogImage.width)} />}
+        {ogImage.height && <meta property="og:image:height" content={String(ogImage.height)} />}
+        {ogImage.alt && <meta property="og:image:alt" content={ogImage.alt} />}
+      </>
+    )}
+    <meta name="twitter:card" content={metadata.twitter.card} />
+    <meta name="twitter:site" content={metadata.twitter.site} />
+    <meta name="twitter:creator" content={metadata.twitter.creator} />
+    {metadata.twitter.title && <meta name="twitter:title" content={metadata.twitter.title} />}
+    {metadata.twitter.description && (
+      <meta name="twitter:description" content={metadata.twitter.description} />
+    )}
+    {metadata.twitter.images?.map((image) => (
+      <meta name="twitter:image" content={image} />
+    ))}
+    <script type="application/ld+json" set:html={ORGANIZATION_SCHEMA_JSON}></script>
+  </head>
+  <body class="flex min-h-screen flex-col bg-background font-sans text-foreground">
+    <slot />
+  </body>
+</html>

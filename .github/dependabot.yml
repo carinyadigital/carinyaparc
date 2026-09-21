@@ -43,7 +43,9 @@ updates:
           - 'esbuild'
           - 'js-yaml'
           - 'nanoid'
+          - 'path-to-regexp'
           - 'postcss'
+          - 'toml'
       # Remaining apps/site dependencies.
       site:
         patterns:
@@ -69,7 +71,9 @@ updates:
           - 'esbuild'
           - 'js-yaml'
           - 'nanoid'
+          - 'path-to-regexp'
           - 'postcss'
+          - 'toml'
     commit-message:
       prefix: 'chore'
       include: 'scope'

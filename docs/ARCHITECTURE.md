@@ -735,14 +735,14 @@ Production serves from `apps/web`. Remaining work: prune environment variables, 
 
 Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern this architecture:
 
-| ID       | Decision                                                                              | Status                                                                                      |
-| -------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                         |
-| ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)              | Accepted 2026-09-21                                                                         |
-| —        | `content/` at the repository root rather than inside `apps/web`                       | Candidate; recorded in ADR-0001 consequences for now                                        |
-| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`        | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic   |
-| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; taken as the default in ADR-0001                                                 |
-| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app        | Candidate; shipped in roadmap Phase 3                                                       |
+| ID       | Decision                                                                              | Status                                                                                    |
+| -------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                       |
+| ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)              | Accepted 2026-09-21                                                                       |
+| —        | `content/` at the repository root rather than inside `apps/web`                       | Candidate; recorded in ADR-0001 consequences for now                                      |
+| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`        | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
+| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; taken as the default in ADR-0001                                               |
+| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app        | Candidate; shipped in roadmap Phase 3                                                     |
 
 ---
 
@@ -750,12 +750,12 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 ### 10.1 Risks
 
-| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                         |
-| ----------------------------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------------------------- |
-| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                |
-| CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch             |
-| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                   |
-| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls |
+| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                                      |
+| ----------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                             |
+| CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch                          |
+| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                                |
+| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls              |
 | Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in [`AGENTS.md`](../AGENTS.md); optional git-backed editor (roadmap) |
 
 ### 10.2 Technical debt

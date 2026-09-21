@@ -10,11 +10,11 @@ specs/{domain}/
 └── design.md            # Solution Design for open work
 ```
 
-| Domain             | Status              | Notes                                                                                          |
-| ------------------ | ------------------- | ---------------------------------------------------------------------------------------------- |
-| [`blog/`](blog/)   | Open (ops + CTA)    | Linear [Carinya Parc — Blog](https://linear.app/carinyadigital/project/carinya-parc-blog-73bc69db29b3) (`WEB-24`, `WEB-25`, `WEB-28`) |
-| [`media/`](media/) | Open                | Media library                                                                                  |
-| [`site/`](site/)   | Open                | Remaining site hardening                                                                       |
+| Domain             | Status           | Notes                                                                                                                                 |
+| ------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [`blog/`](blog/)   | Open (ops + CTA) | Linear [Carinya Parc — Blog](https://linear.app/carinyadigital/project/carinya-parc-blog-73bc69db29b3) (`WEB-24`, `WEB-25`, `WEB-28`) |
+| [`media/`](media/) | Open             | Media library                                                                                                                         |
+| [`site/`](site/)   | Open             | Remaining site hardening                                                                                                              |
 
 Canonical product/architecture docs stay under `docs/`. Slack `#site` is
 standup, not intake.

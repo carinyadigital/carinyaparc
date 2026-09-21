@@ -1,0 +1,19 @@
+---
+/** Numbered instruction steps (counter styling from recipes.css). */
+interface Props {
+  instructions: string[];
+}
+
+const { instructions } = Astro.props;
+---
+
+{instructions.length > 0 && (
+  <div class="recipe-instructions">
+    <h2>Instructions</h2>
+    <ol class="recipe-steps">
+      {instructions.map((instruction) => (
+        <li>{instruction}</li>
+      ))}
+    </ol>
+  </div>
+)}

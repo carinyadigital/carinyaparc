@@ -1,0 +1,35 @@
+---
+/** Recipe meta row: servings, prep / cook / total time and difficulty. */
+import { formatIsoDuration } from '@/lib/recipes/format-duration';
+
+interface Props {
+  servings?: number;
+  prepTime?: string;
+  cookTime?: string;
+  totalTime?: string;
+  difficulty?: string;
+}
+
+const { servings, prepTime, cookTime, totalTime, difficulty } = Astro.props;
+
+const items = [
+  servings ? { label: 'Servings', value: String(servings) } : null,
+  prepTime ? { label: 'Prep Time', value: formatIsoDuration(prepTime) } : null,
+  cookTime ? { label: 'Cook Time', value: formatIsoDuration(cookTime) } : null,
+  totalTime ? { label: 'Total Time', value: formatIsoDuration(totalTime) } : null,
+  difficulty
+    ? { label: 'Difficulty', value: difficulty.charAt(0).toUpperCase() + difficulty.slice(1) }
+    : null,
+].filter((item): item is { label: string; value: string } => Boolean(item && item.value));
+---
+
+{items.length > 0 && (
+  <div class="recipe-meta">
+    {items.map((item) => (
+      <div class="recipe-meta-item">
+        <span class="recipe-meta-label">{item.label}</span>
+        <span class="recipe-meta-value">{item.value}</span>
+      </div>
+    ))}
+  </div>
+)}

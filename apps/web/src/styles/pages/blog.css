@@ -1,0 +1,30 @@
+/* Blog Page Custom Styles — ported from apps/site/src/styles/pages/blog.css */
+@reference "../globals.css";
+
+.blog-hero-image {
+  @apply relative mx-auto mt-11 aspect-[21/9] max-w-[1040px] overflow-hidden rounded-xl shadow-lg;
+}
+
+.blog-prose {
+  @apply prose prose-lg mx-auto max-w-[720px] px-6 prose-headings:font-heading prose-headings:font-normal prose-headings:text-eucalypt-600 prose-p:text-[17px] prose-p:leading-[1.7] prose-p:text-charcoal prose-a:text-eucalypt-600 prose-a:underline prose-strong:text-bark prose-blockquote:my-10 prose-blockquote:rounded-r-2xl prose-blockquote:border-l-4 prose-blockquote:border-kangaroo-500 prose-blockquote:bg-fleece prose-blockquote:px-8 prose-blockquote:py-7 prose-blockquote:not-italic prose-blockquote:text-eucalypt-700;
+}
+
+.blog-prose :where(blockquote p) {
+  @apply m-0 font-heading text-[26px] leading-snug text-eucalypt-700;
+}
+
+.blog-prose :where(h2) {
+  @apply mt-10 text-[34px] leading-[1.15];
+}
+
+.blog-prose :where(h3) {
+  @apply mt-8 text-2xl;
+}
+
+.blog-prose :where(p:first-of-type) {
+  @apply text-[21px] leading-[1.7] text-bark;
+}
+
+.blog-prose :where(img) {
+  @apply my-10 rounded-[20px] shadow-md;
+}

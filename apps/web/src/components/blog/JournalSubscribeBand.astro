@@ -1,0 +1,57 @@
+---
+/**
+ * "Never miss a field note" band for journal listing pages. Phase 3: plain HTML form posting to
+ * /api/subscribe/ with `data-form="subscribe"` for the Phase 4 island to hydrate.
+ */
+import Button from '@/components/ui/Button.astro';
+
+interface Props {
+  class?: string;
+  /** Attribution passed to `/api/subscribe`. */
+  source?: string;
+}
+
+const { class: className, source = 'blog:index' } = Astro.props;
+---
+
+<section class={className}>
+  <div class="mx-auto max-w-[1240px] px-6 pb-[90px] lg:px-14">
+    <div class="flex flex-wrap items-center justify-between gap-10 rounded-xl bg-eucalypt-600 px-8 py-12 shadow-lg sm:px-14 sm:py-14 lg:px-14 lg:py-14">
+      <div class="max-w-md">
+        <h2 class="font-heading text-[32px] font-normal leading-[1.14] text-fleece">
+          Never miss a field note
+        </h2>
+        <p class="mt-2.5 text-base leading-relaxed text-inverse-muted">
+          New posts, planting days and visit dates — straight to your inbox.
+        </p>
+      </div>
+      <form
+        method="post"
+        action="/api/subscribe/"
+        data-form="subscribe"
+        class="flex min-w-[280px] max-w-[460px] flex-1 flex-col gap-3 sm:flex-row"
+      >
+        <input type="hidden" name="source" value={source} />
+        <div aria-hidden="true" style="display: none">
+          <label for="journal-website">Website</label>
+          <input type="text" name="website" id="journal-website" tabindex="-1" autocomplete="off" />
+        </div>
+        <label for="journal-email" class="sr-only">
+          Email address
+        </label>
+        <input
+          id="journal-email"
+          name="email"
+          type="email"
+          required
+          placeholder="Your email address"
+          autocomplete="email"
+          class="min-w-0 flex-1 rounded-pill border border-fleece/35 bg-fleece/10 px-5 py-3.5 text-[15px] text-fleece outline-none placeholder:text-fleece/60 focus:border-fleece/70 disabled:opacity-70"
+        />
+        <Button type="submit" variant="bracken" class="shrink-0">
+          Subscribe
+        </Button>
+      </form>
+    </div>
+  </div>
+</section>

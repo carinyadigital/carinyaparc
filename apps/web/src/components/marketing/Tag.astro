@@ -1,0 +1,31 @@
+---
+/** Rounded pill label (port of ui/Tag.tsx). */
+import { cn } from '@/lib/cn';
+
+type Tone = 'eucalypt' | 'kangaroo' | 'bracken' | 'branch' | 'outline';
+
+interface Props {
+  tone?: Tone;
+  class?: string;
+}
+
+const TONES: Record<Tone, string> = {
+  eucalypt: 'bg-eucalypt-50 text-eucalypt-700',
+  kangaroo: 'bg-kangaroo-100 text-kangaroo-700',
+  bracken: 'bg-bracken-100 text-bracken-700',
+  branch: 'bg-branch-100 text-branch-700',
+  outline: 'bg-transparent text-muted-foreground shadow-[inset_0_0_0_1.5px_var(--color-border)]',
+};
+
+const { tone = 'eucalypt', class: className } = Astro.props;
+---
+
+<span
+  class={cn(
+    'inline-flex items-center gap-[7px] rounded-pill px-4 py-2 text-[13.5px] font-semibold',
+    TONES[tone],
+    className,
+  )}
+>
+  <slot />
+</span>

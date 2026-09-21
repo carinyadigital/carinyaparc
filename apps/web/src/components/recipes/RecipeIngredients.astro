@@ -1,0 +1,19 @@
+---
+/** Ingredients list with the custom bullet styling from recipes.css. */
+interface Props {
+  ingredients: string[];
+}
+
+const { ingredients } = Astro.props;
+---
+
+{ingredients.length > 0 && (
+  <div class="recipe-ingredients">
+    <h2>Ingredients</h2>
+    <ul>
+      {ingredients.map((ingredient) => (
+        <li>{ingredient}</li>
+      ))}
+    </ul>
+  </div>
+)}

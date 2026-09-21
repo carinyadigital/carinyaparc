@@ -1,0 +1,18 @@
+---
+/** Tag pills shown below the recipe body. */
+interface Props {
+  tags: { slug: string; name: string }[];
+}
+
+const { tags } = Astro.props;
+---
+
+{tags.length > 0 && (
+  <div class="mt-6 border-t border-line pt-4">
+    <div class="recipe-tags">
+      {tags.map((tag) => (
+        <span class="recipe-tag">{tag.name}</span>
+      ))}
+    </div>
+  </div>
+)}

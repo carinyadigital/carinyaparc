@@ -1,0 +1,54 @@
+---
+import Site from '@/layouts/Site.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import PageHeader from '@/components/sections/PageHeader.astro';
+import RecipeGrid from '@/components/recipes/RecipeGrid.astro';
+import { generatePageMetadata } from '@/lib/metadata';
+import { getPublishedRecipes, toRecipeSummaries } from '@/lib/content/recipes';
+import farmDamTrees from '@/assets/images/farm-dam-trees.jpg';
+
+import '@/styles/pages/recipes.css';
+
+const description =
+  'Seasonal recipes from the Carinya Parc kitchen — simple, honest cooking built around what the land provides.';
+
+const metadata = generatePageMetadata({
+  title: 'Recipes | Carinya Parc',
+  description,
+  path: '/recipes/',
+  keywords: ['farm recipes', 'seasonal cooking', 'regenerative produce'],
+});
+
+const recipes = await toRecipeSummaries(await getPublishedRecipes());
+---
+
+<Site title={metadata.title} description={description} path="/recipes/" metadata={metadata}>
+  <JsonLd />
+
+  <div class="min-h-screen">
+    <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+      <Breadcrumb />
+    </div>
+
+    <section>
+      <PageHeader
+        variant="dark"
+        align="center"
+        title="From the Hearth"
+        subtitle="Our Recipes"
+        description={description}
+        backgroundImage={farmDamTrees}
+        backgroundImageAlt="Farm dam and trees at Carinya Parc"
+      />
+    </section>
+
+    <section class="bg-white py-20">
+      <RecipeGrid
+        title="Latest Recipes"
+        subtitle="Cooking from the paddock to the plate, one season at a time"
+        recipes={recipes}
+      />
+    </section>
+  </div>
+</Site>

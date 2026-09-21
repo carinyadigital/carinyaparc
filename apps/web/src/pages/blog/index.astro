@@ -1,0 +1,37 @@
+---
+import Site from '@/layouts/Site.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
+import FeaturedPosts from '@/components/blog/FeaturedPosts.astro';
+import JournalIntro from '@/components/blog/JournalIntro.astro';
+import JournalPostGrid from '@/components/blog/JournalPostGrid.astro';
+import { getCategoriesWithPosts, getPublishedPosts, toPostSummaries } from '@/lib/content/posts';
+
+const POSTS_PER_PAGE = 6;
+
+const [categories, published] = await Promise.all([getCategoriesWithPosts(), getPublishedPosts()]);
+const gridEntries = published.filter((post) => !post.data.featured);
+const totalPages = Math.ceil(gridEntries.length / POSTS_PER_PAGE);
+const posts = await toPostSummaries(gridEntries.slice(0, POSTS_PER_PAGE));
+---
+
+<Site
+  title="Blog | Carinya Parc"
+  description="Articles on regenerative farming, permaculture, and sustainable living practices from Carinya Parc."
+  path="/blog/"
+>
+  <JsonLd />
+
+  <div class="min-h-screen bg-paperbark">
+    <JournalIntro
+      eyebrow="Life on pasture · The Branch, NSW"
+      title="Field notes from a farm coming back to life"
+      description="Follow the regeneration of 42 hectares in real time — the plantings, the setbacks, the soil results and the seasons. Read along, then come get your hands dirty."
+    />
+
+    <FeaturedPosts limit={1} />
+
+    <BlogTopicNav categories={categories.map((c) => ({ name: c.name, slug: c.id }))} />
+    <JournalPostGrid posts={posts} totalPages={totalPages} />
+  </div>
+</Site>

@@ -1,0 +1,55 @@
+---
+/**
+ * End-of-article share row. Static share-intent links only (no JS in Phase 3); the
+ * "Copy link" / native-share buttons from apps/site return with the React island in Phase 4.
+ */
+import Button from '@/components/ui/Button.astro';
+import { cn } from '@/lib/cn';
+
+interface Props {
+  /** Absolute canonical URL for the post. */
+  url: string;
+  /** Post title used as the share text. */
+  title: string;
+  class?: string;
+}
+
+const { url, title, class: className } = Astro.props;
+
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+
+const links = [
+  { label: 'Email', href: `mailto:?subject=${encodedTitle}&body=${encodedUrl}` },
+  { label: 'X', href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}` },
+  { label: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
+  {
+    label: 'LinkedIn',
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+  },
+];
+---
+
+<aside
+  class={cn(
+    'mx-auto mt-10 flex max-w-[720px] flex-col items-center gap-3 border-t border-line px-6 pt-8 sm:flex-row sm:justify-between',
+    className,
+  )}
+  aria-label="Share this article"
+>
+  <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">Share</p>
+  <div class="flex flex-wrap items-center justify-center gap-3">
+    {links.map((link) => (
+      <Button
+        href={link.href}
+        variant="outline"
+        size="sm"
+        target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+        rel={link.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+        aria-label={`Share on ${link.label}`}
+      >
+        {link.label}
+      </Button>
+    ))}
+  </div>
+</aside>

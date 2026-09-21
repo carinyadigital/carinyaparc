@@ -1,0 +1,41 @@
+---
+/** Typography helpers for Hero content: eyebrow, title, text, actions. Use via `part`. */
+import { cn } from '@/lib/cn';
+
+interface Props {
+  part: 'eyebrow' | 'title' | 'text' | 'actions';
+  class?: string;
+}
+const { part, class: className } = Astro.props;
+---
+
+{part === 'eyebrow' && (
+  <p class={cn('text-[13px] font-semibold uppercase tracking-[0.24em] text-wattle', className)}>
+    <slot />
+  </p>
+)}
+{part === 'title' && (
+  <h1
+    class={cn(
+      'mt-[18px] max-w-[900px] text-balance font-heading text-[44px] font-normal leading-[1.03] text-fleece sm:text-6xl lg:text-[74px]',
+      className,
+    )}
+  >
+    <slot />
+  </h1>
+)}
+{part === 'text' && (
+  <p
+    class={cn(
+      'mt-6 max-w-[600px] text-pretty text-lg leading-[1.6] text-paperbark sm:text-[21px]',
+      className,
+    )}
+  >
+    <slot />
+  </p>
+)}
+{part === 'actions' && (
+  <div class={cn('mt-9 flex flex-wrap items-center gap-3.5', className)}>
+    <slot />
+  </div>
+)}

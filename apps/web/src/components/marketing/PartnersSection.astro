@@ -1,0 +1,67 @@
+---
+/** "For partners & funders" band on /regenerate/ (anchor #support). */
+import Button from '@/components/ui/Button.astro';
+
+const BENEFITS = [
+  'Grant-ready reporting on carbon, water and biodiversity',
+  'Named corridor and planting-day sponsorships',
+  'Open data, published quarterly, free to reference',
+] as const;
+
+const TIERS = [
+  {
+    title: '$18 plants a tree',
+    description: 'Seedling, guard, and the crew to plant and water it through its first summer.',
+  },
+  {
+    title: '$2,500 a corridor',
+    description: 'Fences, seedlings and monitoring for a 100-metre stretch of wildlife corridor.',
+  },
+  {
+    title: 'Grants & partnerships',
+    description: 'Multi-year restoration at scale, with the reporting your board expects.',
+  },
+] as const;
+---
+
+<section id="support" class="bg-eucalypt-800 py-16 text-inverse sm:py-24">
+  <div class="mx-auto grid max-w-[1240px] items-center gap-12 px-6 lg:grid-cols-2 lg:gap-16 lg:px-14">
+    <div>
+      <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-wattle">
+        For partners &amp; funders
+      </p>
+      <h2 class="mt-3.5 font-heading text-[38px] font-normal leading-[1.14] text-primary-foreground">
+        Partner with a project that shows its working
+      </h2>
+      <p class="mt-[18px] text-[17px] leading-[1.7] text-inverse-muted">
+        We work with government, philanthropy and organisations to fund on-ground restoration at
+        scale — and we publish the outcomes. If you're looking for a regeneration project with
+        rigour and transparency, let's talk.
+      </p>
+      <ul class="mt-6 flex flex-col gap-3">
+        {BENEFITS.map((benefit) => (
+          <li class="flex gap-3 text-base text-inverse-light">
+            <span class="font-bold text-wattle" aria-hidden="true">
+              ◦
+            </span>
+            <span>{benefit}</span>
+          </li>
+        ))}
+      </ul>
+      <Button href="/contact/" variant="bracken" class="mt-7">
+        Start a conversation →
+      </Button>
+    </div>
+
+    <div class="flex flex-col gap-5">
+      {TIERS.map((tier) => (
+        <div class="rounded-[22px] border border-eucalypt-700 bg-eucalypt-900 px-[30px] py-7">
+          <div class="font-heading text-[30px] leading-tight text-primary-foreground">
+            {tier.title}
+          </div>
+          <p class="mt-2 text-[14.5px] leading-[1.6] text-inverse-subtle">{tier.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,38 @@
+---
+/** First page of the journal grid on /blog/: three-up PostCards and a "Load more posts" link to page 2. */
+import Button from '@/components/ui/Button.astro';
+import type { PostSummary } from '@/lib/content/posts';
+
+import PostCard from './PostCard.astro';
+
+interface Props {
+  posts: PostSummary[];
+  totalPages: number;
+}
+
+const { posts, totalPages } = Astro.props;
+---
+
+<section class="py-9 pb-[84px]">
+  <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+    {posts.length > 0 ? (
+      <div class="grid auto-rows-fr grid-cols-1 gap-[30px] lg:grid-cols-3">
+        {posts.map((post) => (
+          <PostCard post={post} variant="journal" />
+        ))}
+      </div>
+    ) : (
+      <p class="py-12 text-center text-charcoal">
+        No posts in this category yet. Try another filter or check back soon.
+      </p>
+    )}
+
+    {totalPages > 1 && (
+      <div class="mt-14 text-center">
+        <Button href="/blog/page/2/" variant="bracken">
+          Load more posts
+        </Button>
+      </div>
+    )}
+  </div>
+</section>

@@ -1,21 +1,216 @@
 ---
+import { Image } from 'astro:assets';
+
 import Site from '@/layouts/Site.astro';
+import Hero from '@/components/sections/Hero.astro';
+import HeroText from '@/components/sections/HeroText.astro';
+import ImpactStats from '@/components/sections/ImpactStats.astro';
+import LatestPosts from '@/components/blog/LatestPosts.astro';
+import Button from '@/components/ui/Button.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import MotifTile from '@/components/ui/MotifTile.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/constants';
+
+import heroHome from '@/assets/images/hero-home.jpg';
+import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
+
+const MISSION_FEATURES = [
+  {
+    motif: '/motifs/motif-leaf.svg',
+    title: 'Regeneration over extraction',
+    description:
+      'Practices that rebuild soil, water and biodiversity rather than deplete them. Every action leaves the land healthier.',
+  },
+  {
+    motif: '/motifs/motif-sprout.svg',
+    title: 'Stewardship over ownership',
+    description:
+      "We treat the land as borrowed from our grandkids — cared for with humility, guided by science and nature's own wisdom.",
+  },
+  {
+    motif: '/motifs/motif-hills.svg',
+    title: 'Collaboration & transparency',
+    description:
+      'Many hands, open sharing. We partner with community and publish our wins and setbacks alike.',
+  },
+] as const;
+
+const STORY_TAGS = [
+  { label: '30,000+ native trees', class: 'bg-eucalypt-50 text-eucalypt-700' },
+  { label: 'Branch River frontage', class: 'bg-kangaroo-100 text-kangaroo-700' },
+  { label: 'Wildlife corridors', class: 'bg-bracken-100 text-bracken-700' },
+] as const;
+
+const EXPERIENCE_ITEMS = [
+  { title: 'Join a planting day.', description: 'Get your hands dirty at an upcoming event.' },
+  { title: 'Book a tour.', description: 'Small-group experiences led by Jonno.' },
+  { title: 'Stay on the land.', description: 'Rustic accommodation, coming soon.' },
+] as const;
 ---
 
-<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/">
-  <section class="bg-fleece">
-    <div class="mx-auto max-w-[1240px] px-6 py-24 lg:px-14 lg:py-32">
-      <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-eucalypt-600">
-        The Branch, NSW
-      </p>
-      <h1 class="mt-4 max-w-[16ch] font-heading text-[48px] font-normal leading-[1.08] text-charcoal sm:text-[64px]">
-        Carinya Parc
-      </h1>
-      <p class="mt-6 max-w-[42ch] text-lg leading-relaxed text-muted-foreground">
-        A regenerative farm restoring soil, water, and habitat. This Astro site is the new public
-        shell — marketing pages and content collections land in later phases.
-      </p>
-    </div>
-  </section>
+<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/" overlay>
+  <JsonLd includeLocalBusiness />
+
+  <div class="min-h-screen bg-paperbark">
+    {/* Hero */}
+    <section>
+      <Hero image={heroHome} imageAlt="Carinya Parc Hero">
+        <HeroText part="eyebrow">Upper Hunter, NSW</HeroText>
+        <HeroText part="title">
+          Restoring the land,
+          <br />
+          nurturing the future
+        </HeroText>
+        <HeroText part="text">
+          A peaceful home for land, food &amp; community. We're healing 42 hectares of degraded
+          country and growing nutrient-dense food through regenerative agriculture, and we'd love
+          your help.
+        </HeroText>
+        <HeroText part="actions">
+          <Button href="/regenerate/" variant="bracken">
+            Support our work →
+          </Button>
+          <Button href="/#stay" variant="ghost-light">
+            Join the journey
+          </Button>
+        </HeroText>
+      </Hero>
+    </section>
+
+    {/* Mission */}
+    <section class="bg-paperbark py-24">
+      <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+        <div class="mx-auto max-w-[780px] text-center">
+          <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+            Our mission
+          </p>
+          <h2 class="mt-4 font-heading text-3xl font-normal text-balance text-eucalypt-600 sm:text-[44px] sm:leading-[1.12]">
+            Heal land and food systems, together
+          </h2>
+          <p class="mt-[18px] text-[19px] leading-relaxed text-stone">
+            Through hands-on ecological restoration, nutrient-dense produce, and inspiring
+            collective action... Leaving every acre healthier than we found it.
+          </p>
+        </div>
+
+        <div class="mt-[60px] grid gap-7 md:grid-cols-3">
+          {MISSION_FEATURES.map((feature) => (
+            <div class="overflow-hidden rounded-[24px] border border-line bg-fleece text-card-foreground shadow-md transition-transform duration-150 hover:-translate-y-1 hover:shadow-lg">
+              <div class="p-10 pt-10">
+                <MotifTile
+                  src={feature.motif}
+                  class="h-16 w-16"
+                  tileClass="bg-eucalypt-50"
+                  iconSize={34}
+                />
+                <h3 class="mt-[22px] font-heading text-[25px] font-normal text-bark">
+                  {feature.title}
+                </h3>
+                <p class="mt-3 text-base leading-relaxed text-stone">{feature.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* Story */}
+    <section class="bg-paperbark pb-24">
+      <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+        <div class="grid items-center gap-[60px] lg:grid-cols-2">
+          <div class="relative order-first aspect-4/3 overflow-hidden rounded-xl shadow-lg lg:order-0">
+            <Image
+              src={riverValleyAerial}
+              alt="Aerial view of the river valley at Carinya Parc"
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={80}
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+          <div>
+            <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+              Our story
+            </p>
+            <h2 class="mt-4 font-heading text-[32px] font-normal leading-[1.1] text-eucalypt-600 sm:text-[42px]">
+              Regenerating land,
+              <br />
+              growing community
+            </h2>
+            <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
+              We're transforming 42 hectares of previously degraded land into thriving woodland,
+              habitat corridors and productive agroforestry. Founded by Jonathan Daddia — strategy
+              consultant turned regenerative farmer — combining evidence-based ecology with
+              community engagement.
+            </p>
+            <div class="mt-[26px] flex flex-wrap gap-2.5">
+              {STORY_TAGS.map((tag) => (
+                <span
+                  class={`rounded-pill px-[17px] py-[9px] text-[13.5px] font-semibold ${tag.class}`}
+                >
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+            <Button href="/about/" variant="bracken" class="mt-[30px]">
+              Read our story →
+            </Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <ImpactStats />
+
+    {/* Experience */}
+    <section id="visit" class="bg-paperbark py-24">
+      <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+        <div class="grid items-center gap-[60px] lg:grid-cols-2">
+          <div>
+            <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+              Experience the farm
+            </p>
+            <h2 class="mt-4 font-heading text-[32px] font-normal leading-[1.1] text-eucalypt-600 sm:text-[42px]">
+              Reconnect with nature, hands in the soil
+            </h2>
+            <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
+              Be first in line for guided tours, hands-on planting days, seasonal workshops and
+              eco-stays. Wander the permaculture gardens, syntropic food forest and meet our herd.
+            </p>
+            <ul role="list" class="mt-[26px] flex flex-col gap-3.5">
+              {EXPERIENCE_ITEMS.map((item) => (
+                <li class="flex items-start gap-3 text-base text-charcoal">
+                  <span class="font-bold text-kangaroo-500" aria-hidden="true">
+                    ◦
+                  </span>
+                  <span>
+                    <strong class="font-semibold text-bark">{item.title}</strong> {item.description}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <Button href="/#stay" variant="bracken" class="mt-[30px]">
+              Be first to know →
+            </Button>
+          </div>
+          <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
+            <Image
+              src={highlandCattlePaddock}
+              alt="Highland cattle grazing in a paddock at Carinya Parc"
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={80}
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Journal */}
+    <section>
+      <LatestPosts title="Life on Pasture" limit={3} viewAllLink="/blog/" eyebrow="Our journal" />
+    </section>
+  </div>
 </Site>

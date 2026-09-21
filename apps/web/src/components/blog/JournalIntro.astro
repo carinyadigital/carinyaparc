@@ -1,0 +1,26 @@
+---
+/**
+ * Journal listing intro. Same markup as the Next `PageIntro` call on the blog index, category and
+ * tag pages, including its per-page class overrides (larger h1, stone description) which the
+ * shared `sections/PageIntro.astro` does not expose.
+ */
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+}
+
+const { eyebrow, title, description } = Astro.props;
+---
+
+<section class="pb-12 pt-16">
+  <div class="mx-auto max-w-[820px] px-6 text-center lg:px-14">
+    <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">{eyebrow}</p>
+    <h1 class="mx-auto mt-4 max-w-[880px] font-heading text-[40px] font-normal leading-[1.06] text-balance text-eucalypt-600 sm:text-[58px]">
+      {title}
+    </h1>
+    <p class="mx-auto mt-[18px] max-w-[620px] text-[19px] leading-[1.6] text-stone">
+      {description}
+    </p>
+  </div>
+</section>

@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+
+import Site from '@/layouts/Site.astro';
+import Hero from '@/components/sections/Hero.astro';
+import HeroText from '@/components/sections/HeroText.astro';
+import Button from '@/components/ui/Button.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import InlineSubscribeForm from '@/components/marketing/InlineSubscribeForm.astro';
+import PartnersSection from '@/components/marketing/PartnersSection.astro';
+import WaysToHelpSection from '@/components/marketing/WaysToHelpSection.astro';
+
+import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
+---
+
+<Site
+  title="Regenerate - Carinya Parc"
+  description="Join us as we transform 42 hectares of former grazing land into thriving, biodiverse ecosystems through strategic restoration, wildlife corridors, and regenerative agroforestry."
+  path="/regenerate"
+  image="/images/river-valley-aerial.jpg"
+>
+  <JsonLd />
+
+  <div class="min-h-screen bg-paperbark">
+    <Hero
+      image={riverValleyAerial}
+      imageAlt="Carinya Parc landscape being regenerated"
+      minHeightClass="min-h-[600px]"
+    >
+      <HeroText part="eyebrow">Regenerate with us</HeroText>
+      <HeroText part="title">Help restore diversity, for our native wildlife</HeroText>
+      <HeroText part="text">
+        We're planting 30,000+ native trees, reviving waterways and building wildlife corridors
+        along our Branch River frontage. Every partner, dollar and pair of hands moves it forward.
+      </HeroText>
+      <HeroText part="actions">
+        <Button href="#support" variant="bracken">
+          Support the work →
+        </Button>
+        <Button href="#volunteer" variant="ghost-light">
+          Join a planting day
+        </Button>
+      </HeroText>
+    </Hero>
+
+    <WaysToHelpSection />
+
+    <PartnersSection />
+
+    <section id="volunteer" class="py-16 sm:py-24">
+      <div class="mx-auto grid max-w-[1240px] items-center gap-12 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:px-14">
+        <div>
+          <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+            Get on the list
+          </p>
+          <h2 class="mt-3.5 font-heading text-[38px] font-normal leading-[1.14] text-eucalypt-600">
+            Be first to know about planting days &amp; visits
+          </h2>
+          <p class="mt-[18px] text-[17px] leading-[1.7] text-charcoal">
+            Sign up and we'll email you when the next planting day, farm tour, workshop or eco-stay
+            opens — plus quarterly progress from the paddock. No spam, ever.
+          </p>
+          <InlineSubscribeForm class="mt-[26px]" />
+        </div>
+        <div class="relative aspect-[4/3] overflow-hidden rounded-xl shadow-lg">
+          <Image
+            src={farmTrackGate}
+            alt="A gate onto the farm track"
+            widths={[640, 960, 1280]}
+            sizes="(max-width: 1024px) 100vw, 45vw"
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+</Site>

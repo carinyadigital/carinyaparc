@@ -1,0 +1,33 @@
+---
+/**
+ * Page-level JSON-LD. Always emits BreadcrumbList (from the current path unless `breadcrumbs`
+ * is given); optionally LocalBusiness, Article or Recipe. Organization is emitted by Base.astro.
+ */
+import { LOCAL_BUSINESS } from '@/lib/constants';
+import { generateBreadcrumbSchema, generateBreadcrumbsFromPath } from '@/lib/schema/breadcrumb';
+import { generateArticleSchema, type ArticleData } from '@/lib/schema/article';
+import { generateRecipeSchema, type RecipeData } from '@/lib/schema/recipe';
+import { generateLocalBusinessSchema } from '@/lib/schema/localBusiness';
+
+interface Props {
+  article?: ArticleData;
+  recipe?: RecipeData;
+  breadcrumbs?: Array<{ name: string; url: string; position: number }>;
+  includeLocalBusiness?: boolean;
+}
+
+const { article, recipe, breadcrumbs, includeLocalBusiness = false } = Astro.props;
+const schemas: unknown[] = [
+  generateBreadcrumbSchema(breadcrumbs ?? generateBreadcrumbsFromPath(Astro.url.pathname)),
+];
+if (includeLocalBusiness) schemas.push(generateLocalBusinessSchema(LOCAL_BUSINESS));
+if (article) schemas.push(generateArticleSchema(article));
+if (recipe) schemas.push(generateRecipeSchema(recipe));
+
+const json =
+  schemas.length === 1
+    ? JSON.stringify(schemas[0])
+    : JSON.stringify({ '@context': 'https://schema.org', '@graph': schemas });
+---
+
+<script type="application/ld+json" set:html={json}></script>

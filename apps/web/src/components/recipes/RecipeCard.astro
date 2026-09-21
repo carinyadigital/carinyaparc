@@ -1,0 +1,69 @@
+---
+/** Recipe card: photograph-backed tile with a stretched title link (ported from features/recipes/RecipeCard). */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+import type { RecipeSummary } from '@/lib/content/recipes';
+import { toIsoDate } from '@/lib/content/dates';
+import { formatIsoDuration } from '@/lib/recipes/format-duration';
+
+import heroHome from '@/assets/images/hero-home.jpg';
+import highlandCattleDam from '@/assets/images/highland-cattle-dam.jpg';
+import alpacasHillPasture from '@/assets/images/alpacas-hill-pasture.jpg';
+import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
+import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
+
+interface Props {
+  recipe: RecipeSummary;
+  /** Position in the grid; picks the rotating fallback photograph when the recipe has no image. */
+  index?: number;
+}
+
+/** Same rotation the Next site used for recipes without a photograph. */
+const FALLBACK_IMAGES: ImageMetadata[] = [
+  heroHome,
+  highlandCattleDam,
+  alpacasHillPasture,
+  riverValleyAerial,
+  highlandCattlePaddock,
+  farmTrackGate,
+];
+
+const { recipe, index = 0 } = Astro.props;
+const image = recipe.image ?? FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+const meta = [
+  recipe.servings ? `Serves ${recipe.servings}` : null,
+  recipe.totalTime ? formatIsoDuration(recipe.totalTime) : null,
+].filter(Boolean);
+---
+
+<article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-eucalypt-600 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80">
+  <Image
+    alt={recipe.image ? recipe.imageAlt : recipe.title}
+    src={image}
+    widths={[400, 640, 960]}
+    sizes="(max-width: 768px) 100vw, 33vw"
+    quality={80}
+    loading="lazy"
+    class="absolute inset-0 -z-10 h-full w-full object-cover"
+  />
+  <div class="absolute inset-0 -z-10 bg-gradient-to-t from-eucalypt-600 via-eucalypt-600/40"></div>
+  <div class="absolute inset-0 -z-10 rounded-2xl ring-1 ring-eucalypt-600/10 ring-inset"></div>
+
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 overflow-hidden text-sm/6 text-eucalypt-200">
+    <time datetime={toIsoDate(recipe.date)}>{recipe.formattedDate}</time>
+    {meta.length > 0 && <span>{meta.join(' • ')}</span>}
+  </div>
+  <h3 class="mt-3 text-lg/6 font-semibold text-white">
+    <a href={recipe.href}>
+      <span>
+        <span class="absolute inset-0"></span>
+        {recipe.title}
+      </span>
+    </a>
+  </h3>
+  {recipe.description && (
+    <p class="mt-2 line-clamp-2 text-sm/6 text-eucalypt-100">{recipe.description}</p>
+  )}
+</article>

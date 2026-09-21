@@ -1,0 +1,16 @@
+---
+/** Small uppercase kicker used above section headings. */
+import { cn } from '@/lib/cn';
+
+interface Props {
+  tone?: 'bracken' | 'wattle' | 'eucalypt';
+  class?: string;
+  as?: 'p' | 'span';
+}
+const { tone = 'bracken', class: className, as: Tag = 'p' } = Astro.props;
+const TONES = { bracken: 'text-bracken-500', wattle: 'text-wattle', eucalypt: 'text-eucalypt-600' };
+---
+
+<Tag class={cn('text-[13px] font-semibold uppercase tracking-[0.24em]', TONES[tone], className)}>
+  <slot />
+</Tag>

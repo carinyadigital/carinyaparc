@@ -13,6 +13,14 @@ const robotsParts = [
   metadata.robots.index ? 'index' : 'noindex',
   metadata.robots.follow ? 'follow' : 'nofollow',
 ];
+const googleBot = metadata.robots.googleBot;
+const googleBotParts = [
+  googleBot.index === false ? 'noindex' : 'index',
+  googleBot.follow === false ? 'nofollow' : 'follow',
+  ...Object.entries(googleBot)
+    .filter(([key, value]) => key.startsWith('max-') && value !== undefined)
+    .map(([key, value]) => `${key}:${String(value)}`),
+];
 ---
 
 <!doctype html>
@@ -26,6 +34,7 @@ const robotsParts = [
     <meta name="description" content={metadata.description} />
     <meta name="keywords" content={metadata.keywords.join(', ')} />
     <meta name="robots" content={robotsParts.join(', ')} />
+    <meta name="googlebot" content={googleBotParts.join(', ')} />
     <link rel="canonical" href={metadata.canonical} />
     <link rel="alternate" type="application/rss+xml" href={metadata.rssFeed} />
     <link rel="manifest" href={metadata.manifest} />

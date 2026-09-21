@@ -1,0 +1,18 @@
+---
+/** Privacy/consent line shared with the standalone `/subscribe/` page. */
+import { cn } from '@/lib/cn';
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<p class={cn('text-sm/6 text-stone', className)}>
+  We promise to respect your privacy and your inbox. Read our{' '}
+  <a href="/legal/privacy-policy/" class="font-semibold text-eucalypt-600 hover:opacity-70">
+    Privacy Policy
+  </a>
+  .
+</p>

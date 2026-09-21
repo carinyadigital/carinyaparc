@@ -1,0 +1,55 @@
+---
+/** Visual breadcrumb trail generated from the current path (or explicit `items`). */
+import { cn } from '@/lib/cn';
+import { generateBreadcrumbsFromPath } from '@/lib/schema/breadcrumb';
+
+interface Props {
+  items?: Array<{ name: string; url: string }>;
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+const crumbs = (items ?? generateBreadcrumbsFromPath(Astro.url.pathname)).map((item) => ({
+  name: item.name,
+  href: item.url.replace(/^https?:\/\/[^/]+/, '') || '/',
+}));
+---
+
+{crumbs.length > 1 && (
+  <nav aria-label="Breadcrumb" class={cn('mb-6', className)}>
+    <ol class="flex flex-wrap items-center gap-y-1 text-sm text-stone">
+      {crumbs.map((crumb, index) => {
+        const isLast = index === crumbs.length - 1;
+        return (
+          <li class="flex items-center">
+            {index > 0 && (
+              <svg
+                class="mx-2 h-4 w-4 text-stone"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="m9 6 6 6-6 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            )}
+            {isLast ? (
+              <span class="font-medium text-bark" aria-current="page">
+                {crumb.name}
+              </span>
+            ) : (
+              <a href={crumb.href} class="transition-colors hover:text-bark">
+                {crumb.name}
+              </a>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  </nav>
+)}

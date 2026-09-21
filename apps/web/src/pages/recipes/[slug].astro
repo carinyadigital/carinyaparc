@@ -1,0 +1,139 @@
+---
+import { getImage } from 'astro:assets';
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+
+import Site from '@/layouts/Site.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import RecipeMeta from '@/components/recipes/RecipeMeta.astro';
+import RecipeIngredients from '@/components/recipes/RecipeIngredients.astro';
+import RecipeInstructions from '@/components/recipes/RecipeInstructions.astro';
+import RecipeTags from '@/components/recipes/RecipeTags.astro';
+import { generatePageMetadata } from '@/lib/metadata';
+import { BASE_URL, PLACEHOLDER_IMAGE } from '@/lib/constants';
+import { getPublishedRecipes, toRecipeSummary, type RecipeEntry } from '@/lib/content/recipes';
+import type { RecipeData } from '@/lib/schema/recipe';
+
+import '@/styles/pages/recipes.css';
+
+export async function getStaticPaths() {
+  const recipes = await getPublishedRecipes();
+  return recipes.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: RecipeEntry;
+}
+
+const { entry } = Astro.props;
+const recipe = await toRecipeSummary(entry);
+const hasBody = Boolean(entry.body && entry.body.trim().length > 0);
+const { Content } = hasBody ? await render(entry) : { Content: null };
+
+const ingredients = entry.data.ingredients.map((row) => row.item);
+const instructions = entry.data.instructions.map((row) => row.step);
+const datePublished = recipe.date.toISOString();
+
+/** Built image URL (absolute) for OG + JSON-LD when the recipe has a photograph. */
+let imagePath: string | undefined;
+if (recipe.image) {
+  const built = await getImage({ src: recipe.image, format: 'jpg', width: 1200 });
+  imagePath = built.src;
+}
+const imageUrl = imagePath
+  ? imagePath.startsWith('http')
+    ? imagePath
+    : `${BASE_URL}${imagePath}`
+  : undefined;
+
+const metadata = generatePageMetadata({
+  title: `${recipe.title} - Recipe - Carinya Parc`,
+  description: recipe.description,
+  path: recipe.href,
+  image: imagePath && !imagePath.startsWith('http') ? imagePath : undefined,
+  type: 'article',
+});
+
+/** Explicit crumbs so the last item carries the recipe title rather than a slug-derived name. */
+const breadcrumbs = [
+  { name: 'Home', url: BASE_URL, position: 1 },
+  { name: 'Recipes', url: `${BASE_URL}/recipes/`, position: 2 },
+  { name: recipe.title, url: `${BASE_URL}${recipe.href}`, position: 3 },
+];
+
+const recipeData: RecipeData = {
+  name: recipe.title,
+  description: recipe.description,
+  author: recipe.authorName,
+  datePublished,
+  prepTime: recipe.prepTime,
+  cookTime: recipe.cookTime,
+  totalTime: recipe.totalTime,
+  recipeYield: recipe.servings?.toString(),
+  recipeIngredient: ingredients,
+  recipeInstructions: instructions.join('\n'),
+  image: imageUrl,
+};
+---
+
+<Site
+  title={metadata.title}
+  description={recipe.description}
+  path={recipe.href}
+  type="article"
+  metadata={metadata}
+>
+  <JsonLd recipe={recipeData} breadcrumbs={breadcrumbs} />
+
+  <div class="isolate min-h-screen">
+    <div class="relative isolate overflow-hidden py-24 sm:py-32">
+      <div class="container mx-auto max-w-4xl px-4">
+        <Breadcrumb items={breadcrumbs} />
+
+        <article class="recipe-prose">
+          <h1>{recipe.title}</h1>
+
+          <div class="recipe-hero-image not-prose">
+            {recipe.image ? (
+              <Image
+                src={recipe.image}
+                alt={recipe.imageAlt}
+                widths={[640, 1040, 1600]}
+                sizes="(max-width: 1040px) 100vw, 1040px"
+                quality={80}
+                loading="eager"
+                class="h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={PLACEHOLDER_IMAGE}
+                alt=""
+                class="h-full w-full object-cover"
+                loading="lazy"
+              />
+            )}
+          </div>
+
+          <RecipeMeta
+            servings={recipe.servings}
+            prepTime={recipe.prepTime}
+            cookTime={recipe.cookTime}
+            totalTime={recipe.totalTime}
+            difficulty={recipe.difficulty}
+          />
+
+          <RecipeIngredients ingredients={ingredients} />
+
+          <RecipeInstructions instructions={instructions} />
+
+          {Content && <Content />}
+
+          <RecipeTags tags={recipe.tags} />
+
+          <p class="mt-6 text-sm text-stone">By {recipe.authorName}</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</Site>

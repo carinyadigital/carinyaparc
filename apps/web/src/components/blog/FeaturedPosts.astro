@@ -1,0 +1,83 @@
+---
+/** Featured post band at the top of the journal index: image left, copy right, whole card a link. */
+import { Image } from 'astro:assets';
+
+import { estimateReadTimeMinutes } from '@/lib/content/dates';
+import { getFeaturedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
+
+interface Props {
+  limit?: number;
+}
+
+const { limit = 1 } = Astro.props;
+
+function authorInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
+const featuredPosts = await toPostSummaries(await getFeaturedPosts(limit));
+---
+
+{featuredPosts.length > 0 && (
+  <section class="pb-10 pt-4">
+    <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+      {featuredPosts.map((featuredPost) => {
+        const category =
+          featuredPost.categoryName ??
+          (featuredPost.tags[0] ? tagName(featuredPost.tags[0]) : null) ??
+          'Journal';
+
+        return (
+          <a
+            href={featuredPost.href}
+            class="group grid items-center gap-8 overflow-hidden rounded-xl border border-line bg-fleece p-[22px] shadow-md transition-all duration-150 hover:-translate-y-1 hover:shadow-lg lg:grid-cols-[1.15fr_0.85fr] lg:gap-11"
+          >
+            <div class="relative aspect-[16/11] overflow-hidden rounded-[20px]">
+              {featuredPost.image ? (
+                <Image
+                  src={featuredPost.image}
+                  alt={featuredPost.title}
+                  widths={[640, 960, 1280]}
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  quality={80}
+                  loading="eager"
+                  class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              ) : (
+                <img
+                  src="/images/placeholder.svg"
+                  alt=""
+                  class="h-full w-full object-cover"
+                  loading="eager"
+                />
+              )}
+            </div>
+            <div class="px-1 py-2 lg:px-5">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-bracken-500">
+                Featured · {category}
+              </p>
+              <h2 class="mt-3 font-heading text-[32px] font-normal leading-[1.14] text-bark lg:text-4xl">
+                {featuredPost.title}
+              </h2>
+              <p class="mt-3.5 text-[16.5px] leading-[1.7] text-charcoal">{featuredPost.excerpt}</p>
+              <div class="mt-5 flex items-center gap-3 text-sm text-stone">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-eucalypt-100 font-heading text-[15px] text-eucalypt-700">
+                  {authorInitials(featuredPost.authorName)}
+                </span>
+                <span>
+                  {featuredPost.authorName} · {estimateReadTimeMinutes(featuredPost.excerpt)} min
+                  read
+                </span>
+              </div>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+)}

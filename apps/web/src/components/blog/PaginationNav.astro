@@ -1,0 +1,56 @@
+---
+/** Numbered page links under a paginated grid. Page 1 is /blog/, later pages /blog/page/{n}/. */
+import { cn } from '@/lib/cn';
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+
+function pageHref(page: number): string {
+  return page <= 1 ? '/blog/' : `/blog/page/${page}/`;
+}
+
+const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+---
+
+{totalPages > 1 && (
+  <nav aria-label="Blog pages" class="mt-14 flex flex-wrap items-center justify-center gap-2">
+    {currentPage > 1 && (
+      <a
+        href={pageHref(currentPage - 1)}
+        rel="prev"
+        class="rounded-pill px-4 py-2 text-sm font-semibold text-eucalypt-600 transition-colors hover:bg-eucalypt-50"
+      >
+        ← Previous
+      </a>
+    )}
+
+    {pages.map((page) => (
+      <a
+        href={pageHref(page)}
+        aria-current={page === currentPage ? 'page' : undefined}
+        class={cn(
+          'rounded-pill px-3.5 py-2 text-sm font-semibold transition-colors',
+          page === currentPage
+            ? 'bg-eucalypt-600 text-primary-foreground'
+            : 'text-eucalypt-600 hover:bg-eucalypt-50',
+        )}
+      >
+        {page}
+      </a>
+    ))}
+
+    {currentPage < totalPages && (
+      <a
+        href={pageHref(currentPage + 1)}
+        rel="next"
+        class="rounded-pill px-4 py-2 text-sm font-semibold text-eucalypt-600 transition-colors hover:bg-eucalypt-50"
+      >
+        Next →
+      </a>
+    )}
+  </nav>
+)}

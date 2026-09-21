@@ -38,6 +38,8 @@ export default defineConfig({
   ],
   redirects: {
     '/favicon.ico': '/favicon/favicon.ico',
+    // @astrojs/sitemap writes sitemap-index.xml; keep the URL robots.txt and Search Console know.
+    '/sitemap.xml': '/sitemap-index.xml',
   },
   vite: {
     plugins: [tailwindcss()],

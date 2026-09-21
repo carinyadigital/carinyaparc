@@ -1,0 +1,18 @@
+---
+/** Brand line-icon in a tinted tile. `src` is a public path such as /motifs/motif-leaf.svg. */
+import { cn } from '@/lib/cn';
+
+interface Props {
+  src: string;
+  class?: string;
+  tileClass?: string;
+  iconSize?: number;
+}
+const { src, class: className, tileClass, iconSize = 32 } = Astro.props;
+---
+
+<div
+  class={cn('flex h-[60px] w-[60px] items-center justify-center rounded-md', tileClass, className)}
+>
+  <img src={src} alt="" width={iconSize} height={iconSize} aria-hidden="true" loading="lazy" />
+</div>

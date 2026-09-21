@@ -1,0 +1,66 @@
+---
+/**
+ * Listing card for an upcoming event: date, title, location, rendered MDX description and
+ * either the on-site signup form or a link to the external signup target.
+ */
+import { render } from 'astro:content';
+
+import Button from '@/components/ui/Button.astro';
+import { cn } from '@/lib/cn';
+import type { EventEntry } from '@/lib/content/events';
+import EventSignup from './EventSignup.astro';
+import { eventSignupHref, formatEventDate, isExternalEventHref } from './event-helpers';
+
+interface Props {
+  event: EventEntry;
+  class?: string;
+}
+
+const { event, class: className } = Astro.props;
+const { Content } = await render(event);
+
+const hasSignupTarget = Boolean(event.data.signupTarget?.trim());
+const full = Boolean(event.data.isFull);
+const showOnSiteSignup = !hasSignupTarget;
+const signupHref = eventSignupHref(event);
+const external = isExternalEventHref(signupHref);
+---
+
+<article
+  id={`event-${event.id}`}
+  class={cn('flex flex-col rounded-lg border border-line bg-fleece p-7 shadow-md', className)}
+>
+  <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-bracken-500">
+    <time datetime={event.data.startsAt.toISOString()}>{formatEventDate(event.data.startsAt)}</time>
+  </p>
+  <h2 class="mt-2.5 font-heading text-[22px] font-normal leading-[1.22] text-bark">
+    {event.data.title}
+  </h2>
+  <p class="mt-2 text-[14.5px] leading-[1.55] text-stone">{event.data.location}</p>
+  {event.body?.trim() && (
+    <div class="prose prose-sm mt-4 max-w-none text-charcoal">
+      <Content />
+    </div>
+  )}
+
+  {showOnSiteSignup ? (
+    <EventSignup eventId={event.id} eventTitle={event.data.title} isFull={full} />
+  ) : full ? (
+    <div class="mt-6">
+      <Button href="/subscribe/" variant="outline" size="sm">
+        Full — join the waitlist
+      </Button>
+    </div>
+  ) : (
+    <div class="mt-6">
+      <Button
+        href={signupHref}
+        variant="bracken"
+        size="sm"
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
+        Sign up
+      </Button>
+    </div>
+  )}
+</article>

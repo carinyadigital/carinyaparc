@@ -6,7 +6,7 @@ import { z } from 'zod';
  * Spam-email rejection is handled in the route (silent success), not here.
  */
 export const eventSignupSchema = z.object({
-  eventId: z.coerce.number().int().positive('Event is required'),
+  eventId: z.string().trim().min(1, 'Event is required'),
   name: z
     .string()
     .min(1, 'Name is required')

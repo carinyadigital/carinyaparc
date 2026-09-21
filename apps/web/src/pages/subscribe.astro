@@ -1,0 +1,129 @@
+---
+import { Image } from 'astro:assets';
+
+import Site from '@/layouts/Site.astro';
+import PageIntro from '@/components/sections/PageIntro.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import Icon from '@/components/marketing/Icon.astro';
+import SectionWithImage from '@/components/marketing/SectionWithImage.astro';
+import SubscribeSection from '@/components/marketing/SubscribeSection.astro';
+
+import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+---
+
+<Site
+  title="Subscribe - Carinya Parc"
+  description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+  path="/subscribe"
+  image="/images/river-valley-aerial.jpg"
+>
+  <JsonLd />
+
+  <div class="isolate min-h-screen bg-paperbark">
+    {/* Breadcrumb navigation */}
+    <div class="mx-auto max-w-[1240px] px-6 pt-8 lg:px-14">
+      <Breadcrumb />
+    </div>
+
+    <PageIntro
+      eyebrow="Subscribe"
+      title="Stay connected to the land"
+      titleAs="h1"
+      description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+      class="pb-4 pt-4 sm:pt-8"
+    />
+
+    <SectionWithImage
+      variant="light"
+      imagePosition="left"
+      subtitle="Join the Community"
+      title="Subscribe to our Newsletter"
+    >
+      <Image
+        slot="image"
+        src={riverValleyAerial}
+        alt="Farm gate"
+        widths={[640, 1080, 1600]}
+        sizes="(max-width: 768px) 100vw, 50vw"
+        loading="eager"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+      When you join our mailing list, you'll be the first to receive:
+      <ul role="list" class="mt-8 space-y-6">
+        <li class="flex gap-x-3">
+          <Icon name="shovel" class="h-6 w-6 text-eucalypt-300" />
+          <span>
+            <strong class="font-semibold">Invitations to Participate:</strong> Early notifications
+            about planting days, workshops and volunteer opportunities
+          </span>
+        </li>
+        <li class="flex gap-x-3">
+          <Icon name="sprout" class="h-6 w-6 text-eucalypt-300" />
+          <span>
+            <strong class="font-semibold">Seasonal Inspiration:</strong> Recipes and cooking tips
+            that follow the rhythm of our developing gardens
+          </span>
+        </li>
+        <li class="flex gap-x-3">
+          <Icon name="newspaper" class="h-6 w-6 text-eucalypt-300" />
+          <span>
+            <strong class="font-semibold">Regeneration Stories:</strong> Photo-rich updates showing
+            the transformation of our landscape over time
+          </span>
+        </li>
+      </ul>
+      <SubscribeSection />
+    </SectionWithImage>
+
+    <div class="bg-fleece py-16 sm:py-24">
+      <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+        <div class="mx-auto max-w-2xl lg:text-center">
+          <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+            What can you expect?
+          </p>
+          <h2 class="mt-3.5 font-heading text-3xl font-normal tracking-tight text-eucalypt-600 sm:text-4xl">
+            Authentic stories
+          </h2>
+          <p class="mt-6 text-lg leading-8 text-charcoal">
+            Our newsletter shares the genuine journey of Carinya Parc. Our successes and failures,
+            our joys and our challenges. We want to help others learn from our experiences and
+            connect with the land.
+          </p>
+        </div>
+        <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+          <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+            <div class="flex flex-col">
+              <dt class="font-heading text-xl font-normal text-eucalypt-600">Seasonal Rhythm</dt>
+              <dd class="mt-2 flex flex-auto flex-col text-base leading-7 text-charcoal">
+                <p class="flex-auto">
+                  Nature moves in cycles, and so do our updates. Expect content that reflects what's
+                  happening on the farm right now—from winter planning to summer abundance.
+                </p>
+              </dd>
+            </div>
+            <div class="flex flex-col">
+              <dt class="font-heading text-xl font-normal text-eucalypt-600">Practical Value</dt>
+              <dd class="mt-2 flex flex-auto flex-col text-base leading-7 text-charcoal">
+                <p class="flex-auto">
+                  Every edition includes something you can use — whether it's a seasonal recipe, a
+                  gardening tip, or insights you can apply to your own relationship with food and
+                  land.
+                </p>
+              </dd>
+            </div>
+            <div class="flex flex-col">
+              <dt class="font-heading text-xl font-normal text-eucalypt-600">Privacy Commitment</dt>
+              <dd class="mt-2 flex flex-auto flex-col text-base leading-7 text-charcoal">
+                <p class="flex-auto">
+                  We care deeply about your trust. Your information is never shared with third
+                  parties, and we use it solely to send you the updates you've requested.
+                </p>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</Site>

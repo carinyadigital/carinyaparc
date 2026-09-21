@@ -1,0 +1,46 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+
+import Site from '@/layouts/Site.astro';
+import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
+import JournalIntro from '@/components/blog/JournalIntro.astro';
+import PaginatedPosts from '@/components/blog/PaginatedPosts.astro';
+import { getCategoriesWithPosts, getPublishedPosts, toPostSummaries } from '@/lib/content/posts';
+
+/** Pages 2..n of the non-featured grid, 6 per page; page 1 lives at /blog/. */
+export const getStaticPaths = (async ({ paginate }) => {
+  const published = await getPublishedPosts();
+  const gridEntries = published.filter((post) => !post.data.featured);
+  return paginate(gridEntries, { pageSize: 6 }).filter(
+    (path) => path.params.page !== '1' && path.params.page !== undefined,
+  );
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { page } = Astro.props as Props;
+const [categories, posts] = await Promise.all([
+  getCategoriesWithPosts(),
+  toPostSummaries(page.data),
+]);
+---
+
+<Site
+  title={`Blog - Page ${page.currentPage} - Carinya Parc`}
+  description="Older articles on regenerative farming and life at Carinya Parc."
+  path={`/blog/page/${page.currentPage}/`}
+>
+  <div class="min-h-screen bg-paperbark">
+    <JournalIntro
+      eyebrow="Life on pasture · The Branch, NSW"
+      title="Field notes from a farm coming back to life"
+      description="Follow the regeneration of 42 hectares in real time — the plantings, the setbacks, the soil results and the seasons. Read along, then come get your hands dirty."
+    />
+
+    <BlogTopicNav categories={categories.map((c) => ({ name: c.name, slug: c.id }))} />
+
+    <section class="py-9 pb-[84px]">
+      <PaginatedPosts posts={posts} page={page.currentPage} totalPages={page.lastPage} />
+    </section>
+  </div>
+</Site>

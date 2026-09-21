@@ -1,0 +1,57 @@
+---
+/**
+ * Category chip row ("Browse: All · Field reports · …"). Plain links to /blog/category/{slug}/.
+ * `activeSlug` undefined = "All" active; `null` = no chip active (tag archives).
+ */
+import { cn } from '@/lib/cn';
+import { categoryUrl } from '@/lib/urls';
+
+export type BlogTopic = {
+  name: string;
+  slug: string;
+};
+
+interface Props {
+  categories: BlogTopic[];
+  activeSlug?: string | null;
+}
+
+const { categories, activeSlug } = Astro.props;
+
+const chips: Array<{ name: string; slug?: string }> = [
+  { name: 'All' },
+  ...categories.map((category) => ({ name: category.name, slug: category.slug })),
+];
+---
+
+{categories.length > 0 && (
+  <nav aria-label="Blog categories" class="py-4 pb-1">
+    <div class="mx-auto flex max-w-[1240px] flex-wrap items-center gap-2.5 px-6 lg:px-14">
+      <span class="mr-1.5 text-[13px] font-semibold text-charcoal">Browse:</span>
+      {chips.map((chip) => {
+        const isActive =
+          activeSlug === null
+            ? false
+            : chip.slug
+              ? activeSlug === chip.slug
+              : activeSlug === undefined;
+        const href = chip.slug ? categoryUrl(chip.slug) : '/blog/';
+
+        return (
+          <a
+            href={href}
+            aria-current={isActive ? 'page' : undefined}
+            class={cn(
+              'rounded-pill border px-[18px] py-2 text-[13.5px] font-semibold transition-colors',
+              isActive
+                ? 'border-eucalypt-600 bg-eucalypt-600 text-primary-foreground'
+                : 'border-line bg-fleece text-charcoal hover:border-eucalypt-300 hover:text-eucalypt-700',
+            )}
+          >
+            {chip.name}
+          </a>
+        );
+      })}
+    </div>
+  </nav>
+)}

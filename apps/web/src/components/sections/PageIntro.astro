@@ -1,0 +1,49 @@
+---
+import { cn } from '@/lib/cn';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  align?: 'center' | 'left';
+  titleAs?: 'h1' | 'h2';
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  description,
+  align = 'center',
+  titleAs: Tag = 'h2',
+  class: className,
+} = Astro.props;
+---
+
+<section class={cn('py-16 sm:py-24', className)}>
+  <div
+    class={cn(
+      'mx-auto px-6 lg:px-14',
+      align === 'center' ? 'max-w-[820px] text-center' : 'max-w-[1240px]',
+    )}
+  >
+    <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">{eyebrow}</p>
+    <Tag
+      class={cn(
+        'mt-4 font-heading text-[40px] font-normal leading-[1.14] text-eucalypt-600 text-balance sm:text-[44px]',
+        align === 'left' && 'max-w-3xl',
+      )}
+    >
+      {title}
+    </Tag>
+    <p
+      class={cn(
+        'mt-5 text-[19px] leading-[1.7] text-charcoal',
+        align === 'center' && 'mx-auto max-w-[720px]',
+        align === 'left' && 'max-w-2xl',
+      )}
+    >
+      {description}
+    </p>
+  </div>
+</section>

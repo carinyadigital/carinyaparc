@@ -1,0 +1,111 @@
+---
+/**
+ * Full-bleed hero with an optimised background image and warm eucalypt gradient.
+ * Decorative blurred shapes drift with a CSS keyframe (replaces framer-motion).
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+import { cn } from '@/lib/cn';
+
+interface Props {
+  image: ImageMetadata;
+  imageAlt: string;
+  class?: string;
+  /** Vertical alignment of the content block. */
+  align?: 'end' | 'center';
+  minHeightClass?: string;
+}
+
+const {
+  image,
+  imageAlt,
+  class: className,
+  align = 'end',
+  minHeightClass = 'min-h-[720px]',
+} = Astro.props;
+
+const CLIP =
+  'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)';
+---
+
+<div class={cn('relative isolate overflow-hidden bg-eucalypt-900', minHeightClass, className)}>
+  <Image
+    src={image}
+    alt={imageAlt}
+    widths={[640, 1080, 1600, 2048]}
+    sizes="100vw"
+    quality={85}
+    loading="eager"
+    fetchpriority="high"
+    class="absolute inset-0 -z-20 h-full w-full object-cover"
+  />
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 -z-10 bg-gradient-to-b from-eucalypt-900/18 via-eucalypt-900/30 to-eucalypt-900/82"
+  ></div>
+
+  <div
+    class={cn(
+      'relative z-10 mx-auto flex max-w-[1240px] px-6 pb-[92px] pt-28 lg:px-14',
+      minHeightClass,
+      align === 'end' ? 'items-end' : 'items-center',
+    )}
+  >
+    <div class="max-w-[900px]">
+      <slot />
+    </div>
+  </div>
+
+  <div
+    aria-hidden="true"
+    class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
+  >
+    <div
+      style={`clip-path: ${CLIP}`}
+      class="hero-drift-a relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-eucalypt-400 to-eucalypt-700 opacity-15 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+    ></div>
+  </div>
+  <div
+    aria-hidden="true"
+    class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]"
+  >
+    <div
+      style={`clip-path: ${CLIP}`}
+      class="hero-drift-b relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-eucalypt-500 to-eucalypt-800 opacity-15 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+    ></div>
+  </div>
+</div>
+
+<style>
+  @keyframes hero-drift-a {
+    0%,
+    100% {
+      transform: translateX(-50%) rotate(30deg) scale(1);
+    }
+    50% {
+      transform: translateX(-50%) rotate(35deg) scale(1.05);
+    }
+  }
+  @keyframes hero-drift-b {
+    0%,
+    100% {
+      transform: translate(calc(-50% - 10px), 5px);
+    }
+    50% {
+      transform: translate(calc(-50% + 10px), -5px);
+    }
+  }
+  .hero-drift-a {
+    animation: hero-drift-a 20s ease-in-out infinite;
+  }
+  .hero-drift-b {
+    animation: hero-drift-b 15s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-drift-a,
+    .hero-drift-b {
+      animation: none;
+    }
+  }
+</style>

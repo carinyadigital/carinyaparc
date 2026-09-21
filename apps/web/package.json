@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "rm -rf dist .astro .vercel",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:parity": "vitest run tests/parity.test.ts"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.6",

@@ -1,0 +1,113 @@
+---
+/**
+ * The Next.js page exports no metadata, so it inherits the site root's (title "Carinya Parc",
+ * site description). Reproduced here with the page's own canonical path.
+ */
+import { Image } from 'astro:assets';
+
+import Site from '@/layouts/Site.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/constants';
+
+import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import alpacasHillPasture from '@/assets/images/alpacas-hill-pasture.jpg';
+import propertyRiverAerial from '@/assets/images/property-river-aerial.jpg';
+import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
+
+const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
+---
+
+<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/about/jonathan">
+  <JsonLd />
+
+  <div class="isolate min-h-screen bg-paperbark">
+    {/* Breadcrumb navigation */}
+    <div class="mx-auto max-w-[1240px] px-6 pt-8 lg:px-14">
+      <Breadcrumb />
+    </div>
+
+    {/* Page Header */}
+    <div class="pb-16 pt-8 sm:pb-24 sm:pt-12">
+      <div class="mx-auto max-w-[1240px] px-6 lg:flex lg:px-14">
+        <div class="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-16 lg:mx-0 lg:max-w-none lg:min-w-full lg:flex-none lg:gap-y-8">
+          <div class="lg:col-end-1 lg:w-full lg:max-w-lg lg:pb-8">
+            <p class="mb-3 text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+              About Jonathan Daddia
+            </p>
+            <h1 class="max-w-2xl font-heading text-5xl font-normal tracking-tight text-balance text-eucalypt-600 sm:text-7xl lg:col-span-2 xl:col-auto">
+              Meet Jonno
+            </h1>
+            <p class="mt-6 text-xl/8 text-charcoal">
+              Founder and Steward of Carinya Parc and Transformation Lead at Temple & Webster,
+              Australia's leading e-commerce retailer. With over two decades of experience in
+              top-tier strategy consulting and industry leadership, Jonathan has driven large-scale
+              digital transformation and strategic growth across financial services, retail,
+              e-commerce and beyond.
+            </p>
+            <p class="mt-6 text-xl/8 text-charcoal">
+              For twenty years, Jonathan dreamed of swapping boardrooms for back paddocks. In early
+              2024, he acted on that vision—applying corporate-grade rigor to ecological
+              restoration.
+            </p>
+            <p class="mt-6 text-base/7 text-stone">
+              Fourteen years ago, Jonathan surprised the world—and himself—by earning a place as a
+              MasterChef finalist. That experience ignited his passion for hands-on problem solving
+              and lifelong learning. Since then, he's continued to balance his strategic consulting
+              career with culinary pursuits, even honing his skills during weekends at Gordon
+              Ramsay's Petrus in London while maintaining a full-time corporate role.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-start justify-end gap-6 sm:gap-8 lg:contents">
+            <div class="w-0 flex-auto lg:ml-auto lg:w-auto lg:flex-none lg:self-end">
+              <Image
+                alt="Jonathan working on the farm"
+                src={riverValleyAerial}
+                width={592}
+                height={423}
+                widths={[592, 1184]}
+                sizes="37rem"
+                class={`aspect-[7/5] w-[37rem] ${PHOTO_CLASS}`}
+              />
+            </div>
+            <div class="contents lg:col-span-2 lg:col-end-2 lg:ml-auto lg:flex lg:w-[37rem] lg:items-start lg:justify-end lg:gap-x-8">
+              <div class="order-first flex w-64 flex-none justify-end self-end lg:w-auto">
+                <Image
+                  alt="Farm landscape"
+                  src={alpacasHillPasture}
+                  width={384}
+                  height={288}
+                  widths={[384, 768]}
+                  sizes="24rem"
+                  class={`aspect-[4/3] w-[24rem] flex-none ${PHOTO_CLASS}`}
+                />
+              </div>
+              <div class="flex w-96 flex-auto justify-end lg:w-auto lg:flex-none">
+                <Image
+                  alt="Jonathan in strategic planning"
+                  src={propertyRiverAerial}
+                  width={592}
+                  height={423}
+                  widths={[592, 1184]}
+                  sizes="37rem"
+                  class={`aspect-[7/5] w-[37rem] flex-none ${PHOTO_CLASS}`}
+                />
+              </div>
+              <div class="hidden sm:block sm:w-0 sm:flex-auto lg:w-auto lg:flex-none">
+                <Image
+                  alt="Jonathan planting trees"
+                  src={highlandCattlePaddock}
+                  width={384}
+                  height={288}
+                  widths={[384, 768]}
+                  sizes="24rem"
+                  class={`aspect-[4/3] w-[24rem] ${PHOTO_CLASS}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Site>

@@ -1,0 +1,147 @@
+---
+import '@/styles/pages/blog.css';
+
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import { getImage, Image } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+
+import Site from '@/layouts/Site.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import AuthorBlock from '@/components/blog/AuthorBlock.astro';
+import BlogPostArticle from '@/components/blog/BlogPostArticle.astro';
+import EndOfPostSubscribe from '@/components/blog/EndOfPostSubscribe.astro';
+import RelatedPosts from '@/components/blog/RelatedPosts.astro';
+import ShareBar from '@/components/blog/ShareBar.astro';
+import { BASE_URL, DEFAULT_OG_IMAGE } from '@/lib/constants';
+import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
+import { postUrl, tagUrl } from '@/lib/urls';
+import { blogSubscribeSource } from '@/lib/validation/subscribe-schema';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPublishedPosts();
+  return posts.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { entry } = Astro.props as Props;
+const { Content } = await render(entry);
+
+const [author, category, related] = await Promise.all([
+  getEntry(entry.data.author),
+  entry.data.category ? getEntry(entry.data.category) : Promise.resolve(undefined),
+  getRelatedPosts(entry, 3),
+]);
+const relatedPosts = await toPostSummaries(related);
+
+const slug = entry.id;
+const authorName = author?.data.name ?? 'Carinya Parc';
+const description = entry.data.description ?? entry.data.excerpt;
+const tags = entry.data.tags.map((tag) => ({ slug: tag, name: tagName(tag), href: tagUrl(tag) }));
+const path = postUrl(slug);
+const canonicalUrl = `${BASE_URL}${path}`;
+const subscribeSource = blogSubscribeSource(slug);
+
+/** Absolute-URL-ready path for og:image and the Article schema (built asset or the site default). */
+const ogImagePath = entry.data.image
+  ? (await getImage({ src: entry.data.image, width: 1200, format: 'jpg' })).src
+  : DEFAULT_OG_IMAGE;
+
+const wordCount = (entry.body ?? '').trim().split(/\s+/).filter(Boolean).length;
+
+const articleData = {
+  title: entry.data.title,
+  slug,
+  author: authorName,
+  datePublished: entry.data.date.toISOString(),
+  imageUrl: ogImagePath,
+  description,
+  excerpt: entry.data.excerpt,
+  tags: tags.length > 0 ? tags.map((tag) => tag.name) : undefined,
+  wordCount: wordCount > 0 ? wordCount : undefined,
+};
+
+const breadcrumbs = [
+  { name: 'Home', url: BASE_URL, position: 1 },
+  { name: 'Blog', url: `${BASE_URL}/blog/`, position: 2 },
+  { name: entry.data.title, url: canonicalUrl, position: 3 },
+];
+---
+
+<Site
+  title={`${entry.data.title} - Blog - Carinya Parc`}
+  description={description}
+  path={path}
+  image={ogImagePath}
+  type="article"
+>
+  <JsonLd article={articleData} breadcrumbs={breadcrumbs} />
+
+  <div class="min-h-screen bg-paperbark">
+    <div class="mx-auto max-w-[1240px] px-6 pt-8 lg:px-14">
+      <Breadcrumb items={breadcrumbs} class="mb-0" />
+    </div>
+
+    <BlogPostArticle
+      title={entry.data.title}
+      category={category?.data.name}
+      authorName={authorName}
+      date={entry.data.date}
+    />
+
+    <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+      <div class="blog-hero-image">
+        {entry.data.image ? (
+          <Image
+            src={entry.data.image}
+            alt={entry.data.imageAlt ?? entry.data.title}
+            widths={[640, 1040, 1600]}
+            sizes="(max-width: 1040px) 100vw, 1040px"
+            loading="eager"
+            fetchpriority="high"
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <img
+            src="/images/farm-track-gate.jpg"
+            alt={entry.data.title}
+            loading="eager"
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+      </div>
+    </div>
+
+    <article class="blog-prose pb-8 pt-3">
+      <Content />
+    </article>
+
+    {tags.length > 0 && (
+      <nav aria-label="Post tags" class="mx-auto max-w-[720px] px-6">
+        <ul class="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <li>
+              <a
+                href={tag.href}
+                class="inline-flex items-center rounded-pill border border-line bg-fleece px-[14px] py-1.5 text-[13px] font-semibold text-charcoal transition-colors hover:border-eucalypt-300 hover:text-eucalypt-700"
+              >
+                {tag.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <EndOfPostSubscribe source={subscribeSource} />
+
+    <ShareBar url={canonicalUrl} title={entry.data.title} />
+
+    <AuthorBlock author={author?.data} />
+
+    <div class="pb-12"></div>
+
+    <RelatedPosts posts={relatedPosts} />
+  </div>
+</Site>

@@ -1,0 +1,107 @@
+---
+/**
+ * Newsletter subscribe form (static). Same fields, labels, honeypot and copy as the React
+ * SubscribeSection; posts to /api/subscribe/. Phase 4 hydrates via data-form="subscribe".
+ */
+import Button from '@/components/ui/Button.astro';
+import { INPUT_CLASS, LABEL_CLASS, REQUIRED_MARK_CLASS, SELECT_CLASS } from './form-classes';
+
+interface Props {
+  showName?: boolean;
+  showInterests?: boolean;
+}
+
+const { showName = true, showInterests = true } = Astro.props;
+---
+
+<div class="px-6 py-8">
+  <div class="mx-auto max-w-xl lg:max-w-lg">
+    <form method="post" action="/api/subscribe/" data-form="subscribe">
+      <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+        {/* Honeypot field - hidden from humans */}
+        <div class="sm:col-span-2" aria-hidden="true" style="display: none">
+          <label for="website" class="block text-sm/6 font-semibold text-charcoal">
+            Website
+          </label>
+          <div class="mt-2.5">
+            <input
+              type="text"
+              name="website"
+              id="website"
+              tabindex="-1"
+              autocomplete="off"
+              class="block w-full rounded-md bg-white px-3.5 py-2"
+            />
+          </div>
+        </div>
+
+        <div class="sm:col-span-2">
+          <div class="space-y-2">
+            <label for="email" class={LABEL_CLASS}>
+              Email Address<span class={REQUIRED_MARK_CLASS}>*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              required
+              placeholder="you@example.com"
+              autocomplete="email"
+              class={INPUT_CLASS}
+            />
+          </div>
+        </div>
+
+        {showName && (
+          <div class="sm:col-span-2">
+            <div class="space-y-2">
+              <label for="name" class={LABEL_CLASS}>
+                Your Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                id="name"
+                placeholder="Your name"
+                autocomplete="name"
+                class={INPUT_CLASS}
+              />
+            </div>
+          </div>
+        )}
+
+        {showInterests && (
+          <div class="sm:col-span-2">
+            <div class="space-y-2">
+              <label for="interests" class={LABEL_CLASS}>
+                What interests you most about Carinya Parc?
+              </label>
+              <select name="interests" id="interests" class={SELECT_CLASS}>
+                <option value="">Select your main interest</option>
+                <option value="regeneration">Ecological restoration</option>
+                <option value="farming">Regenerative farming</option>
+                <option value="community">Community involvement</option>
+                <option value="produce">Future produce</option>
+                <option value="learning">Learning opportunities</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div class="mt-8 flex flex-col">
+        <Button type="submit" class="w-full">
+          Subscribe to Our Newsletter
+        </Button>
+
+        <p class="mt-4 text-center text-sm/6 text-stone">
+          We promise to respect your privacy and your inbox. Read our
+          <a href="/legal/privacy-policy/" class="font-semibold text-eucalypt-600 hover:opacity-70">
+            Privacy Policy
+          </a>
+          .
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

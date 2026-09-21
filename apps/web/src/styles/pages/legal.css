@@ -1,0 +1,35 @@
+/* Legal Page Custom Styles */
+@reference "../globals.css";
+
+.legal-prose {
+  @apply prose prose-lg mx-auto max-w-none prose-headings:font-heading prose-headings:font-normal prose-headings:text-eucalypt-600 prose-p:text-[17px] prose-p:leading-[1.7] prose-p:text-charcoal prose-a:text-eucalypt-600 prose-a:underline prose-strong:text-bark prose-li:text-charcoal prose-hr:border-line;
+}
+
+.legal-prose :where(h1) {
+  @apply text-4xl leading-[1.1] sm:text-5xl;
+}
+
+.legal-prose :where(h2) {
+  @apply mt-10 text-[30px] leading-[1.15];
+}
+
+.legal-prose :where(h3) {
+  @apply mt-8 text-2xl;
+}
+
+@layer components {
+  /* Section numbering - this can't be done with Tailwind utilities */
+  .legal-sections {
+    counter-reset: section;
+  }
+
+  .legal-sections h2 {
+    counter-increment: section;
+  }
+
+  .legal-sections h2::before {
+    content: counter(section) '. ';
+    /* `--color-charcoal-600` is not defined by @carinya/theme; charcoal is the nearest token. */
+    color: var(--color-charcoal-600, var(--color-charcoal));
+  }
+}

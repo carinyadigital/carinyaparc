@@ -1,0 +1,74 @@
+---
+/**
+ * End-of-article participation CTA. Links to the next upcoming event when one exists;
+ * renders nothing when the calendar is empty so articles stay clean.
+ */
+import Button from '@/components/ui/Button.astro';
+import { cn } from '@/lib/cn';
+import type { EventEntry } from '@/lib/content/events';
+import { eventsListingUrl } from '@/lib/urls';
+import { eventSignupHref, formatEventDate, isExternalEventHref } from './event-helpers';
+
+interface Props {
+  event: EventEntry | null | undefined;
+  class?: string;
+}
+
+const { event, class: className } = Astro.props;
+
+const full = Boolean(event?.data.isFull);
+const primaryHref = event ? (full ? '/subscribe/' : eventSignupHref(event)) : '';
+const primaryExternal = !full && isExternalEventHref(primaryHref);
+---
+
+{event && (
+  <aside
+    class={cn(
+      'mx-auto my-12 max-w-[720px] rounded-[18px] border border-line bg-fleece px-6 py-8 sm:px-10',
+      className,
+    )}
+    aria-labelledby="get-involved-cta-heading"
+  >
+    <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+      Get involved
+    </p>
+    <h2
+      id="get-involved-cta-heading"
+      class="mt-3 font-heading text-[28px] font-normal text-eucalypt-600 sm:text-[32px]"
+    >
+      Come get your hands dirty
+    </h2>
+    <p class="mt-3 max-w-lg text-[15px] leading-relaxed text-charcoal">
+      Moved by the story? Join us on the land for planting days, workshops, and open days.
+    </p>
+
+    <div class="mt-6 border-t border-line pt-6">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-bracken-500">
+        <time datetime={event.data.startsAt.toISOString()}>
+          {formatEventDate(event.data.startsAt)}
+        </time>
+      </p>
+      <p class="mt-2 font-heading text-[22px] font-normal leading-[1.22] text-bark">
+        {event.data.title}
+      </p>
+      <p class="mt-1.5 text-[14.5px] leading-[1.55] text-stone">{event.data.location}</p>
+    </div>
+
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <Button
+        href={primaryHref}
+        variant={full ? 'outline' : 'bracken'}
+        size="sm"
+        {...(primaryExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
+        {full ? 'Full — join the waitlist' : 'Sign up for this event'}
+      </Button>
+      <a
+        href={eventsListingUrl()}
+        class="text-[15px] font-semibold text-eucalypt-600 transition-opacity hover:opacity-70"
+      >
+        All upcoming events →
+      </a>
+    </div>
+  </aside>
+)}

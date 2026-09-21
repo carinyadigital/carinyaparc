@@ -1,0 +1,65 @@
+---
+/**
+ * Button — renders an <a> when `href` is given, otherwise a <button>.
+ * Variants and sizes mirror the design system used across the site.
+ */
+import { cn } from '@/lib/cn';
+
+type Variant = 'primary' | 'bracken' | 'secondary' | 'outline' | 'ghost' | 'ghost-light' | 'link';
+type Size = 'md' | 'sm' | 'lg';
+
+interface Props {
+  href?: string;
+  variant?: Variant;
+  size?: Size;
+  block?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+  [key: string]: unknown;
+}
+
+const VARIANTS: Record<Variant, string> = {
+  primary: 'bg-eucalypt-600 text-primary-foreground hover:bg-eucalypt-700',
+  bracken: 'bg-bracken-500 text-fleece hover:bg-bracken-600',
+  secondary: 'bg-wattle text-kangaroo-900 hover:bg-kangaroo-400',
+  outline:
+    'border-[1.5px] border-eucalypt-600 bg-transparent text-eucalypt-600 hover:bg-eucalypt-50',
+  ghost: 'bg-transparent text-bracken-500 hover:bg-bracken-50 border-[1.5px] border-transparent',
+  'ghost-light': 'bg-fleece/12 border border-fleece/55 text-fleece hover:bg-fleece/22',
+  link: 'text-eucalypt-600 underline-offset-4 hover:underline',
+};
+
+const SIZES: Record<Size, string> = {
+  md: 'px-7 py-3.5 text-[15px] leading-none',
+  sm: 'px-5 py-2.5 text-[13px] leading-none',
+  lg: 'px-[34px] py-4 text-[17px] leading-none',
+};
+
+const {
+  href,
+  variant = 'primary',
+  size = 'md',
+  block = false,
+  type = 'button',
+  class: className,
+  ...rest
+} = Astro.props as Props;
+
+const classes = cn(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-pill font-semibold transition-colors focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-45',
+  VARIANTS[variant],
+  SIZES[size],
+  block && 'flex w-full',
+  className,
+);
+---
+
+{href ? (
+  <a href={href} class={classes} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class={classes} {...rest}>
+    <slot />
+  </button>
+)}

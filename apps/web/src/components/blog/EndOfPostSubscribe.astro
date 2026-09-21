@@ -1,0 +1,93 @@
+---
+/**
+ * End-of-article subscribe with the five interest options from `/subscribe/`.
+ * Phase 3: a plain HTML form posting to /api/subscribe/ (same field names, honeypot `website`,
+ * `data-form="subscribe"` so the Phase 4 island can hydrate it in place).
+ */
+import Button from '@/components/ui/Button.astro';
+import { cn } from '@/lib/cn';
+import { SUBSCRIBE_INTEREST_OPTIONS } from '@/lib/validation/subscribe-schema';
+
+import SubscribePrivacyNote from './SubscribePrivacyNote.astro';
+
+interface Props {
+  /** Attribution passed to `/api/subscribe`, e.g. `blog:{slug}`. */
+  source: string;
+  class?: string;
+}
+
+const { source, class: className } = Astro.props;
+
+const FIELD_CLASS =
+  'block w-full rounded-md bg-card px-4 py-[13px] text-[15px] text-foreground border-[1.5px] border-input outline-none transition-colors focus:border-eucalypt-600 focus:outline-2 focus:outline-offset-0 focus:outline-eucalypt-600/30 disabled:cursor-not-allowed disabled:opacity-50';
+const LABEL_CLASS = 'block text-[13.5px] font-semibold text-foreground';
+---
+
+<section
+  class={cn('mx-auto max-w-[720px] px-6 py-12', className)}
+  aria-labelledby="end-of-post-subscribe-heading"
+>
+  <div class="rounded-[18px] border border-line bg-fleece px-6 py-8 sm:px-10">
+    <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">Newsletter</p>
+    <h2
+      id="end-of-post-subscribe-heading"
+      class="mt-3 font-heading text-[28px] font-normal text-eucalypt-600 sm:text-[32px]"
+    >
+      Keep reading from the paddock
+    </h2>
+    <p class="mt-3 max-w-lg text-[15px] leading-relaxed text-charcoal">
+      Subscribe for seasonal updates from Carinya Parc. Tell us what interests you most so we can
+      send a more relevant welcome.
+    </p>
+
+    <form method="post" action="/api/subscribe/" class="mt-8" data-form="subscribe" novalidate>
+      <input type="hidden" name="source" value={source} />
+
+      <div aria-hidden="true" style="display: none">
+        <label for="end-subscribe-website">Website</label>
+        <input
+          type="text"
+          name="website"
+          id="end-subscribe-website"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 gap-6">
+        <div class="space-y-2">
+          <label for="end-subscribe-email" class={LABEL_CLASS}>
+            Email address<span class="ml-1 text-destructive">*</span>
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="end-subscribe-email"
+            required
+            placeholder="you@example.com"
+            autocomplete="email"
+            class={cn(FIELD_CLASS, 'placeholder:text-muted-foreground')}
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="end-subscribe-interest" class={LABEL_CLASS}>
+            What interests you most about Carinya Parc?
+          </label>
+          <select name="interest" id="end-subscribe-interest" class={FIELD_CLASS}>
+            <option value="">Select your main interest</option>
+            {SUBSCRIBE_INTEREST_OPTIONS.map((option) => (
+              <option value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <Button type="submit" class="mt-8 w-full">
+        Subscribe to Our Newsletter
+      </Button>
+
+      <SubscribePrivacyNote class="mt-4 text-center" />
+    </form>
+  </div>
+</section>

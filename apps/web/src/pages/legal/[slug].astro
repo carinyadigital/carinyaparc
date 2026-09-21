@@ -1,0 +1,50 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+import Site from '@/layouts/Site.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import { generatePageMetadata } from '@/lib/metadata';
+
+import '@/styles/pages/legal.css';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('legal');
+  return pages.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'legal'>;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const slug = entry.id;
+const path = `/legal/${slug}/`;
+const title = `${entry.data.title} - Carinya Parc`;
+const description = entry.data.description;
+
+const metadata = generatePageMetadata({
+  title,
+  description,
+  path,
+  keywords: ['legal', slug.replace(/-/g, ' '), 'policy', 'terms'],
+});
+---
+
+<Site title={title} description={description} path={path} metadata={metadata}>
+  <JsonLd />
+
+  <div class="isolate min-h-screen">
+    <div class="relative isolate overflow-hidden py-24 sm:py-32">
+      <div class="container mx-auto max-w-4xl px-4">
+        <Breadcrumb />
+
+        <article class="legal-prose">
+          <Content />
+        </article>
+      </div>
+    </div>
+  </div>
+</Site>

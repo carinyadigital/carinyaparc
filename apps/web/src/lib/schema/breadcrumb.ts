@@ -39,7 +39,7 @@ export function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] 
 
     breadcrumbs.push({
       name: friendlyName,
-      url: `${BASE_URL}${currentPath}`,
+      url: `${BASE_URL}${currentPath}/`,
       position: index + 2,
     });
   });

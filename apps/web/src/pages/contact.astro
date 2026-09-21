@@ -1,0 +1,78 @@
+---
+import { Image } from 'astro:assets';
+
+import Site from '@/layouts/Site.astro';
+import PageIntro from '@/components/sections/PageIntro.astro';
+import ContactFormSection from '@/components/marketing/ContactFormSection.astro';
+
+import farmDamTrees from '@/assets/images/farm-dam-trees.jpg';
+---
+
+<Site
+  title="Contact Us | Carinya Parc"
+  description="Get in touch with Carinya Parc for inquiries about farm stays, tours, volunteering, or partnership opportunities. We respond to all inquiries within 48 business hours."
+  path="/contact"
+>
+  <div class="min-h-screen bg-paperbark">
+    <PageIntro
+      eyebrow="Get in touch"
+      title="Let's talk about the land"
+      titleAs="h1"
+      description="Whether you're a funder, a neighbour, a school group or just curious — we'd love to hear from you. Tell us a little about what you have in mind and we'll get back to you."
+      align="left"
+      class="pb-10 pt-16 sm:pt-20"
+    />
+
+    <section class="pb-16 sm:pb-24">
+      <div class="mx-auto grid max-w-[1240px] items-start gap-10 px-6 lg:grid-cols-[1.25fr_0.75fr] lg:gap-12 lg:px-14">
+        <div class="rounded-xl border border-line bg-fleece p-8 shadow-md sm:p-11">
+          <ContactFormSection />
+        </div>
+
+        <aside class="flex flex-col gap-5">
+          <div class="rounded-[22px] border border-line bg-paperbark p-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-bracken-500">
+              Visit
+            </p>
+            <p class="mt-1.5 text-[15px] leading-[1.6] text-stone">
+              The Branch NSW 2425
+              <br />
+              Australia
+            </p>
+            <p class="mt-3 text-sm text-stone">
+              Visits by appointment — please get in touch first.
+            </p>
+          </div>
+
+          <div class="rounded-[22px] border border-line bg-paperbark p-7">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-bracken-500">
+              Reach us
+            </p>
+            <div class="mt-3 flex flex-col gap-2.5 text-[15px]">
+              <a
+                href="mailto:contact@carinyaparc.com.au"
+                class="text-eucalypt-600 hover:opacity-70"
+              >
+                hello@carinyaparc.com.au
+              </a>
+              <a href="/#stay" class="text-eucalypt-600 hover:opacity-70">
+                Subscribe to the newsletter
+              </a>
+              <span class="text-stone">Instagram · Facebook · @carinyaparc</span>
+            </div>
+          </div>
+
+          <div class="relative aspect-[4/3] overflow-hidden rounded-[22px] shadow-md">
+            <Image
+              src={farmDamTrees}
+              alt="The dam and trees at Carinya Parc"
+              widths={[480, 800, 1200]}
+              sizes="(max-width: 1024px) 100vw, 30vw"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+        </aside>
+      </div>
+    </section>
+  </div>
+</Site>

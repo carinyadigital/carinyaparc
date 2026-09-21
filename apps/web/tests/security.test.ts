@@ -30,12 +30,12 @@ function allHtmlFiles(dir: string): string[] {
 
 function decode(value: string): string {
   return value
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/&#x27;/g, "'")
     .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
 }
 
 function collectAttrValues(html: string, attr: string): string[] {

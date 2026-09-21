@@ -9,11 +9,7 @@
       "url": "https://api.githubcopilot.com/mcp/"
     },
     "sentry": {
-      "url": "https://mcp.sentry.dev/mcp/carinya-parc/carinyaparc"
-    },
-    "neon": {
-      "type": "http",
-      "url": "https://mcp.neon.tech/mcp"
+      "url": "https://mcp.sentry.dev/mcp/carinyaparc/carinyaparc"
     },
     "vercel": {
       "url": "https://mcp.vercel.com"

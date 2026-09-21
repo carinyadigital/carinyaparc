@@ -6,7 +6,7 @@ Guidance for AI coding agents working on the Carinya Parc website monorepo.
 
 Carinya Parc ([carinyaparc.com.au](https://carinyaparc.com.au)) is a regenerative farm in The Branch, NSW. This repository is a **pnpm + Turborepo monorepo** that builds the public website.
 
-- **The app:** `apps/web` — Astro 7 with MDX content collections, React 19 islands for the few interactive forms, Tailwind CSS 4, deployed on Vercel as static HTML plus four on-demand endpoints.
+- **The app:** `apps/web` — Astro 7 with MDX content collections, React 19 islands for the few interactive forms, Tailwind CSS 4, deployed on Vercel as static HTML plus five on-demand endpoints.
 - **The CMS:** `content/` at the repository root. Posts, recipes, events and legal pages are MDX; authors and categories are YAML; `tags.json` maps tag slugs to display names. There is no database and no admin UI. Git is the publish gate: a merge to `main` is a publish.
 - **Shared packages:** `@carinya/theme` (design tokens and the Tailwind theme), `@repo/eslint-config`, `@repo/typescript-config`.
 - **Brand and skill:** `brand/voice.md`, `brand/positioning.md`, and the product-local agent skill at `skills/carinya-parc/SKILL.md`.
@@ -178,7 +178,7 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 
 **Endpoints and input handling:**
 
-- The four on-demand endpoints are `/api/contact/`, `/api/subscribe/`, `/api/events/signup/` and `/api/csp-report/`, each `export const prerender = false` with the handler in `src/lib/api/`. Apart from the 410 handlers for retired routes, every other route is static.
+- The five on-demand endpoints are `/api/contact/`, `/api/subscribe/`, `/api/events/signup/`, `/api/csp-report/` and `/monitoring/` (the browser Sentry tunnel), each `export const prerender = false` with the handler in `src/lib/api/`. Apart from the 410 handlers for retired routes, every other route is static.
 - Validate all external input with the Zod schemas in `src/lib/validation/` and sanitise text with `src/lib/validation/sanitize.ts` before it reaches an email or a third party.
 - A new form endpoint follows the existing pattern: `readJsonBody` (JSON or form-encoded), Zod parse, honeypot field (`website`) that returns a fake success, minimum `submissionTime` of 2000 ms, `createRateLimiter` keyed by lowercased email, `jsonResponse` with `Cache-Control: no-store`, and a `GET` that returns 405.
 - Rate limiting is in-memory per serverless instance. It is a nuisance filter, not a guarantee; durable abuse control is a Vercel WAF rule on `/api/*` configured at cut-over.

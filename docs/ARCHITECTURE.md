@@ -50,7 +50,8 @@ related:
        ▲                    │   POST /api/contact/      → Resend         │
        │ preview URL        │   POST /api/subscribe/    → MailerLite     │
        │                    │   POST /api/events/signup/→ MailerLite grp │
-┌──────┴───────┐  PR merge  │   POST /api/csp-report/   → Sentry         │
+       │                    │   POST /api/csp-report/   → Sentry         │
+┌──────┴───────┐  PR merge  │   POST /monitoring/       → Sentry tunnel  │
 │ Author /     │───────────>│  Build: astro build from git (content/)    │
 │ reviewer     │  (GitHub)  └────────────────────────────────────────────┘
 └──────────────┘
@@ -66,7 +67,7 @@ related:
 
 ### 1.2 System boundary
 
-This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the four on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
+This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the five on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
 
 It does not own newsletter CRM logic beyond the MailerLite API, payments, booking or inventory, social media publishing, agronomic or property operations, or multi-property tenancy. There is no admin UI, no database and no authentication of any kind.
 
@@ -279,7 +280,7 @@ An island is always wrapped by a small `.astro` component that owns the `client:
 | `metadata/`      | `generatePageMetadata` composed from `title`, `description`, `canonical`, `openGraph`, `twitter`, `robots`, `icons`, `viewport`; `types.ts`                                                                                                                                                                                  |
 | `schema/`        | JSON-LD generators: `organization` (and `organization-json` for the `<head>`), `breadcrumb`, `localBusiness`, `article`, `recipe`; `index.ts` re-exports                                                                                                                                                                     |
 | `validation/`    | Zod schemas (`contact-schema`, `subscribe-schema`, `event-signup-schema`), `sanitize.ts` (plain-Node strip and escape), `spam-email.ts`                                                                                                                                                                                      |
-| `api/`           | Endpoint handlers: `contact.ts`, `subscribe.ts`, `events-signup.ts`, `csp-report.ts`, plus `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`)                                                                                                                                                                    |
+| `api/`           | Endpoint handlers: `contact.ts`, `subscribe.ts`, `events-signup.ts`, `csp-report.ts`, `sentry-tunnel.ts`, plus `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`)                                                                                                                                                |
 | `rate-limit.ts`  | `createRateLimiter` — in-memory, per instance                                                                                                                                                                                                                                                                                |
 | `mailerlite/`    | MailerLite client: subscriber upsert, per-event group resolution                                                                                                                                                                                                                                                             |
 | `email/`         | `send-contact-notification.ts` (Resend) and `templates/`                                                                                                                                                                                                                                                                     |
@@ -333,7 +334,7 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths                       |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                 |
 
-On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405 except the CSP report route):
+On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
 
 | URL                   | File                         | Handler                    |
 | --------------------- | ---------------------------- | -------------------------- |
@@ -341,6 +342,7 @@ On-demand endpoints (`export const prerender = false`; `POST` only, `GET` return
 | `/api/subscribe/`     | `pages/api/subscribe.ts`     | `lib/api/subscribe.ts`     |
 | `/api/events/signup/` | `pages/api/events/signup.ts` | `lib/api/events-signup.ts` |
 | `/api/csp-report/`    | `pages/api/csp-report.ts`    | `lib/api/csp-report.ts`    |
+| `/monitoring/`        | `pages/monitoring.ts`        | `lib/api/sentry-tunnel.ts` |
 
 Retired routes: `pages/admin.ts`, `pages/admin/[...path].ts`, `pages/api/graphql.ts`, `pages/api/graphql/[...path].ts`, `pages/api/graphql-playground.ts` and `pages/api/graphql-playground/[...path].ts` all return 410 Gone through `lib/security/gone.ts`, and the same patterns are added as 410 routes in the Vercel config so the function is rarely invoked.
 
@@ -627,16 +629,16 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 ### 7.1 Security
 
 - **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
-- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. The header ships as `Content-Security-Policy-Report-Only` while `CSP_REPORT_ONLY_UNTIL_CUTOVER` is `true` in `src/lib/security/constants.ts`; cut-over flips it to enforced. Reports go to `/api/csp-report/`.
+- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header ships as `Content-Security-Policy-Report-Only` while `CSP_REPORT_ONLY_UNTIL_CUTOVER` is `true` in `src/lib/security/constants.ts`; cut-over flips it to enforced. Reports go to `/api/csp-report/`.
 - **Retired surfaces.** `/admin`, `/api/graphql` and `/api/graphql-playground` (and anything below them) return **410 Gone** from a CDN route; matching on-demand endpoints exist so local preview behaves the same.
-- **Rate limiting.** Each endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. Durable abuse control is a Vercel WAF rate-limit rule on `/api/*`, configured at cut-over (§10).
+- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `/api/*` and `/monitoring/`, configured at cut-over (§10).
 - **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
 - **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
 - **Secrets.** `MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN` are server-only. Only `PUBLIC_*` variables reach the browser.
 
 ### 7.2 Observability
 
-- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
+- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. The browser SDK is initialised from `sentry.client.config.ts` on every page, independent of the analytics consent gate, and posts envelopes to `/monitoring/`. That route forwards only an envelope whose DSN matches the configured Sentry project. The server SDK is initialised from `sentry.server.config.ts` and posts straight to the DSN. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
 - **Vercel Analytics and Speed Insights** load only after consent, from the `ConsentGate` island.
 - **Logging.** Endpoints log rejection reasons and the email domain, never the address or message body.
 
@@ -678,6 +680,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turb
 | `/api/subscribe/`                                | POST   | Newsletter subscription → MailerLite subscriber | One submission per email per day                   |
 | `/api/events/signup/`                            | POST   | Event signup → MailerLite group for the event   | 404 draft/unknown, 400 past or external, 409 full  |
 | `/api/csp-report/`                               | POST   | CSP violation reports → Sentry                  | 204 for reports from other origins                 |
+| `/monitoring/`                                   | POST   | Browser Sentry envelopes → the project DSN      | Same-origin tunnel; GET returns 405                |
 | `/admin/**`, `/api/graphql*`                     | any    | Retired Payload surfaces                        | 410 Gone                                           |
 | `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
 
@@ -718,7 +721,7 @@ push / merge → Vercel build (root: apps/web)
   → pnpm install (workspace)
   → turbo run build --filter=web → astro build
       → validate content, prerender pages, optimise images, write sitemap and feed
-      → Vercel adapter: static output + four functions
+      → Vercel adapter: static output + five functions
       → integrations patch .vercel/output/config.json (headers, 410s, redirects)
   → deploy
 ```
@@ -752,7 +755,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 | Risk                                                        | Likelihood | Impact | Mitigation direction                                                                                      |
 | ----------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
-| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` at cut-over                             |
+| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing today; Vercel WAF rate-limit rule on `/api/*` and `/monitoring/` at cut-over          |
 | CSP enforcement breaks a third-party script                 | Low        | Medium | Report-only on preview until cut-over; reports reach Sentry; enforce, then watch                          |
 | Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                                |
 | Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls              |
@@ -760,7 +763,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 ### 10.2 Technical debt
 
-- **Rate limiting is in-memory per instance** until the WAF rule exists. `createRateLimiter` is honest about this; nothing durable backs it.
+- **Rate limiting is in-memory per instance** until the WAF rule exists. `createRateLimiter` is honest about this; nothing durable backs it. The Sentry tunnel at `/monitoring/` sits outside `/api/*`, so the cut-over WAF rule has to include that path as well.
 - **CSP carries `'unsafe-inline'`** for scripts and styles. Prerendered HTML cannot nonce inline scripts; the policy relies on host allowlists. Report-only until cut-over.
 - **Events freshness is tied to deploys.** An event flips from upcoming to past only when the site rebuilds. `isFull` is set by hand.
 - **Mid-article inline subscribe was not ported.** Production split the post body at its midpoint to insert a form; MDX bodies render whole. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly.

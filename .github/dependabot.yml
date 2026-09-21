@@ -1,8 +1,9 @@
 version: 2
 updates:
-  # Single pnpm lockfile at the repo root. Groups split PRs: workspace
+  # Single pnpm lockfile at the repo root. Dependabot updates pnpm through
+  # the npm ecosystem (there is no "pnpm" value). Groups split PRs: workspace
   # (root + packages/*) and remaining apps/web dependencies.
-  - package-ecosystem: 'pnpm'
+  - package-ecosystem: 'npm'
     directory: '/'
     schedule:
       interval: 'weekly'

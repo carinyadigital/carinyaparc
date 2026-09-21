@@ -69,7 +69,6 @@ export default defineConfig({
     ...(sentryDsn
       ? [
           sentry({
-            dsn: sentryDsn,
             sourceMapsUploadOptions: {
               enabled: Boolean(process.env.SENTRY_AUTH_TOKEN),
             },

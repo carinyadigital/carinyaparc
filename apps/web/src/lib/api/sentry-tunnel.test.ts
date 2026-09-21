@@ -139,6 +139,15 @@ describe('handleSentryTunnelPost', () => {
     expect(source).not.toMatch(/from ['"][^'"]*consent/);
   });
 
+  it('does not send server events through the browser tunnel', () => {
+    const source = readFileSync(
+      new URL('../../../sentry.server.config.ts', import.meta.url),
+      'utf8',
+    );
+    expect(source).toContain('Sentry.init');
+    expect(source).not.toMatch(/^\s*tunnel\s*:/m);
+  });
+
   it('does not forward an envelope aimed at another host, project, or key', async () => {
     const cases = [
       'https://abc123@evil.example/99',

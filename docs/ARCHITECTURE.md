@@ -638,7 +638,7 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 7.2 Observability
 
-- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. The browser SDK is initialised from `sentry.client.config.ts` on every page, independent of the analytics consent gate, and posts envelopes to `/monitoring/`. That route forwards only an envelope whose DSN matches the configured Sentry project. The server SDK keeps the integration default and posts straight to the DSN. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
+- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. The browser SDK is initialised from `sentry.client.config.ts` on every page, independent of the analytics consent gate, and posts envelopes to `/monitoring/`. That route forwards only an envelope whose DSN matches the configured Sentry project. The server SDK is initialised from `sentry.server.config.ts` and posts straight to the DSN. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
 - **Vercel Analytics and Speed Insights** load only after consent, from the `ConsentGate` island.
 - **Logging.** Endpoints log rejection reasons and the email domain, never the address or message body.
 

@@ -12,8 +12,8 @@ import type { SecurityHeadersConfig } from './types';
  * scripts on prerendered pages. This policy uses host allowlists plus
  * `'unsafe-inline'` for scripts so those inline scripts can run. Styles also
  * allow `'unsafe-inline'` because prerendered pages inline small stylesheets
- * and React islands set a few style attributes. Fonts are self-hosted, so the
- * Google Fonts hosts from the Next.js allowlist are omitted.
+ * and React islands set a few style attributes. Fonts are self-hosted, so no
+ * third-party font hosts are allowlisted.
  *
  * Vercel Toolbar hosts follow the platform CSP allowlist. Revisit nonce +
  * strict-dynamic only if public routes become fully dynamic.
@@ -71,10 +71,11 @@ export const CSP_DIRECTIVES = {
 export const CSP_REPORT_URI = '/api/csp-report/';
 
 /**
- * Preview and pre-cut-over deploys ship CSP as Report-Only so violations are
- * observed without blocking. Cut-over flips this to false (enforcing).
+ * Enforced CSP. Set true only to observe violations without blocking
+ * (`Content-Security-Policy-Report-Only`). Reports still POST to
+ * `CSP_REPORT_URI` in both modes.
  */
-export const CSP_REPORT_ONLY_UNTIL_CUTOVER = true;
+export const CSP_REPORT_ONLY = false;
 
 export const SECURITY_HEADER_PRESETS: Record<string, SecurityHeadersConfig> = {
   PRODUCTION: {

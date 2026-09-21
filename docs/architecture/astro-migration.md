@@ -197,12 +197,13 @@ Each phase ends with a PR to `main`; `apps/site` keeps deploying to production u
 
 ### Phase 3 — Pages
 
-- Marketing pages: `index`, `about/*`, `regenerate`, `contact`, `subscribe` — port JSX sections to `.astro`, copy unchanged. Hero, ImpactStats, MotifTile, SectionWithImage, PageHeader, cards, badges, buttons become `.astro` components.
-- Blog: index with `paginate()` (9 per page), post page with article JSON-LD, breadcrumb, author block, related posts, end-of-post subscribe island; category and tag archives (published-only, non-empty only); RSS; sitemap.
-- Recipes: index grid, detail with Recipe JSON-LD, ingredients and method from frontmatter.
-- Events: upcoming-events listing from the collection (`startsAt >= now` at build time; note that this means the list is only as fresh as the last deploy — a scheduled weekly redeploy or the natural cadence of content merges covers it).
-- Legal, 404.
-- Exit: every URL in the baseline list renders; `title`, description, canonical, and JSON-LD `@type` match the baseline (automated diff test).
+- Every public route is an `.astro` page under `apps/web/src/pages/`, with copy carried over verbatim: home, about (three pages), regenerate, contact, subscribe, events, blog (index, `/blog/page/[n]/`, post, category, tag), recipes (index, detail), legal, 404, `/feed.xml`, and the generated sitemap. Marketing copy lives in the page and section components; only content comes from `content/`.
+- Shared primitives in `src/components/`: `ui/` (Button, Eyebrow, MotifTile, Breadcrumb, JsonLd), `sections/` (Hero with CSS-keyframe drift replacing framer-motion, HeroText, ImpactStats, PageHeader, PageIntro), `blog/` (PostCard, LatestPosts, FeaturedPosts, PaginatedPosts, RelatedPosts, AuthorBlock, ShareBar, EndOfPostSubscribe…), `marketing/` (sections, event cards, static forms), `recipes/`. Content queries live in `src/lib/content/` (posts, recipes, events, dates) so draft filtering, sorting and card shapes stay in one place.
+- Forms are plain HTML posting to `/api/contact/`, `/api/subscribe/` and `/api/events/signup/`, marked `data-form="…"` for the Phase 4 islands; the honeypot field and all labels are unchanged.
+- Archive pages are generated only for categories and tags with at least one published post, so 15 of the 80 production URLs (four empty categories and eleven recipe-only tag pages) are dropped deliberately and recorded under `intentionallyRemoved` in the baseline. `/legal/*` and `/blog/page/2/` now build (broken in production). Titles carry the site suffix once. `googlebot` meta and `/sitemap.xml` → `/sitemap-index.xml` redirect added.
+- `apps/web/tests/parity.test.ts` (`pnpm --filter web test:parity`, after `astro build`) checks `dist/` against the baseline: every production URL still built except the recorded removals, removals absent from the sitemap, the broken routes fixed, representative pages' title/description/canonical/og:type/robots/JSON-LD types unchanged, the common `<head>` set on every page, and one trailing-slash canonical per page.
+- Not carried over: the mid-article inline subscribe form (the Lexical body was split at its midpoint; MDX cannot be split — candidate for an MDX component in Phase 4), ShareBar copy-link/native share (needs JS), scroll-depth analytics (Phase 4), the home header's transparent-until-scrolled behaviour (Phase 4), and `article:published_time`/`article:author` OG tags.
+- Exit: 70 pages build; `astro check`, the unit suite (89 tests) and the parity test pass.
 
 ### Phase 4 — Interactivity and endpoints
 

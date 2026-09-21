@@ -1,4 +1,7 @@
 // @ts-check
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
@@ -8,8 +11,32 @@ import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 
 import vercelRedirectTrailingSlash from './integrations/vercel-redirect-trailing-slash.mjs';
+import { mergeSecurityIntoVercelOutput } from './src/lib/security/vercel-config';
 
 const sentryDsn = process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN;
+
+/**
+ * Copy security headers and Gone routes from the generated vercel.json into
+ * the adapter's Build Output config so they apply on Vercel.
+ */
+function vercelSecurityConfig() {
+  return {
+    name: 'vercel-security-config',
+    hooks: {
+      'astro:build:done': ({ logger }) => {
+        const configPath = resolve(process.cwd(), '.vercel/output/config.json');
+        if (!existsSync(configPath)) {
+          logger.warn('Vercel output config missing; security headers were not merged.');
+          return;
+        }
+
+        const current = JSON.parse(readFileSync(configPath, 'utf8'));
+        const merged = mergeSecurityIntoVercelOutput(current);
+        writeFileSync(configPath, `${JSON.stringify(merged)}\n`);
+      },
+    },
+  };
+}
 
 /**
  * Static HTML for public routes; on-demand endpoints opt out with `prerender = false`.
@@ -24,6 +51,7 @@ export default defineConfig({
   },
   adapter: vercel(),
   integrations: [
+    vercelSecurityConfig(),
     mdx(),
     react(),
     sitemap(),

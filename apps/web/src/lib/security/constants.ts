@@ -10,7 +10,10 @@ import type { SecurityHeadersConfig } from './types';
  * Public routes are static HTML (no per-request script nonces). Nonce-based
  * `'strict-dynamic'` CSP is incompatible with that model — Astro inlines small
  * scripts on prerendered pages. This policy uses host allowlists plus
- * `'unsafe-inline'` for scripts so those inline scripts can run.
+ * `'unsafe-inline'` for scripts so those inline scripts can run. Styles also
+ * allow `'unsafe-inline'` because prerendered pages inline small stylesheets
+ * and React islands set a few style attributes. Fonts are self-hosted, so the
+ * Google Fonts hosts from the Next.js allowlist are omitted.
  *
  * Vercel Toolbar hosts follow the platform CSP allowlist. Revisit nonce +
  * strict-dynamic only if public routes become fully dynamic.
@@ -26,7 +29,7 @@ export const CSP_BALANCED_DIRECTIVES: Record<string, string[]> = {
     'https://*.vercel-scripts.com',
     'https://vercel.live',
   ],
-  'style-src': ["'self'", 'https://fonts.googleapis.com', 'https://vercel.live'],
+  'style-src': ["'self'", "'unsafe-inline'", 'https://vercel.live'],
   'img-src': [
     "'self'",
     'blob:',
@@ -36,12 +39,7 @@ export const CSP_BALANCED_DIRECTIVES: Record<string, string[]> = {
     'https://vercel.live',
     'https://vercel.com',
   ],
-  'font-src': [
-    "'self'",
-    'https://fonts.gstatic.com',
-    'https://vercel.live',
-    'https://assets.vercel.com',
-  ],
+  'font-src': ["'self'", 'https://vercel.live', 'https://assets.vercel.com'],
   'connect-src': [
     "'self'",
     'https://www.google-analytics.com',
@@ -67,9 +65,17 @@ export const CSP_DIRECTIVES = {
 } as const;
 
 /**
- * Production security headers preset
- * Configured for SecurityHeaders.com A+ rating
+ * Trailing slash is required: browsers do not follow redirects for CSP report
+ * POSTs, and the public site always emits directory URLs.
  */
+export const CSP_REPORT_URI = '/api/csp-report/';
+
+/**
+ * Preview and pre-cut-over deploys ship CSP as Report-Only so violations are
+ * observed without blocking. Cut-over flips this to false (enforcing).
+ */
+export const CSP_REPORT_ONLY_UNTIL_CUTOVER = true;
+
 export const SECURITY_HEADER_PRESETS: Record<string, SecurityHeadersConfig> = {
   PRODUCTION: {
     hsts: {

@@ -8,4 +8,18 @@ export {
   validateSecurityHeadersConfig,
 } from './headers';
 
-export { CSP_BALANCED_DIRECTIVES, CSP_DIRECTIVES, SECURITY_HEADER_PRESETS } from './constants';
+export {
+  CSP_BALANCED_DIRECTIVES,
+  CSP_DIRECTIVES,
+  CSP_REPORT_ONLY_UNTIL_CUTOVER,
+  CSP_REPORT_URI,
+  SECURITY_HEADER_PRESETS,
+} from './constants';
+
+export { goneResponse } from './gone';
+
+export {
+  generateVercelJson,
+  mergeSecurityIntoVercelOutput,
+  GONE_PATH_PATTERNS,
+} from './vercel-config';

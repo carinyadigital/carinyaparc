@@ -3,13 +3,19 @@
  * End-of-article credibility block: photo (or initials), one-line bio, and links to the
  * author and property pages.
  */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
 const AUTHOR_BIO_HREF = '/about/jonathan/';
 const PROPERTY_HREF = '/about/the-property/';
 
 const DEFAULT_BIO = 'Strategic leader turned regenerative farmer, and the founder of Carinya Parc.';
 
+/** Byline photo is shown at 60px; the built file is 120px wide. */
+const AUTHOR_PHOTO_WIDTH = 120;
+
 interface Props {
-  author: { name: string; imageUrl?: string; bio?: string } | undefined;
+  author: { name: string; image?: ImageMetadata; bio?: string } | undefined;
 }
 
 const { author } = Astro.props;
@@ -24,7 +30,7 @@ function authorInitials(name: string): string {
 }
 
 const authorName = author?.name ?? 'Carinya Parc';
-const authorImageUrl = author?.imageUrl;
+const authorImage = author?.image;
 const bio = author?.bio || DEFAULT_BIO;
 const firstName = authorName.split(/\s+/)[0] ?? authorName;
 ---
@@ -34,12 +40,12 @@ const firstName = authorName.split(/\s+/)[0] ?? authorName;
   aria-labelledby="author-block-name"
 >
   <span class="relative flex h-[60px] w-[60px] shrink-0 items-center justify-center overflow-hidden rounded-pill bg-eucalypt-100 font-heading text-[22px] text-eucalypt-700">
-    {authorImageUrl ? (
-      <img
-        src={authorImageUrl}
+    {authorImage ? (
+      <Image
+        src={authorImage}
         alt=""
-        width="60"
-        height="60"
+        width={AUTHOR_PHOTO_WIDTH}
+        densities={[1]}
         loading="lazy"
         class="absolute inset-0 h-full w-full object-cover"
       />

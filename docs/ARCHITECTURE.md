@@ -475,7 +475,7 @@ All six are declared in `apps/web/src/content.config.ts` and loaded from `conten
 | **recipes**    | `content/recipes/*.mdx`     | title, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, imageAlt, tags[], ingredients[], instructions[], draft; optional MDX body |
 | **events**     | `content/events/*.mdx`      | title, startsAt, location, isFull, signupTarget (optional http(s) URL), draft                                                                                                             |
 | **legal**      | `content/legal/*.mdx`       | title, description; MDX body                                                                                                                                                              |
-| **authors**    | `content/authors/*.yaml`    | name, imageUrl, bio                                                                                                                                                                       |
+| **authors**    | `content/authors/*.yaml`    | name, image, bio                                                                                                                                                                          |
 | **categories** | `content/categories/*.yaml` | name, description                                                                                                                                                                         |
 
 `content/tags.json` is a slug → display-name map, not a collection. A tag is any string in a post or recipe's `tags`; unknown slugs display as themselves.
@@ -495,7 +495,7 @@ Legal (standalone)
 - **References resolve at build time.** `reference('authors')` and `reference('categories')` fail the build if the target file does not exist.
 - **Drafts.** `draft: true` (posts, recipes, events) excludes an entry from production builds, archives, the feed and the sitemap; `astro dev` shows drafts so they can be previewed. The event-signup endpoint treats a draft event as missing.
 - **Dates.** `date` on posts and recipes is required and drives ordering; `startsAt` on events decides whether an event is upcoming.
-- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. `imageAlt` is optional in the schema and falls back to the title.
+- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Author photos use the same helper; the byline leaves alt empty because the author's name sits beside the photo.
 - **Recipes** must have at least one ingredient and one instruction; durations must match the ISO 8601 pattern in `src/lib/content/schema.ts`.
 - **Empty archives are not generated.** A category or tag with no published post has no page and no sitemap entry.
 
@@ -600,10 +600,10 @@ The body is the policy text; the page renders it with the `legal-prose` styles.
 
 #### 6.4.5 `authors` and `categories` (YAML)
 
-| Collection   | Fields                               |
-| ------------ | ------------------------------------ |
-| `authors`    | `name` (required), `imageUrl`, `bio` |
-| `categories` | `name` (required), `description`     |
+| Collection   | Fields                                                                    |
+| ------------ | ------------------------------------------------------------------------- |
+| `authors`    | `name` (required), `image` (optional path under `content/images/`), `bio` |
+| `categories` | `name` (required), `description`                                          |
 
 The filename is the id other entries reference. Categories only get an archive page once a published post uses them.
 

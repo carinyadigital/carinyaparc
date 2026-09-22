@@ -16,11 +16,12 @@ const isoDuration = z
 
 const authors = defineCollection({
   loader: glob({ base: `${CONTENT_ROOT}/authors`, pattern: '**/*.{yaml,yml}' }),
-  schema: z.object({
-    name: z.string().min(1),
-    imageUrl: z.string().optional(),
-    bio: z.string().optional(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      name: z.string().min(1),
+      image: image().optional(),
+      bio: z.string().optional(),
+    }),
 });
 
 const categories = defineCollection({

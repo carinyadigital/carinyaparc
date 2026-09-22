@@ -35,8 +35,8 @@ export const navigation: NavItem[] = [
   {
     verb: 'Cook',
     rest: 'From The Hearth',
-    href: '#',
-    visible: false,
+    href: '/recipes/',
+    visible: true,
   },
   {
     verb: 'Read',

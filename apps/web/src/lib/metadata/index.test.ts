@@ -43,6 +43,34 @@ describe('generatePageMetadata', () => {
     expect(metadata.openGraph.publishedTime).toBeUndefined();
     expect(metadata.openGraph.authors).toBeUndefined();
   });
+
+  it('marks the document noindex, follow and keeps googlebot in sync', () => {
+    const metadata = generatePageMetadata({
+      title: 'Page not found | Carinya Parc',
+      description: 'This track does not lead anywhere.',
+      path: '/404',
+      noIndex: true,
+    });
+
+    expect(metadata.robots.index).toBe(false);
+    expect(metadata.robots.follow).toBe(true);
+    expect(metadata.robots.googleBot.index).toBe(false);
+    expect(metadata.robots.googleBot.follow).toBe(true);
+    expect(metadata.canonical).toMatch(/\/404\/$/);
+  });
+
+  it('omits the canonical when the caller asks not to emit one', () => {
+    const metadata = generatePageMetadata({
+      title: 'Page not found | Carinya Parc',
+      description: 'This track does not lead anywhere.',
+      path: '/404',
+      noIndex: true,
+      omitCanonical: true,
+    });
+
+    expect(metadata.canonical).toBeUndefined();
+    expect(metadata.openGraph.url).toMatch(/\/404\/$/);
+  });
 });
 
 describe('generateMetadata', () => {
@@ -51,5 +79,19 @@ describe('generateMetadata', () => {
 
     expect(metadata.title).toBe('Contact | Carinya Parc');
     expect(metadata.robots.index).toBe(true);
+    expect(metadata.robots.googleBot.index).toBe(true);
+  });
+
+  it('marks the document noindex and keeps googlebot in sync', () => {
+    const metadata = generateMetadata({
+      pageTitle: 'Preview',
+      path: '/preview',
+      noIndex: true,
+    });
+
+    expect(metadata.robots.index).toBe(false);
+    expect(metadata.robots.follow).toBe(true);
+    expect(metadata.robots.googleBot.index).toBe(false);
+    expect(metadata.robots.googleBot.follow).toBe(true);
   });
 });

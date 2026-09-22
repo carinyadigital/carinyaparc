@@ -1,5 +1,54 @@
 /* UI Component Custom Styles */
 
+/* First focusable control on every Site page. Clipped until keyboard focus,
+   then pinned above the sticky header (z-40) and the consent banner (z-50). */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link:focus {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border-radius: var(--radius-pill);
+  background: var(--color-eucalypt-600);
+  color: var(--color-primary-foreground);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  text-decoration: none;
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Solid headers are sticky and cover the top of the viewport. Keep the
+   skip target below that bar. Overlay headers sit on the hero, so main
+   should still meet the top of the page. */
+[data-site-header][data-overlay='false'] + #main {
+  scroll-margin-top: 5.5rem;
+}
+
+#main:focus {
+  outline: none;
+}
+
 @layer components {
   .animate-in {
     animation-duration: 150ms;

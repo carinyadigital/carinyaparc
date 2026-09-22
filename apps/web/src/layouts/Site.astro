@@ -55,8 +55,11 @@ const metadata =
 ---
 
 <Base metadata={metadata}>
+  <a class="skip-link" href="#main">
+    Skip to content
+  </a>
   <Header overlay={overlay} currentPath={Astro.url.pathname} />
-  <main class="flex-1">
+  <main id="main" tabindex="-1" class="flex-1">
     <slot />
   </main>
   {showFooter && showNewsletter && <NewsletterBand />}

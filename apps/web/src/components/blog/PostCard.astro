@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 
 import { cn } from '@/lib/cn';
 import { tagName, type PostSummary } from '@/lib/content/posts';
+import { imagePresets } from '@/lib/images';
 
 interface Props {
   post: PostSummary;
@@ -31,9 +32,10 @@ const wrapperProps = isJournal ? { href: post.href } : {};
       <Image
         src={post.image}
         alt={post.imageAlt}
-        widths={[400, 640, 960]}
-        sizes="(max-width: 768px) 100vw, 33vw"
-        quality={80}
+        widths={imagePresets.card.widths}
+        sizes={imagePresets.card.sizes}
+        quality={imagePresets.card.quality}
+        format={imagePresets.card.format}
         loading={eager ? 'eager' : 'lazy'}
         class={cn(
           'h-full w-full object-cover',

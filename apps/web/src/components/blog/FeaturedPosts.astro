@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 
 import { estimateReadTimeMinutes } from '@/lib/content/dates';
 import { getFeaturedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
+import { imagePresets } from '@/lib/images';
 
 interface Props {
   limit?: number;
@@ -41,10 +42,11 @@ const featuredPosts = await toPostSummaries(await getFeaturedPosts(limit));
               {featuredPost.image ? (
                 <Image
                   src={featuredPost.image}
-                  alt={featuredPost.title}
-                  widths={[640, 960, 1280]}
-                  sizes="(max-width: 1024px) 100vw, 55vw"
-                  quality={80}
+                  alt={featuredPost.imageAlt}
+                  widths={imagePresets.featured.widths}
+                  sizes={imagePresets.featured.sizes}
+                  quality={imagePresets.featured.quality}
+                  format={imagePresets.featured.format}
                   loading="eager"
                   fetchpriority="high"
                   decoding="sync"

@@ -312,27 +312,27 @@ Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with
 
 Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directory'`). Static routes are built to `dist/`; the on-demand endpoints run as Vercel functions.
 
-| URL                      | File                               | Source                                                   |
-| ------------------------ | ---------------------------------- | -------------------------------------------------------- |
-| `/`                      | `pages/index.astro`                | Hard-coded sections + latest and featured posts          |
-| `/about/`                | `pages/about/index.astro`          | Hard-coded                                               |
-| `/about/the-property/`   | `pages/about/the-property.astro`   | Hard-coded                                               |
-| `/about/jonathan/`       | `pages/about/jonathan.astro`       | Hard-coded                                               |
-| `/regenerate/`           | `pages/regenerate.astro`           | Hard-coded                                               |
-| `/contact/`              | `pages/contact.astro`              | `ContactForm` island                                     |
-| `/subscribe/`            | `pages/subscribe.astro`            | `SubscribeForm` island                                   |
-| `/get-involved/events/`  | `pages/get-involved/events.astro`  | `events` collection, upcoming only; `EventSignup` island |
-| `/blog/`                 | `pages/blog/index.astro`           | `posts`, first 6                                         |
-| `/blog/page/[page]/`     | `pages/blog/page/[page].astro`     | `paginate()`, 6 per page, page 1 omitted                 |
-| `/blog/[slug]/`          | `pages/blog/[slug].astro`          | One `posts` entry, related posts, Article JSON-LD        |
-| `/blog/category/[slug]/` | `pages/blog/category/[slug].astro` | Categories with at least one published post              |
-| `/blog/tag/[tag]/`       | `pages/blog/tag/[tag].astro`       | Tags used by at least one published post                 |
-| `/recipes/`              | `pages/recipes/index.astro`        | `recipes` collection                                     |
-| `/recipes/[slug]/`       | `pages/recipes/[slug].astro`       | One `recipes` entry, Recipe JSON-LD                      |
-| `/legal/[slug]/`         | `pages/legal/[slug].astro`         | `legal` collection                                       |
-| `/feed.xml`              | `pages/feed.xml.ts`                | RSS 2.0, newest 20 posts                                 |
-| `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths                       |
-| `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                 |
+| URL                      | File                               | Source                                                              |
+| ------------------------ | ---------------------------------- | ------------------------------------------------------------------- |
+| `/`                      | `pages/index.astro`                | Hard-coded sections + latest and featured posts                     |
+| `/about/`                | `pages/about/index.astro`          | Hard-coded                                                          |
+| `/about/the-property/`   | `pages/about/the-property.astro`   | Hard-coded                                                          |
+| `/about/jonathan/`       | `pages/about/jonathan.astro`       | Hard-coded                                                          |
+| `/regenerate/`           | `pages/regenerate.astro`           | Hard-coded                                                          |
+| `/contact/`              | `pages/contact.astro`              | `ContactForm` island                                                |
+| `/subscribe/`            | `pages/subscribe.astro`            | `SubscribeForm` island                                              |
+| `/get-involved/events/`  | `pages/get-involved/events.astro`  | `events` collection, upcoming only; `EventSignup` island            |
+| `/blog/`                 | `pages/blog/index.astro`           | `posts`, first 6                                                    |
+| `/blog/page/[page]/`     | `pages/blog/page/[page].astro`     | `paginate()`, 6 per page, page 1 omitted                            |
+| `/blog/[slug]/`          | `pages/blog/[slug].astro`          | One `posts` entry, related posts, Article JSON-LD                   |
+| `/blog/category/[slug]/` | `pages/blog/category/[slug].astro` | Categories with at least one published post                         |
+| `/blog/tag/[tag]/`       | `pages/blog/tag/[tag].astro`       | Tags used by at least one published post                            |
+| `/recipes/`              | `pages/recipes/index.astro`        | `recipes` collection                                                |
+| `/recipes/[slug]/`       | `pages/recipes/[slug].astro`       | One `recipes` entry, Recipe JSON-LD                                 |
+| `/legal/[slug]/`         | `pages/legal/[slug].astro`         | `legal` collection                                                  |
+| `/feed.xml`              | `pages/feed.xml.ts`                | RSS 2.0, newest 20 posts                                            |
+| `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
+| `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
 
 On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
 
@@ -350,7 +350,7 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`,
 
 ### 4.6 Layouts, trailing slashes, and how to add things
 
-**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `publishedTime`, `authors`, `overlay` (transparent header over a hero), `showFooter` and `showNewsletter`. Blog posts pass `publishedTime` (ISO 8601) and `authors` (display names). `generateOpenGraph` keeps those fields only when `type` is `article`, and `Base.astro` renders them as `article:published_time` and `article:author`. Recipe pages stay `type="article"` without those fields. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords, `noIndex`) builds the object itself and passes `metadata`. Every page uses `Site`. Nothing uses `Base` directly.
+**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `publishedTime`, `authors`, `overlay` (transparent header over a hero), `showFooter`, `showNewsletter`, `noIndex` and `omitCanonical`. Blog posts pass `publishedTime` (ISO 8601) and `authors` (display names). `generateOpenGraph` keeps those fields only when `type` is `article`, and `Base.astro` renders them as `article:published_time` and `article:author`. Recipe pages stay `type="article"` without those fields. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords) builds the object itself and passes `metadata`. The 404 page passes `noIndex` and `omitCanonical` so unknown URLs stay out of the index and do not advertise the error-template URL as their canonical. Every page uses `Site`. Nothing uses `Base` directly.
 
 **Trailing slashes.** `trailingSlash: 'always'` means Astro dev and Vercel both redirect `/blog` to `/blog/`. Consequences:
 
@@ -495,7 +495,7 @@ Legal (standalone)
 - **References resolve at build time.** `reference('authors')` and `reference('categories')` fail the build if the target file does not exist.
 - **Drafts.** `draft: true` (posts, recipes, events) excludes an entry from production builds, archives, the feed and the sitemap; `astro dev` shows drafts so they can be previewed. The event-signup endpoint treats a draft event as missing.
 - **Dates.** `date` on posts and recipes is required and drives ordering; `startsAt` on events decides whether an event is upcoming.
-- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Author photos use the same helper; the byline leaves alt empty because the author's name sits beside the photo.
+- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Post and recipe surfaces render through `astro:assets` using one preset from `apps/web/src/lib/images.ts`: `card` (widths 400, 640, 960; a third of the page on desktop), `featured` (640, 960, 1280; the journal band) or `detail` (640, 1040, 1600; the article and recipe hero). Each preset also sets `sizes` and quality 80. Sharp encodes them as webp; there is no second image service. Featured photographs use `imageAlt`. A recipe card with no photograph still runs the fallback through `astro:assets` and leaves `alt` empty, because the recipe title is the heading. Author photos use the same helper at 120px; the byline leaves alt empty because the author's name sits beside the photo.
 - **Recipes** must have at least one ingredient and one instruction; durations must match the ISO 8601 pattern in `src/lib/content/schema.ts`.
 - **Empty archives are not generated.** A category or tag with no published post has no page and no sitemap entry.
 
@@ -644,7 +644,7 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 7.3 Error handling
 
-- **404** — `src/pages/404.astro`, served by Vercel for any unmatched path.
+- **404** — `src/pages/404.astro`, served by Vercel for any unmatched path. The document is `noindex, follow` and omits a canonical, because the same static file answers every unknown URL.
 - **410** — retired admin and GraphQL paths (§7.1).
 - **Endpoints** — structured JSON `{ error }` with 400/404/409/429/500/503 as appropriate; a thrown error inside a handler is captured to Sentry and returns a generic 500.
 - **Build** — a schema error, a missing referenced file or a missing image fails `astro build`, which fails CI and the Vercel deployment; nothing partial ships.
@@ -655,7 +655,7 @@ Every public page is static HTML on the Vercel CDN and changes only when a build
 
 ### 7.5 Metadata and structured data
 
-`src/lib/metadata/` composes title, description, canonical (always with a trailing slash), robots, Open Graph and Twitter tags; `Base.astro` renders them and the Organization JSON-LD on every page. `src/lib/schema/` builds Article, Recipe (with instructions and image), BreadcrumbList and LocalBusiness JSON-LD; page-level `<JsonLd>` emits them. `LOCAL_BUSINESS` in `src/lib/constants.ts` holds the address and coordinates. The sitemap comes from `@astrojs/sitemap` (`/sitemap-index.xml`, with `/sitemap.xml` redirected to it) and the feed from `@astrojs/rss` at `/feed.xml`.
+`src/lib/metadata/` composes title, description, canonical (trailing slash, omitted when a page passes `omitCanonical`), robots (`noIndex` / `noFollow` flow through `generatePageMetadata` and `generateMetadata`), Open Graph and Twitter tags; `Base.astro` renders them and the Organization JSON-LD on every page. `src/lib/schema/` builds Article, Recipe (with instructions and image), BreadcrumbList and LocalBusiness JSON-LD; page-level `<JsonLd>` emits them. `LOCAL_BUSINESS` in `src/lib/constants.ts` holds the address and coordinates. The sitemap comes from `@astrojs/sitemap` (`/sitemap-index.xml`, with `/sitemap.xml` redirected to it) and the feed from `@astrojs/rss` at `/feed.xml`.
 
 ### 7.6 Accessibility
 

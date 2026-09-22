@@ -19,8 +19,8 @@ export function generateRobots(config: RobotsConfig = {}): RobotsMetadata {
     noimageindex = false,
     nocache = false,
     googleBotOptions = {
-      index: true,
-      follow: true,
+      index,
+      follow,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,

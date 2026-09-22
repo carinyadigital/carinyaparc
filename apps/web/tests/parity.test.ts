@@ -239,7 +239,9 @@ describeIfBuilt('metadata parity', () => {
     for (const file of allHtmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
       if (!html.includes('<title>')) continue;
+      const isNotFound = file.endsWith('404.html');
       for (const [key, value] of keys) {
+        if (isNotFound && (key === 'robots' || key === 'googlebot')) continue;
         expect(meta(html, key), `${path.relative(DIST, file)} ${key}`).toBe(value);
       }
     }
@@ -249,10 +251,20 @@ describeIfBuilt('metadata parity', () => {
     for (const file of allHtmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
       const canonical = linkHref(html, 'canonical');
-      if (file.endsWith('404.html')) continue;
+      if (file.endsWith('404.html')) {
+        expect(canonical, '404.html must not emit a canonical').toBeNull();
+        continue;
+      }
       expect(canonical, path.relative(DIST, file)).toMatch(
         /^https:\/\/carinyaparc\.com\.au\/([^?#]*\/)?$/,
       );
     }
+  });
+
+  it('marks the not-found document noindex and omits the error-template canonical', () => {
+    const html = readFileSync(path.join(DIST, '404.html'), 'utf8');
+    expect(meta(html, 'robots')).toBe('noindex, follow');
+    expect(meta(html, 'googlebot')?.startsWith('noindex, follow')).toBe(true);
+    expect(linkHref(html, 'canonical')).toBeNull();
   });
 });

@@ -16,6 +16,15 @@ interface Props {
   publishedTime?: string;
   /** Author display names. One `article:author` tag each when `type` is `article`. */
   authors?: string[];
+  /** Emit `noindex` so the document stays out of search results. */
+  noIndex?: boolean;
+  /**
+   * Skip the canonical link. Used by the not-found page: that document is one
+   * static file reused for every unknown URL, so pointing those responses at the
+   * error-template URL would tell crawlers that missing paths consolidate onto
+   * the template.
+   */
+  omitCanonical?: boolean;
   overlay?: boolean;
   showFooter?: boolean;
   /**
@@ -35,6 +44,8 @@ const {
   type = 'website',
   publishedTime,
   authors,
+  noIndex = false,
+  omitCanonical = false,
   overlay = false,
   showFooter = true,
   showNewsletter = true,
@@ -51,6 +62,8 @@ const metadata =
     type,
     publishedTime,
     authors,
+    noIndex,
+    omitCanonical,
   });
 ---
 

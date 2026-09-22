@@ -12,6 +12,7 @@ import RecipeInstructions from '@/components/recipes/RecipeInstructions.astro';
 import RecipeTags from '@/components/recipes/RecipeTags.astro';
 import { imagePresets } from '@/lib/images';
 import { generatePageMetadata } from '@/lib/metadata';
+import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
 import { BASE_URL, PLACEHOLDER_IMAGE } from '@/lib/constants';
 import { getPublishedRecipes, toRecipeSummary, type RecipeEntry } from '@/lib/content/recipes';
 import type { RecipeData } from '@/lib/schema/recipe';
@@ -36,11 +37,15 @@ const ingredients = entry.data.ingredients.map((row) => row.item);
 const instructions = entry.data.instructions.map((row) => row.step);
 const datePublished = recipe.date.toISOString();
 
-/** Built image URL (absolute) for OG + JSON-LD when the recipe has a photograph. */
+/** Centre-cropped 1200×630 share image when the recipe has a photograph. */
 let imagePath: string | undefined;
+let imageWidth: number | undefined;
+let imageHeight: number | undefined;
 if (recipe.image) {
-  const built = await getImage({ src: recipe.image, format: 'jpg', width: 1200 });
+  const built = await getImage({ src: recipe.image, ...socialImageCrop });
   imagePath = built.src;
+  imageWidth = socialImageSize(built.attributes.width, socialImageCrop.width);
+  imageHeight = socialImageSize(built.attributes.height, socialImageCrop.height);
 }
 const imageUrl = imagePath
   ? imagePath.startsWith('http')
@@ -53,6 +58,9 @@ const metadata = generatePageMetadata({
   description: recipe.description,
   path: recipe.href,
   image: imagePath && !imagePath.startsWith('http') ? imagePath : undefined,
+  imageWidth,
+  imageHeight,
+  imageAlt: imagePath ? recipe.imageAlt : undefined,
   type: 'article',
 });
 

@@ -26,6 +26,8 @@ export type TwitterMetadata = {
   title?: string;
   description?: string;
   images?: string[];
+  /** Photograph alt. Rendered as `twitter:image:alt`. */
+  imageAlt?: string;
 };
 
 export type RobotsMetadata = {

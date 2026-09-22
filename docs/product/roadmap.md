@@ -153,7 +153,7 @@ What shipped, and how:
 
 **Exit criteria:**
 
-- [ ] Post and recipe pages expose dynamic social images (or the fallback policy is documented).
+- [x] Post and recipe pages expose a 1200×630 centre crop of the page photograph (pages with no hero keep the default image).
 - [ ] LocalBusiness structured data uses verified coordinates.
 - [ ] Accessibility check runs in CI.
 

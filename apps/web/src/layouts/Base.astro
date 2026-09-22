@@ -74,6 +74,9 @@ const googleBotParts = [
     {metadata.twitter.images?.map((image) => (
       <meta name="twitter:image" content={image} />
     ))}
+    {metadata.twitter.imageAlt && (
+      <meta name="twitter:image:alt" content={metadata.twitter.imageAlt} />
+    )}
     <script type="application/ld+json" set:html={ORGANIZATION_SCHEMA_JSON}></script>
   </head>
   <body class="flex min-h-screen flex-col bg-background font-sans text-foreground">

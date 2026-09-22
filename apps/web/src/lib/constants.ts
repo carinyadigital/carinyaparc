@@ -38,9 +38,13 @@ export const DEFAULT_KEYWORDS = [
 export const DEFAULT_OG_IMAGE = '/images/hero-home.jpg';
 export const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
 export const PLACEHOLDER_IMAGE_SVG = '/images/placeholder.svg';
-export const DEFAULT_OG_IMAGE_WIDTH = 1200;
-export const DEFAULT_OG_IMAGE_HEIGHT = 630;
+/** Pixel size of `public/images/hero-home.jpg`. Pages with no hero stamp these. */
+export const DEFAULT_OG_IMAGE_WIDTH = 1920;
+export const DEFAULT_OG_IMAGE_HEIGHT = 1280;
 export const DEFAULT_OG_IMAGE_ALT = 'Carinya Parc regenerative farm landscape';
+/** Centre-cropped share image for a post or recipe photograph. */
+export const SOCIAL_IMAGE_WIDTH = 1200;
+export const SOCIAL_IMAGE_HEIGHT = 630;
 export const TWITTER_HANDLE = '@carinyaparc';
 export const TWITTER_CARD_TYPE = 'summary_large_image';
 

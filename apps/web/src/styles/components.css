@@ -29,7 +29,7 @@
     position: fixed;
     top: 1rem;
     left: 1rem;
-    z-index: 50;
+    z-index: 60;
     width: auto;
     height: auto;
     margin: 0;
@@ -48,4 +48,11 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+}
+
+/* Solid headers are sticky and cover the top of the viewport. Keep the
+   skip target below that bar. Overlay headers sit on the hero, so main
+   should still meet the top of the page. */
+[data-site-header][data-overlay='false'] + #main {
+  scroll-margin-top: 5.5rem;
 }

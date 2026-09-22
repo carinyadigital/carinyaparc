@@ -71,5 +71,7 @@ recipeYield, recipeIngredient, datePublished — and nothing else.
 - For each of the eight representative URLs in `metadata.json`: `description`,
   `canonical`, `og:type`, `robots`, and the set of top-level JSON-LD `@type`s match, and
   `title` matches after normalising the doubled suffix.
-- Every page emits the common `<head>` set above.
+- Every page emits the common `<head>` set above, except `404.html` which is
+  `noindex, follow` and omits a canonical so unknown URLs are not indexed as the
+  error template.
 - `/legal/*` and `/blog/page/2/` return 200 (documented fixes).

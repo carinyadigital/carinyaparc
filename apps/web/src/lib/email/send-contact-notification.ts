@@ -81,25 +81,42 @@ export async function sendContactNotification(
       userAgent: data.userAgent,
     });
 
-    // Send email using Resend SDK with 10-second timeout
+    // Send email using Resend SDK with 10-second timeout.
+    // Resend 6 forwards unknown request options onto fetch, but its public
+    // options type does not include AbortSignal, so the signal is added here.
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const sendOptions: Parameters<typeof resend.emails.send>[1] & { signal: AbortSignal } = {
+      signal: controller.signal,
+    };
 
     try {
-      const result = await resend.emails.send({
-        from: `Carinya Parc <${fromEmail}>`,
-        to: recipientEmail,
-        replyTo: data.email, // Set reply-to header for easy response
-        subject: `New ${inquiryTypeDisplay} Inquiry from ${data.firstName} ${data.lastName}`,
-        html: htmlContent,
-        text: textContent,
-        tags: [
-          { name: 'inquiry_type', value: data.inquiryType },
-          { name: 'source', value: 'contact_form' },
-        ],
-      });
+      const result = await resend.emails.send(
+        {
+          from: `Carinya Parc <${fromEmail}>`,
+          to: recipientEmail,
+          replyTo: data.email, // Set reply-to header for easy response
+          subject: `New ${inquiryTypeDisplay} Inquiry from ${data.firstName} ${data.lastName}`,
+          html: htmlContent,
+          text: textContent,
+          tags: [
+            { name: 'inquiry_type', value: data.inquiryType },
+            { name: 'source', value: 'contact_form' },
+          ],
+        },
+        sendOptions,
+      );
 
       clearTimeout(timeoutId);
+
+      // The SDK catches an aborted fetch and returns a generic error instead of throwing.
+      if (controller.signal.aborted) {
+        console.error('Email send timeout after 10 seconds');
+        return {
+          success: false,
+          error: 'Email service timeout',
+        };
+      }
 
       if (result.error) {
         console.error('Resend API error:', result.error);

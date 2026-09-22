@@ -15,6 +15,7 @@ import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
 import { BASE_URL, DEFAULT_OG_IMAGE } from '@/lib/constants';
+import { imagePresets } from '@/lib/images';
 import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
@@ -115,8 +116,10 @@ const breadcrumbs = [
           <Image
             src={entry.data.image}
             alt={entry.data.imageAlt ?? entry.data.title}
-            widths={[640, 1040, 1600]}
-            sizes="(max-width: 1040px) 100vw, 1040px"
+            widths={imagePresets.detail.widths}
+            sizes={imagePresets.detail.sizes}
+            quality={imagePresets.detail.quality}
+            format={imagePresets.detail.format}
             loading="eager"
             fetchpriority="high"
             decoding="sync"

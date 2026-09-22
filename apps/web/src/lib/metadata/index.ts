@@ -159,6 +159,9 @@ export function generatePageMetadata({
   keywords = [],
   publishedTime,
   authors,
+  noIndex = false,
+  noFollow = false,
+  omitCanonical = false,
 }: {
   title: string;
   description: string;
@@ -171,8 +174,17 @@ export function generatePageMetadata({
   keywords?: string[];
   publishedTime?: string;
   authors?: readonly string[];
+  noIndex?: boolean;
+  noFollow?: boolean;
+  /**
+   * Skip the canonical URL. The not-found document is one static file reused for
+   * every unknown path, so pointing those responses at the error-template URL
+   * would tell crawlers that missing addresses consolidate onto that template.
+   */
+  omitCanonical?: boolean;
 }): PageMetadata {
-  const canonical = generateCanonicalUrl(BASE_URL, path);
+  const pageUrl = generateCanonicalUrl(BASE_URL, path);
+  const canonical = omitCanonical ? undefined : pageUrl;
   const shareImage = resolveShareImage({
     image,
     imageWidth,
@@ -191,7 +203,7 @@ export function generatePageMetadata({
     openGraph: generateOpenGraph({
       title,
       description,
-      url: canonical,
+      url: pageUrl,
       imageUrl: shareImage.imageUrl,
       imageWidth: shareImage.imageWidth,
       imageHeight: shareImage.imageHeight,
@@ -206,7 +218,10 @@ export function generatePageMetadata({
       images: [shareImage.imageUrl],
       imageAlt: shareImage.imageAlt,
     }),
-    robots: generateRobots(),
+    robots: generateRobots({
+      index: !noIndex,
+      follow: !noFollow,
+    }),
     manifest: SITE_MANIFEST_PATH,
     icons: generateIcons(),
     themeColor: viewport.themeColor,

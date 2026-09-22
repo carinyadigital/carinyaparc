@@ -64,7 +64,7 @@ export type PageMetadata = {
   titleTemplate: string;
   description: string;
   keywords: string[];
-  canonical: string;
+  canonical?: string;
   rssFeed: string;
   openGraph: OpenGraphMetadata;
   twitter: TwitterMetadata;

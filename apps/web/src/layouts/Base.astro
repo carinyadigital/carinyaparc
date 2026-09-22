@@ -38,7 +38,7 @@ const googleBotParts = [
     <meta name="keywords" content={metadata.keywords.join(', ')} />
     <meta name="robots" content={robotsParts.join(', ')} />
     <meta name="googlebot" content={googleBotParts.join(', ')} />
-    <link rel="canonical" href={metadata.canonical} />
+    {metadata.canonical && <link rel="canonical" href={metadata.canonical} />}
     <link rel="alternate" type="application/rss+xml" href={metadata.rssFeed} />
     <link rel="manifest" href={metadata.manifest} />
     <link rel="icon" href={metadata.icons.icon} />

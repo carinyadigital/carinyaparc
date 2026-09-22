@@ -10,6 +10,7 @@ import RecipeMeta from '@/components/recipes/RecipeMeta.astro';
 import RecipeIngredients from '@/components/recipes/RecipeIngredients.astro';
 import RecipeInstructions from '@/components/recipes/RecipeInstructions.astro';
 import RecipeTags from '@/components/recipes/RecipeTags.astro';
+import { imagePresets } from '@/lib/images';
 import { generatePageMetadata } from '@/lib/metadata';
 import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
 import { BASE_URL, PLACEHOLDER_IMAGE } from '@/lib/constants';
@@ -107,9 +108,10 @@ const recipeData: RecipeData = {
               <Image
                 src={recipe.image}
                 alt={recipe.imageAlt}
-                widths={[640, 1040, 1600]}
-                sizes="(max-width: 1040px) 100vw, 1040px"
-                quality={80}
+                widths={imagePresets.detail.widths}
+                sizes={imagePresets.detail.sizes}
+                quality={imagePresets.detail.quality}
+                format={imagePresets.detail.format}
                 loading="eager"
                 fetchpriority="high"
                 decoding="sync"

@@ -239,20 +239,60 @@ describeIfBuilt('metadata parity', () => {
     for (const file of allHtmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
       if (!html.includes('<title>')) continue;
+      const isNotFound = file.endsWith('404.html');
       for (const [key, value] of keys) {
+        if (isNotFound && (key === 'robots' || key === 'googlebot')) continue;
         expect(meta(html, key), `${path.relative(DIST, file)} ${key}`).toBe(value);
       }
     }
+  });
+
+  it('uses a 1200 by 630 crop on photographed posts and recipes, and the real default elsewhere', () => {
+    const home = readHtml('/');
+    expect(meta(home, 'og:image')).toMatch(/\/images\/hero-home\.jpg$/);
+    expect(meta(home, 'og:image:width')).toBe('1920');
+    expect(meta(home, 'og:image:height')).toBe('1280');
+    expect(decode(meta(home, 'og:image:alt'))).toBe('Carinya Parc regenerative farm landscape');
+
+    const postAlt = 'Highland cattle in a paddock, the breed we are bringing to Carinya Parc';
+    const post = readHtml('/blog/why-highland-cattle/');
+    expect(meta(post, 'og:image:width')).toBe('1200');
+    expect(meta(post, 'og:image:height')).toBe('630');
+    expect(decode(meta(post, 'og:image:alt'))).toBe(postAlt);
+    expect(decode(meta(post, 'twitter:image:alt'))).toBe(postAlt);
+    expect(meta(post, 'og:image')).not.toMatch(/hero-home\.jpg$/);
+
+    const recipeAlt = 'Golden-hour view across the paddocks at Carinya Parc';
+    const recipe = readHtml('/recipes/winter-root-vegetable-stew/');
+    expect(meta(recipe, 'og:image:width')).toBe('1200');
+    expect(meta(recipe, 'og:image:height')).toBe('630');
+    expect(decode(meta(recipe, 'og:image:alt'))).toBe(recipeAlt);
+    expect(decode(meta(recipe, 'twitter:image:alt'))).toBe(recipeAlt);
+
+    const plain = readHtml('/recipes/slow-roasted-dexter-beef-with-root-vegetables/');
+    expect(meta(plain, 'og:image')).toMatch(/\/images\/hero-home\.jpg$/);
+    expect(meta(plain, 'og:image:width')).toBe('1920');
+    expect(meta(plain, 'og:image:height')).toBe('1280');
   });
 
   it('gives every page exactly one canonical with a trailing slash', () => {
     for (const file of allHtmlFiles(DIST)) {
       const html = readFileSync(file, 'utf8');
       const canonical = linkHref(html, 'canonical');
-      if (file.endsWith('404.html')) continue;
+      if (file.endsWith('404.html')) {
+        expect(canonical, '404.html must not emit a canonical').toBeNull();
+        continue;
+      }
       expect(canonical, path.relative(DIST, file)).toMatch(
         /^https:\/\/carinyaparc\.com\.au\/([^?#]*\/)?$/,
       );
     }
+  });
+
+  it('marks the not-found document noindex and omits the error-template canonical', () => {
+    const html = readFileSync(path.join(DIST, '404.html'), 'utf8');
+    expect(meta(html, 'robots')).toBe('noindex, follow');
+    expect(meta(html, 'googlebot')?.startsWith('noindex, follow')).toBe(true);
+    expect(linkHref(html, 'canonical')).toBeNull();
   });
 });

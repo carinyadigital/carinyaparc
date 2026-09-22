@@ -1,14 +1,9 @@
 ---
-/**
- * The Next.js page exports no metadata, so it inherits the site root's (title "Carinya Parc",
- * site description). Reproduced here with the page's own canonical path.
- */
 import { Image } from 'astro:assets';
 
 import Site from '@/layouts/Site.astro';
 import Breadcrumb from '@/components/ui/Breadcrumb.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/constants';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
 import alpacasHillPasture from '@/assets/images/alpacas-hill-pasture.jpg';
@@ -18,7 +13,11 @@ import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
 const PHOTO_CLASS = 'max-w-none rounded-2xl bg-line/40 object-cover shadow-md';
 ---
 
-<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/about/jonathan">
+<Site
+  title="Meet Jonno | Carinya Parc"
+  description="Jonno is founder and steward of Carinya Parc at The Branch, NSW. After twenty years in the boardroom, he is growing 42 hectares of tired grazing land back."
+  path="/about/jonathan"
+>
   <JsonLd />
 
   <div class="isolate min-h-screen bg-paperbark">

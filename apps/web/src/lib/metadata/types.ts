@@ -26,6 +26,8 @@ export type TwitterMetadata = {
   title?: string;
   description?: string;
   images?: string[];
+  /** Photograph alt. Rendered as `twitter:image:alt`. */
+  imageAlt?: string;
 };
 
 export type RobotsMetadata = {
@@ -62,7 +64,7 @@ export type PageMetadata = {
   titleTemplate: string;
   description: string;
   keywords: string[];
-  canonical: string;
+  canonical?: string;
   rssFeed: string;
   openGraph: OpenGraphMetadata;
   twitter: TwitterMetadata;

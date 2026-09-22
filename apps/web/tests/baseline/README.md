@@ -31,7 +31,7 @@ production firewall answers every scripted request with 429.
 
 Common `<head>` on every page: `theme-color #5F8575`; `robots index, follow`;
 `googlebot index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1`;
-`og:site_name Carinya Parc`; `og:locale en_AU`; `og:image:width 1200`, `og:image:height 630`;
+`og:site_name Carinya Parc`; `og:locale en_AU`;
 `twitter:card summary_large_image`; `twitter:site` / `twitter:creator` `@carinyaparc`;
 `keywords` meta populated from a per-page list.
 
@@ -61,7 +61,10 @@ recipeYield, recipeIngredient, datePublished — and nothing else.
    `image`, or `og:image` on recipes. Frontmatter has the data; the Astro Recipe JSON-LD
    should include instructions and image when present.
 6. **`og:image` falls back to the home hero everywhere** (including blog index and events).
-   Keep the same fallback so social previews don't regress.
+   Keep the same fallback so social previews don't regress. Width and height are no longer
+   one pair on every page: pages with no hero stamp the default file's real size
+   (1920×1280), and a post or recipe with a photograph stamps a 1200×630 centre crop.
+   Those dimensions are asserted separately, not in the common head.
 
 ## Parity test contract
 
@@ -71,5 +74,7 @@ recipeYield, recipeIngredient, datePublished — and nothing else.
 - For each of the eight representative URLs in `metadata.json`: `description`,
   `canonical`, `og:type`, `robots`, and the set of top-level JSON-LD `@type`s match, and
   `title` matches after normalising the doubled suffix.
-- Every page emits the common `<head>` set above.
+- Every page emits the common `<head>` set above, except `404.html` which is
+  `noindex, follow` and omits a canonical so unknown URLs are not indexed as the
+  error template.
 - `/legal/*` and `/blog/page/2/` return 200 (documented fixes).

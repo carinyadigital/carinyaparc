@@ -8,6 +8,7 @@ interface TwitterCardConfig {
   title?: string;
   description?: string;
   images?: string[];
+  imageAlt?: string;
 }
 
 export function generateTwitterCard(config: TwitterCardConfig = {}): TwitterMetadata {
@@ -18,6 +19,7 @@ export function generateTwitterCard(config: TwitterCardConfig = {}): TwitterMeta
     title,
     description,
     images = [],
+    imageAlt,
   } = config;
 
   return {
@@ -27,5 +29,6 @@ export function generateTwitterCard(config: TwitterCardConfig = {}): TwitterMeta
     ...(title && { title }),
     ...(description && { description }),
     ...(images.length > 0 && { images }),
+    ...(imageAlt && { imageAlt }),
   };
 }

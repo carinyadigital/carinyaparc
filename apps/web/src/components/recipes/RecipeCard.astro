@@ -5,6 +5,7 @@ import type { ImageMetadata } from 'astro';
 
 import type { RecipeSummary } from '@/lib/content/recipes';
 import { toIsoDate } from '@/lib/content/dates';
+import { imagePresets } from '@/lib/images';
 import { formatIsoDuration } from '@/lib/recipes/format-duration';
 
 import heroHome from '@/assets/images/hero-home.jpg';
@@ -40,11 +41,12 @@ const meta = [
 
 <article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-eucalypt-600 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80">
   <Image
-    alt={recipe.image ? recipe.imageAlt : recipe.title}
+    alt={recipe.image ? recipe.imageAlt : ''}
     src={image}
-    widths={[400, 640, 960]}
-    sizes="(max-width: 768px) 100vw, 33vw"
-    quality={80}
+    widths={imagePresets.card.widths}
+    sizes={imagePresets.card.sizes}
+    quality={imagePresets.card.quality}
+    format={imagePresets.card.format}
     loading="lazy"
     class="absolute inset-0 -z-10 h-full w-full object-cover"
   />

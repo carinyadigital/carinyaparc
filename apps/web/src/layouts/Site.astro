@@ -11,11 +11,25 @@ interface Props {
   description: string;
   path: string;
   image?: string;
+  /** Pixel size of `image`. Omitted pages use the default photograph's real size. */
+  imageWidth?: number;
+  imageHeight?: number;
+  /** Photograph alt for `og:image:alt` and `twitter:image:alt`. */
+  imageAlt?: string;
   type?: 'website' | 'article';
   /** ISO 8601. Passed through to `article:published_time` when `type` is `article`. */
   publishedTime?: string;
   /** Author display names. One `article:author` tag each when `type` is `article`. */
   authors?: string[];
+  /** Emit `noindex` so the document stays out of search results. */
+  noIndex?: boolean;
+  /**
+   * Skip the canonical link. Used by the not-found page: that document is one
+   * static file reused for every unknown URL, so pointing those responses at the
+   * error-template URL would tell crawlers that missing paths consolidate onto
+   * the template.
+   */
+  omitCanonical?: boolean;
   overlay?: boolean;
   showFooter?: boolean;
   /**
@@ -32,9 +46,14 @@ const {
   description,
   path,
   image,
+  imageWidth,
+  imageHeight,
+  imageAlt,
   type = 'website',
   publishedTime,
   authors,
+  noIndex = false,
+  omitCanonical = false,
   overlay = false,
   showFooter = true,
   showNewsletter = true,
@@ -48,9 +67,14 @@ const metadata =
     description,
     path,
     image,
+    imageWidth,
+    imageHeight,
+    imageAlt,
     type,
     publishedTime,
     authors,
+    noIndex,
+    omitCanonical,
   });
 ---
 

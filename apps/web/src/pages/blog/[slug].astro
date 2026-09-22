@@ -15,6 +15,7 @@ import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
 import { BASE_URL, DEFAULT_OG_IMAGE } from '@/lib/constants';
+import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
@@ -47,10 +48,18 @@ const path = postUrl(slug);
 const canonicalUrl = `${BASE_URL}${path}`;
 const subscribeSource = blogSubscribeSource(slug);
 
-/** Absolute-URL-ready path for og:image and the Article schema (built asset or the site default). */
-const ogImagePath = entry.data.image
-  ? (await getImage({ src: entry.data.image, width: 1200, format: 'jpg' })).src
-  : DEFAULT_OG_IMAGE;
+/** Centre-cropped 1200×630 share image when the post has a photograph. */
+let ogImagePath: string | undefined;
+let ogImageWidth: number | undefined;
+let ogImageHeight: number | undefined;
+let ogImageAlt: string | undefined;
+if (entry.data.image) {
+  const built = await getImage({ src: entry.data.image, ...socialImageCrop });
+  ogImagePath = built.src;
+  ogImageWidth = socialImageSize(built.attributes.width, socialImageCrop.width);
+  ogImageHeight = socialImageSize(built.attributes.height, socialImageCrop.height);
+  ogImageAlt = entry.data.imageAlt ?? entry.data.title;
+}
 
 const wordCount = (entry.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 
@@ -59,7 +68,7 @@ const articleData = {
   slug,
   author: authorName,
   datePublished: entry.data.date.toISOString(),
-  imageUrl: ogImagePath,
+  imageUrl: ogImagePath ?? DEFAULT_OG_IMAGE,
   description,
   excerpt: entry.data.excerpt,
   tags: tags.length > 0 ? tags.map((tag) => tag.name) : undefined,
@@ -79,6 +88,9 @@ const breadcrumbs = [
   description={description}
   path={path}
   image={ogImagePath}
+  imageWidth={ogImageWidth}
+  imageHeight={ogImageHeight}
+  imageAlt={ogImageAlt}
   type="article"
   publishedTime={entry.data.date.toISOString()}
   authors={[authorName]}

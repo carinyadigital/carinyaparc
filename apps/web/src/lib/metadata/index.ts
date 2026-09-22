@@ -14,6 +14,9 @@ import {
   DEFAULT_KEYWORDS,
   SITE_MANIFEST_PATH,
   DEFAULT_OG_IMAGE,
+  DEFAULT_OG_IMAGE_ALT,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_WIDTH,
 } from '../constants';
 
 export { viewport };
@@ -25,11 +28,53 @@ interface MetadataConfig {
   path?: string;
   keywords?: string[];
   image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageAlt?: string;
   type?: 'website' | 'article';
   noIndex?: boolean;
   noFollow?: boolean;
   publishedTime?: string;
   authors?: readonly string[];
+}
+
+function absoluteImageUrl(image: string): string {
+  if (image.startsWith('http://') || image.startsWith('https://')) return image;
+  return `${BASE_URL}${image}`;
+}
+
+/**
+ * A passed hero uses its own size and alt. Pages with no hero keep the site
+ * photograph and that file's real dimensions.
+ */
+function resolveShareImage({
+  image,
+  imageWidth,
+  imageHeight,
+  imageAlt,
+  fallbackAlt,
+}: {
+  image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageAlt?: string;
+  fallbackAlt: string;
+}): { imageUrl: string; imageWidth?: number; imageHeight?: number; imageAlt: string } {
+  if (!image) {
+    return {
+      imageUrl: `${BASE_URL}${DEFAULT_OG_IMAGE}`,
+      imageWidth: DEFAULT_OG_IMAGE_WIDTH,
+      imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+      imageAlt: DEFAULT_OG_IMAGE_ALT,
+    };
+  }
+
+  return {
+    imageUrl: absoluteImageUrl(image),
+    imageWidth,
+    imageHeight,
+    imageAlt: imageAlt ?? fallbackAlt,
+  };
 }
 
 /**
@@ -42,6 +87,9 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
     path = '/',
     keywords = [],
     image,
+    imageWidth,
+    imageHeight,
+    imageAlt,
     type = 'website',
     noIndex = false,
     noFollow = false,
@@ -52,7 +100,13 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
   const title = pageTitle ? generateTitle(SITE_TITLE, pageTitle) : SITE_TITLE;
   const description = generateDescription(SITE_DESCRIPTION, pageDescription);
   const canonical = generateCanonicalUrl(BASE_URL, path);
-  const imageUrl = image ? `${BASE_URL}${image}` : `${BASE_URL}${DEFAULT_OG_IMAGE}`;
+  const shareImage = resolveShareImage({
+    image,
+    imageWidth,
+    imageHeight,
+    imageAlt,
+    fallbackAlt: title,
+  });
 
   return {
     title,
@@ -65,7 +119,10 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
       title,
       description,
       url: canonical,
-      imageUrl,
+      imageUrl: shareImage.imageUrl,
+      imageWidth: shareImage.imageWidth,
+      imageHeight: shareImage.imageHeight,
+      imageAlt: shareImage.imageAlt,
       type,
       publishedTime,
       authors,
@@ -73,7 +130,8 @@ export function generateMetadata(config: MetadataConfig = {}): PageMetadata {
     twitter: generateTwitterCard({
       title,
       description,
-      images: [imageUrl],
+      images: [shareImage.imageUrl],
+      imageAlt: shareImage.imageAlt,
     }),
     robots: generateRobots({
       index: !noIndex,
@@ -94,6 +152,9 @@ export function generatePageMetadata({
   description,
   path,
   image,
+  imageWidth,
+  imageHeight,
+  imageAlt,
   type = 'website',
   keywords = [],
   publishedTime,
@@ -103,13 +164,22 @@ export function generatePageMetadata({
   description: string;
   path: string;
   image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageAlt?: string;
   type?: 'website' | 'article';
   keywords?: string[];
   publishedTime?: string;
   authors?: readonly string[];
 }): PageMetadata {
   const canonical = generateCanonicalUrl(BASE_URL, path);
-  const imageUrl = image ? `${BASE_URL}${image}` : `${BASE_URL}${DEFAULT_OG_IMAGE}`;
+  const shareImage = resolveShareImage({
+    image,
+    imageWidth,
+    imageHeight,
+    imageAlt,
+    fallbackAlt: title,
+  });
 
   return {
     title,
@@ -122,7 +192,10 @@ export function generatePageMetadata({
       title,
       description,
       url: canonical,
-      imageUrl,
+      imageUrl: shareImage.imageUrl,
+      imageWidth: shareImage.imageWidth,
+      imageHeight: shareImage.imageHeight,
+      imageAlt: shareImage.imageAlt,
       type,
       publishedTime,
       authors,
@@ -130,7 +203,8 @@ export function generatePageMetadata({
     twitter: generateTwitterCard({
       title,
       description,
-      images: [imageUrl],
+      images: [shareImage.imageUrl],
+      imageAlt: shareImage.imageAlt,
     }),
     robots: generateRobots(),
     manifest: SITE_MANIFEST_PATH,

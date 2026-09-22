@@ -3,6 +3,7 @@ import {
   DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_WIDTH,
   DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_ALT,
 } from '../constants';
 import type { OpenGraphImage, OpenGraphMetadata } from './types';
 
@@ -11,6 +12,9 @@ interface OpenGraphConfig {
   title: string;
   description: string;
   imageUrl?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  imageAlt?: string;
   images?: OpenGraphImage[];
   siteName?: string;
   locale?: string;
@@ -27,6 +31,9 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
     title,
     description,
     imageUrl,
+    imageWidth,
+    imageHeight,
+    imageAlt,
     images = [],
     siteName = SITE_TITLE,
     locale = 'en_AU',
@@ -39,9 +46,9 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
     ? [
         {
           url: imageUrl,
-          width: DEFAULT_OG_IMAGE_WIDTH,
-          height: DEFAULT_OG_IMAGE_HEIGHT,
-          alt: title,
+          ...(imageWidth ? { width: imageWidth } : {}),
+          ...(imageHeight ? { height: imageHeight } : {}),
+          alt: imageAlt ?? title,
         },
         ...images,
       ]
@@ -50,9 +57,9 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
       : [
           {
             url: DEFAULT_OG_IMAGE,
-            width: DEFAULT_OG_IMAGE_WIDTH,
-            height: DEFAULT_OG_IMAGE_HEIGHT,
-            alt: title,
+            width: imageWidth ?? DEFAULT_OG_IMAGE_WIDTH,
+            height: imageHeight ?? DEFAULT_OG_IMAGE_HEIGHT,
+            alt: imageAlt ?? DEFAULT_OG_IMAGE_ALT,
           },
         ];
 

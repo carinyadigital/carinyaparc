@@ -6,8 +6,6 @@
     "googlebot": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1",
     "og:site_name": "Carinya Parc",
     "og:locale": "en_AU",
-    "og:image:width": "1200",
-    "og:image:height": "630",
     "twitter:card": "summary_large_image",
     "twitter:site": "@carinyaparc",
     "twitter:creator": "@carinyaparc"

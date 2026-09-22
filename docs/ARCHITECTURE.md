@@ -772,7 +772,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 - **Editorial tooling.** Is a PR-based workflow with previews enough for the editor, or is a git-backed editor (Decap, Keystatic, or GitHub's web editor with templates) worth adding? Decide after a month of publishing through PRs.
 - **Recipe tags.** Recipe-only tags have no archive page today; surface `/recipes/tag/` pages, or leave recipe tags as labels only.
-- **Dynamic social images.** Generate per-post OG images at build (Satori or similar) or keep the hero/home fallback.
+- **Dynamic social images.** Closed. Post and recipe pages emit a centre-cropped 1200×630 JPEG of the page photograph, with `og:image:alt` and `twitter:image:alt` set to `imageAlt`. Pages with no hero keep `/images/hero-home.jpg` at that file's real dimensions. A generated card is not used.
 - **Event signup source of truth.** MailerLite groups hold the list; if a capacity or attendance record is ever needed it has to come from MailerLite exports.
 
 Mitigation timing is in [`product/roadmap.md`](product/roadmap.md). Do not track debt elsewhere in this doc set.

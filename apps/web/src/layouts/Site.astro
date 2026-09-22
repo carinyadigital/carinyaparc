@@ -55,11 +55,18 @@ const metadata =
 ---
 
 <Base metadata={metadata}>
+  <a href="#main" data-skip-link class="skip-link">
+    Skip to content
+  </a>
   <Header overlay={overlay} currentPath={Astro.url.pathname} />
-  <main class="flex-1">
+  <main id="main" tabindex="-1" class="flex-1 focus:outline-none">
     <slot />
   </main>
   {showFooter && showNewsletter && <NewsletterBand />}
   {showFooter && <Footer />}
   <ArticleScrollDepth />
+  <script>
+    import { initSkipLink } from '@/lib/client/skip-link';
+    initSkipLink();
+  </script>
 </Base>

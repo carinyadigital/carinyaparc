@@ -33,6 +33,14 @@ export function resetEventSignupRateLimit(): void {
 }
 
 export async function handleEventSignupPost(request: Request): Promise<Response> {
+  let rateLimitKey: string | undefined;
+
+  const releaseRateLimit = () => {
+    if (!rateLimitKey) return;
+    rateLimiter.release(rateLimitKey);
+    rateLimitKey = undefined;
+  };
+
   try {
     const parsed = await readJsonBody(request);
     if (!parsed.ok) {
@@ -68,7 +76,8 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
     }
 
     if (EVENT_SIGNUP_RATE_LIMITING) {
-      const limited = rateLimiter.check(data.email.toLowerCase()).limited;
+      const key = data.email.toLowerCase();
+      const limited = rateLimiter.check(key).limited;
       if (limited) {
         countMetric('event.signups', 1, { status: 'rate_limited' });
         return jsonResponse(
@@ -79,22 +88,27 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
           429,
         );
       }
+      rateLimitKey = key;
     }
 
     const event = await getPublicEventBySlug(data.eventSlug);
     if (!event) {
+      releaseRateLimit();
       return jsonResponse({ error: 'Event not found' }, 404);
     }
 
     if (event.startsAt.getTime() < Date.now()) {
+      releaseRateLimit();
       return jsonResponse({ error: 'This event has already started' }, 400);
     }
 
     if (event.signupTarget) {
+      releaseRateLimit();
       return jsonResponse({ error: 'This event uses an external signup' }, 400);
     }
 
     if (event.isFull) {
+      releaseRateLimit();
       countMetric('event.signups', 1, { status: 'full' });
       return jsonResponse(
         {
@@ -111,6 +125,7 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
 
     const group = await resolveEventGroupId(event.slug);
     if (!group.ok || !group.groupId) {
+      releaseRateLimit();
       countMetric('event.signups', 1, { status: 'failed' });
       return jsonResponse({ error: 'Failed to record your signup. Please try again.' }, 500);
     }
@@ -125,6 +140,7 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
     );
 
     if (!result.ok) {
+      releaseRateLimit();
       console.error('Failed to record event signup:', result.error);
       captureException(new Error(result.error), {
         tags: { feature: 'event_signup', error_type: 'persist' },
@@ -134,6 +150,7 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
       return jsonResponse({ error: 'Failed to record your signup. Please try again.' }, 500);
     }
 
+    rateLimitKey = undefined;
     console.log(`Event signup recorded for event ${event.slug} (${email.split('@')[1]})`);
     countMetric('event.signups', 1, { status: 'registered' });
 
@@ -146,6 +163,7 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
       200,
     );
   } catch (error) {
+    releaseRateLimit();
     console.error('Unexpected error in event signup API:', error);
     captureException(error, {
       tags: { feature: 'event_signup', error_type: 'unexpected' },

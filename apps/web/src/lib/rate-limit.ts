@@ -11,6 +11,11 @@ export type RateLimitResult = {
 
 export type RateLimiter = {
   check: (key: string) => RateLimitResult;
+  /**
+   * Undo one `check` that did not result in a stored signup or sent message.
+   * A failed upstream call must not spend the allowance, or the visitor cannot retry.
+   */
+  release: (key: string) => void;
   reset: () => void;
 };
 
@@ -60,6 +65,12 @@ export function createRateLimiter(options: { maxRequests: number; windowMs: numb
         remainingRequests: Math.max(0, maxRequests - record.count),
         resetTime: record.lastAttempt + windowMs,
       };
+    },
+    release(key: string) {
+      const record = map.get(key);
+      if (!record) return;
+      record.count -= 1;
+      if (record.count <= 0) map.delete(key);
     },
     reset() {
       map.clear();

@@ -152,6 +152,31 @@ describe('POST /api/events/signup', () => {
     expect(response.status).toBe(404);
   });
 
+  it('does not spend the allowance when the signup is not recorded', async () => {
+    upsertMailerLiteSubscriber.mockResolvedValue({
+      ok: false,
+      status: 500,
+      error: 'Network error. Please try again later.',
+    });
+
+    const body = {
+      eventSlug: 'winter-planting-day',
+      name: 'Alex Farmer',
+      email: 'alex@fastmail.com',
+      submissionTime: 5000,
+    };
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const failed = await handleEventSignupPost(jsonRequest(body));
+      expect(failed.status).toBe(500);
+    }
+
+    upsertMailerLiteSubscriber.mockResolvedValue({ ok: true, status: 200 });
+    const retried = await handleEventSignupPost(jsonRequest(body));
+    expect(retried.status).toBe(200);
+    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(6);
+  });
+
   it('returns 400 when the event uses an external signup target', async () => {
     getPublicEventBySlug.mockResolvedValue({
       ...upcomingEvent,

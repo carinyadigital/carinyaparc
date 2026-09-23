@@ -25,6 +25,8 @@ export function resetContactRateLimit(): void {
 }
 
 export async function handleContactPost(request: Request): Promise<Response> {
+  let rateLimitKey: string | undefined;
+
   try {
     if (!CONTACT_FORM_ENABLE) {
       return jsonResponse({ error: 'Contact form is temporarily disabled' }, 503);
@@ -61,7 +63,8 @@ export async function handleContactPost(request: Request): Promise<Response> {
     }
 
     if (CONTACT_FORM_RATE_LIMITING) {
-      const result = rateLimiter.check(data.email.toLowerCase());
+      const key = data.email.toLowerCase();
+      const result = rateLimiter.check(key);
       if (result.limited) {
         console.log(`Contact form rate limit exceeded for: ${data.email.split('@')[1]}`);
         countMetric('contact.submissions', 1, { status: 'rate_limited' });
@@ -73,6 +76,7 @@ export async function handleContactPost(request: Request): Promise<Response> {
           429,
         );
       }
+      rateLimitKey = key;
     }
 
     const sourceIP = request.headers.get('x-forwarded-for') || 'Unknown';
@@ -93,6 +97,8 @@ export async function handleContactPost(request: Request): Promise<Response> {
     });
 
     if (!emailResult.success) {
+      if (rateLimitKey) rateLimiter.release(rateLimitKey);
+      rateLimitKey = undefined;
       console.error('Failed to send contact notification email:', emailResult.error);
       captureException(new Error(emailResult.error || 'Email send failed'), {
         tags: {
@@ -117,10 +123,12 @@ export async function handleContactPost(request: Request): Promise<Response> {
     console.log(
       `Contact form submitted successfully: ${data.inquiryType} inquiry from ${data.email.split('@')[1]}`,
     );
+    rateLimitKey = undefined;
     countMetric('contact.submissions', 1, { status: 'success', inquiry_type: data.inquiryType });
 
     return jsonResponse({ success: true, message: SUCCESS_MESSAGE }, 200);
   } catch (error) {
+    if (rateLimitKey) rateLimiter.release(rateLimitKey);
     console.error('Unexpected error in contact API route:', error);
     captureException(error, {
       tags: {

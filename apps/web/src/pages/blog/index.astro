@@ -5,12 +5,18 @@ import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
 import FeaturedPosts from '@/components/blog/FeaturedPosts.astro';
 import JournalIntro from '@/components/blog/JournalIntro.astro';
 import JournalPostGrid from '@/components/blog/JournalPostGrid.astro';
-import { getCategoriesWithPosts, getPublishedPosts, toPostSummaries } from '@/lib/content/posts';
+import {
+  getCategoriesWithPosts,
+  getPublishedPosts,
+  JOURNAL_FEATURED_COUNT,
+  postsForJournalGrid,
+  toPostSummaries,
+} from '@/lib/content/posts';
 
 const POSTS_PER_PAGE = 6;
 
 const [categories, published] = await Promise.all([getCategoriesWithPosts(), getPublishedPosts()]);
-const gridEntries = published.filter((post) => !post.data.featured);
+const gridEntries = postsForJournalGrid(published, JOURNAL_FEATURED_COUNT);
 const totalPages = Math.ceil(gridEntries.length / POSTS_PER_PAGE);
 const posts = await toPostSummaries(gridEntries.slice(0, POSTS_PER_PAGE));
 ---
@@ -30,7 +36,7 @@ const posts = await toPostSummaries(gridEntries.slice(0, POSTS_PER_PAGE));
       description="Follow the regeneration of 42 hectares in real time — the plantings, the setbacks, the soil results and the seasons. Read along, then come get your hands dirty."
     />
 
-    <FeaturedPosts limit={1} />
+    <FeaturedPosts limit={JOURNAL_FEATURED_COUNT} />
 
     <BlogTopicNav categories={categories.map((c) => ({ name: c.name, slug: c.id }))} />
     <JournalPostGrid posts={posts} totalPages={totalPages} />

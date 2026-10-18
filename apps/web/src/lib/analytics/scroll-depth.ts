@@ -1,4 +1,4 @@
-import { trackArticleScrollDepth } from './events';
+import { trackArticleScrolled } from './events';
 import { SCROLL_DEPTH_THRESHOLDS, type ScrollDepth } from './types';
 
 /** Viewport-bottom progress through the article (0–100). */
@@ -47,8 +47,8 @@ export function bindArticleScrollDepth(
 export function bindPageArticleScrollDepth(): void {
   const article = document.querySelector('article');
   if (article instanceof HTMLElement) {
-    bindArticleScrollDepth(article, (depth) => {
-      trackArticleScrollDepth({ depth });
+    bindArticleScrollDepth(article, (percentScrolled) => {
+      trackArticleScrolled({ percent_scrolled: percentScrolled });
     });
   }
 }

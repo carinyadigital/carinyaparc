@@ -79,6 +79,22 @@ describe('article scroll depth', () => {
     article.remove();
   });
 
+  it('does not push Article Scrolled when the page has no article', () => {
+    document.cookie = `${CONSENT_COOKIE_NAME}=accepted; Path=/`;
+    window.dataLayer = [];
+    document.querySelectorAll('article').forEach((node) => {
+      node.remove();
+    });
+
+    bindPageArticleScrollDepth();
+    window.dispatchEvent(new Event('scroll'));
+
+    expect(window.dataLayer).toEqual([]);
+
+    document.cookie = `${CONSENT_COOKIE_NAME}=; Path=/; Max-Age=0`;
+    delete window.dataLayer;
+  });
+
   it('tracks the first article when bound from the analytics client', () => {
     document.cookie = `${CONSENT_COOKIE_NAME}=accepted; Path=/`;
     window.dataLayer = [];
@@ -107,6 +123,44 @@ describe('article scroll depth', () => {
     expect(window.dataLayer).toEqual([
       { properties: null },
       { event: 'Article Scrolled', properties: { percent_scrolled: 25 } },
+    ]);
+
+    for (const [scrollY, percentScrolled] of [
+      [250, 50],
+      [500, 75],
+      [750, 100],
+    ] as const) {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: scrollY });
+      vi.spyOn(article, 'getBoundingClientRect').mockReturnValue({
+        top: -scrollY,
+        bottom: 1000 - scrollY,
+        left: 0,
+        right: 0,
+        width: 100,
+        height: 1000,
+        x: 0,
+        y: -scrollY,
+        toJSON() {
+          return {};
+        },
+      });
+      window.dispatchEvent(new Event('scroll'));
+      expect(window.dataLayer?.at(-1)).toEqual({
+        event: 'Article Scrolled',
+        properties: { percent_scrolled: percentScrolled },
+      });
+    }
+
+    window.dispatchEvent(new Event('scroll'));
+    expect(window.dataLayer).toEqual([
+      { properties: null },
+      { event: 'Article Scrolled', properties: { percent_scrolled: 25 } },
+      { properties: null },
+      { event: 'Article Scrolled', properties: { percent_scrolled: 50 } },
+      { properties: null },
+      { event: 'Article Scrolled', properties: { percent_scrolled: 75 } },
+      { properties: null },
+      { event: 'Article Scrolled', properties: { percent_scrolled: 100 } },
     ]);
 
     article.remove();

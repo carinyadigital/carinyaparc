@@ -61,6 +61,15 @@ export type ContactFormData = z.infer<typeof contactFormSchema>;
 
 export type InquiryType = (typeof inquiryTypes)[number];
 
+/** Read `?inquiry=` from a location search string. Unknown values are ignored. */
+export function inquiryTypeFromSearch(search: string): InquiryType | undefined {
+  const value = new URLSearchParams(search).get('inquiry');
+  if (value && (inquiryTypes as readonly string[]).includes(value)) {
+    return value as InquiryType;
+  }
+  return undefined;
+}
+
 export const contactFormClientSchema = contactFormSchema.omit({
   website: true,
   submissionTime: true,

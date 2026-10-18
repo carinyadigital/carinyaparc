@@ -9,6 +9,7 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import InlineSubscribeForm from '@/components/marketing/InlineSubscribeForm.astro';
 import PartnersSection from '@/components/marketing/PartnersSection.astro';
 import WaysToHelpSection from '@/components/marketing/WaysToHelpSection.astro';
+import { contactUrl } from '@/lib/urls';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
 import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
@@ -44,7 +45,7 @@ const share = await buildShareImage(riverValleyAerial);
         <Button href="#support" variant="bracken">
           Support the work →
         </Button>
-        <Button href="#volunteer" variant="ghost-light">
+        <Button href={contactUrl('volunteer')} variant="ghost-light">
           Join a planting day
         </Button>
       </HeroText>
@@ -65,7 +66,14 @@ const share = await buildShareImage(riverValleyAerial);
           </h2>
           <p class="mt-[18px] text-[17px] leading-[1.7] text-charcoal">
             Sign up and we'll email you when the next planting day, farm tour, workshop or eco-stay
-            opens — plus quarterly progress from the paddock. No spam, ever.
+            opens — plus quarterly progress from the paddock. No spam, ever.{' '}
+            <a
+              href={contactUrl('volunteer')}
+              class="font-semibold text-eucalypt-600 hover:opacity-70"
+            >
+              Ask about a planting day
+            </a>{' '}
+            if you'd rather not wait for the list.
           </p>
           <InlineSubscribeForm class="mt-[26px]" />
         </div>

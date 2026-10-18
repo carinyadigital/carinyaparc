@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { postContact } from '@/lib/contact/client';
 import {
   contactFormClientSchema,
+  inquiryTypeFromSearch,
   type ContactFormClientData,
   type ContactFormData,
   type InquiryType,
@@ -45,21 +46,27 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
 
-  useEffect(() => {
-    formLoadTime.current = Date.now();
-    setIsFormReady(true);
-    trackContact('contact_form_viewed');
-  }, []);
-
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormClientData>({
     resolver: zodResolver(contactFormClientSchema),
     mode: 'onBlur',
   });
+
+  useEffect(() => {
+    formLoadTime.current = Date.now();
+    setIsFormReady(true);
+    trackContact('contact_form_viewed');
+
+    const inquiry = inquiryTypeFromSearch(window.location.search);
+    if (inquiry) {
+      setValue('inquiryType', inquiry);
+    }
+  }, [setValue]);
 
   const handleFormInteraction = () => {
     trackContact('contact_form_started');

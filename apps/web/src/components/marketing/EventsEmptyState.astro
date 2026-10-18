@@ -1,14 +1,19 @@
 ---
 /** Shown on the events listing when nothing is scheduled. */
 import Button from '@/components/ui/Button.astro';
+import { contactUrl } from '@/lib/urls';
 ---
 
 <div class="mx-auto max-w-xl py-12 text-center">
   <p class="text-[17px] leading-[1.7] text-charcoal">
-    No upcoming events just now. Subscribe for invitations to planting days and workshops.
+    No upcoming events just now. Ask if you want a planting day, or subscribe and we'll write when
+    the next one is set.
   </p>
-  <div class="mt-6">
-    <Button href="/subscribe/" variant="bracken" size="sm">
+  <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+    <Button href={contactUrl('volunteer')} variant="bracken" size="sm">
+      Ask about a planting day
+    </Button>
+    <Button href="/subscribe/" variant="outline" size="sm">
       Subscribe for updates
     </Button>
   </div>

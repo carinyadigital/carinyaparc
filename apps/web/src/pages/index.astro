@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import MotifTile from '@/components/ui/MotifTile.astro';
 import { SITE_DESCRIPTION } from '@/lib/constants';
+import { contactUrl } from '@/lib/urls';
 
 import heroHome from '@/assets/images/hero-home.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
@@ -43,8 +44,16 @@ const STORY_TAGS = [
 ] as const;
 
 const EXPERIENCE_ITEMS = [
-  { title: 'Join a planting day.', description: 'Get your hands dirty at an upcoming event.' },
-  { title: 'Book a tour.', description: 'Small-group experiences led by Jonno.' },
+  {
+    title: 'Join a planting day.',
+    description: 'Tell us you want a day on the land.',
+    href: contactUrl('volunteer'),
+  },
+  {
+    title: 'Book a tour.',
+    description: 'Ask about a small-group visit with Jonno.',
+    href: contactUrl('tours'),
+  },
   { title: 'Stay on the land.', description: 'Rustic accommodation, coming soon.' },
 ] as const;
 ---
@@ -181,8 +190,9 @@ const EXPERIENCE_ITEMS = [
               Reconnect with nature, hands in the soil
             </h2>
             <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
-              Be first in line for guided tours, hands-on planting days, seasonal workshops and
-              eco-stays. Wander the permaculture gardens, syntropic food forest and meet our herd.
+              Ask about a guided tour or a planting day, and we'll write back with what's actually
+              on. Wander the permaculture gardens, syntropic food forest and meet our herd. A place
+              to stay is still being built.
             </p>
             <ul role="list" class="mt-[26px] flex flex-col gap-3.5">
               {EXPERIENCE_ITEMS.map((item) => (
@@ -191,14 +201,26 @@ const EXPERIENCE_ITEMS = [
                     ◦
                   </span>
                   <span>
-                    <strong class="font-semibold text-bark">{item.title}</strong> {item.description}
+                    {'href' in item ? (
+                      <a href={item.href} class="font-semibold text-eucalypt-600 hover:opacity-70">
+                        {item.title}
+                      </a>
+                    ) : (
+                      <strong class="font-semibold text-bark">{item.title}</strong>
+                    )}{' '}
+                    {item.description}
                   </span>
                 </li>
               ))}
             </ul>
-            <Button href="/#stay" variant="bracken" class="mt-[30px]">
-              Be first to know →
-            </Button>
+            <div class="mt-[30px] flex flex-wrap items-center gap-3">
+              <Button href={contactUrl()} variant="bracken">
+                Ask about a visit →
+              </Button>
+              <Button href="/#stay" variant="outline">
+                Be first to know
+              </Button>
+            </div>
           </div>
           <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
             <Image

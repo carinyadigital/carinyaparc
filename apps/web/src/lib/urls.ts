@@ -1,4 +1,14 @@
+import type { InquiryType } from '@/lib/contact/schema';
+
 /** Public content URLs always include a trailing slash so they match `trailingSlash: 'always'`. */
+
+/** Contact page, optionally with a topic the form will pre-select. */
+export function contactUrl(inquiry?: InquiryType): string {
+  if (!inquiry) {
+    return '/contact/';
+  }
+  return `/contact/?inquiry=${inquiry}`;
+}
 export function postUrl(slug: string): string {
   return `/blog/${slug}/`;
 }

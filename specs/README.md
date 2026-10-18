@@ -10,10 +10,10 @@ specs/{domain}/
 └── design.md            # Solution Design for open work
 ```
 
-| Domain                     | Status           | Notes                                                                                                                                                                                                                           |
-| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`analytics/`](analytics/) | Draft            | RudderStack-style track names and `properties` payload on the Astro site (`apps/web`) only. Linear [WEB-53](https://linear.app/carinyadigital/issue/WEB-53). Consumed by `WEB-24`, `WEB-69`. Not the Next.js app (`apps/site`). |
-| [`blog/`](blog/)           | Open (ops + CTA) | Linear [Carinya Parc — Blog](https://linear.app/carinyadigital/project/carinya-parc-blog-73bc69db29b3) (`WEB-24`, `WEB-25`, `WEB-28`)                                                                                           |
+| Domain                     | Status           | Notes                                                                                                                                                                                   |
+| -------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`analytics/`](analytics/) | Draft            | RudderStack-style track names and `properties` payload on the Astro site (`apps/web`). Linear [WEB-53](https://linear.app/carinyadigital/issue/WEB-53). Consumed by `WEB-24`, `WEB-69`. |
+| [`blog/`](blog/)           | Open (ops + CTA) | Linear [Carinya Parc — Blog](https://linear.app/carinyadigital/project/carinya-parc-blog-73bc69db29b3) (`WEB-24`, `WEB-25`, `WEB-28`)                                                   |
 
 Canonical product/architecture docs stay under `docs/`. Slack `#site` is
 standup, not intake.

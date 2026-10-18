@@ -75,4 +75,25 @@ describe('ConsentGate', () => {
       expect(container.textContent).toContain('Accept all');
     });
   });
+
+  it('stores the visitor choice in the cookie', async () => {
+    await act(async () => {
+      root.render(<ConsentGate gtmId="GTM-TEST123" />);
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Accept all');
+    });
+
+    const accept = [...container.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Accept all'),
+    );
+
+    await act(async () => {
+      accept?.click();
+    });
+
+    expect(document.cookie).toContain(`${CONSENT_COOKIE_NAME}=accepted`);
+    expect(container.textContent).not.toContain('Accept all');
+  });
 });

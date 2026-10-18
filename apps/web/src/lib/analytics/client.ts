@@ -1,9 +1,4 @@
 export {
-  hasAnalyticsConsent,
-  markAnalyticsConsentAccepted,
-  resetAnalyticsConsentCache,
-} from './consent';
-export {
   trackArticleScrollDepth,
   trackEventCtaClick,
   trackEventSignupComplete,

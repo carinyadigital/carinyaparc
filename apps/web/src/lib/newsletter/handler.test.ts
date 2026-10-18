@@ -154,13 +154,16 @@ describe('upstream failures', () => {
     vi.mocked(subscribe).mockResolvedValue({
       ok: false,
       status: 500,
-      error: 'Newsletter service not configured. Please add MAILERLITE_API_KEY to .env.local',
+      error: 'Newsletter service not configured',
     });
     const response = await handleSubscribe(
       jsonRequest({ email: 'reviewer@fastmail.com', submissionTime: 9000 }),
     );
     expect(response.status).toBe(503);
     const body = (await response.json()) as { error: string };
+    expect(body.error).toBe(
+      'The newsletter service is unavailable right now. Please try again later.',
+    );
     expect(body.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
   });
 

@@ -10,7 +10,7 @@ vi.mock('resend', () => ({
   },
 }));
 
-import { send, verifyEmailServiceConfig } from './index';
+import { deliverEmail, verifyEmailServiceConfig } from './resend';
 import type { OutboundEmail } from './types';
 
 const message: OutboundEmail = {
@@ -23,15 +23,11 @@ const message: OutboundEmail = {
   tags: [{ name: 'source', value: 'contact_form' }],
 };
 
-describe('send', () => {
+describe('deliverEmail', () => {
   const originalApiKey = process.env.RESEND_API_KEY;
-  const originalRecipient = process.env.CONTACT_EMAIL_RECIPIENT;
-  const originalFrom = process.env.CONTACT_EMAIL_FROM;
 
   beforeEach(() => {
     process.env.RESEND_API_KEY = 're_test_key';
-    delete process.env.CONTACT_EMAIL_RECIPIENT;
-    delete process.env.CONTACT_EMAIL_FROM;
     sendMock.mockReset();
   });
 
@@ -41,26 +37,21 @@ describe('send', () => {
     } else {
       process.env.RESEND_API_KEY = originalApiKey;
     }
-    if (originalRecipient === undefined) {
-      delete process.env.CONTACT_EMAIL_RECIPIENT;
-    } else {
-      process.env.CONTACT_EMAIL_RECIPIENT = originalRecipient;
-    }
-    if (originalFrom === undefined) {
-      delete process.env.CONTACT_EMAIL_FROM;
-    } else {
-      process.env.CONTACT_EMAIL_FROM = originalFrom;
-    }
   });
 
-  it('returns a failure when the provider key is missing', async () => {
+  it('logs a missing provider key and keeps that detail out of the returned error', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     delete process.env.RESEND_API_KEY;
 
-    await expect(send(message)).resolves.toEqual({
+    await expect(deliverEmail(message)).resolves.toEqual({
       success: false,
       error: 'Email service is not configured',
     });
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Email service not configured: RESEND_API_KEY is not set',
+    );
     expect(sendMock).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   it('returns a failure when the provider rejects the message', async () => {
@@ -69,7 +60,7 @@ describe('send', () => {
       error: { name: 'application_error', statusCode: 500, message: 'rejected' },
     });
 
-    await expect(send(message)).resolves.toEqual({
+    await expect(deliverEmail(message)).resolves.toEqual({
       success: false,
       error: 'Failed to send email notification',
     });
@@ -82,7 +73,7 @@ describe('send', () => {
   it('returns a failure when the provider throws', async () => {
     sendMock.mockRejectedValue(new Error('network unreachable'));
 
-    await expect(send(message)).resolves.toEqual({
+    await expect(deliverEmail(message)).resolves.toEqual({
       success: false,
       error: 'Email service is temporarily unavailable',
     });
@@ -117,12 +108,18 @@ describe('verifyEmailServiceConfig', () => {
   });
 
   it('reports the provider key as missing without mentioning contact settings', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     delete process.env.RESEND_API_KEY;
     delete process.env.CONTACT_EMAIL_RECIPIENT;
 
     const result = await verifyEmailServiceConfig();
 
     expect(result.configured).toBe(false);
-    expect(result.errors).toEqual(['RESEND_API_KEY is not configured']);
+    expect(result.errors).toEqual(['Email service is not configured']);
+    expect(result.errors.join(' ')).not.toMatch(/RESEND_API_KEY|CONTACT_EMAIL/);
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Email service not configured: RESEND_API_KEY is not set',
+    );
+    errorSpy.mockRestore();
   });
 });

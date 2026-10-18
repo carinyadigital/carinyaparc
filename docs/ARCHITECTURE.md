@@ -523,19 +523,19 @@ Rules common to every collection:
 
 #### 6.4.1 `posts`
 
-| Field         | Type                      | Required | Notes                                             |
-| ------------- | ------------------------- | -------- | ------------------------------------------------- |
-| `title`       | string, ≤ 200             | yes      |                                                   |
-| `date`        | date                      | yes      | Sort key, newest first                            |
-| `author`      | reference to `authors`    | yes      | `"jonno"`                                         |
-| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts |
-| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`           |
-| `featured`    | boolean                   | no       | Default `false`; surfaces on the home and journal |
-| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                |
-| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`         |
-| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise |
-| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway             |
-| `draft`       | boolean                   | no       | Default `false`                                   |
+| Field         | Type                      | Required | Notes                                                                                                      |
+| ------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `title`       | string, ≤ 200             | yes      |                                                                                                            |
+| `date`        | date                      | yes      | Sort key, newest first                                                                                     |
+| `author`      | reference to `authors`    | yes      | `"jonno"`                                                                                                  |
+| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts                                                          |
+| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`                                                                    |
+| `featured`    | boolean                   | no       | Default `false`. The newest featured post is the journal hero; older featured posts stay in the dated grid |
+| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                                                                         |
+| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`                                                                  |
+| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise                                                          |
+| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway                                                                      |
+| `draft`       | boolean                   | no       | Default `false`                                                                                            |
 
 ```mdx
 ---
@@ -613,14 +613,14 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 6.5 Glossary
 
-| Term                   | Definition                                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| **Entry**              | One file in a collection; its id is the filename stem and the public slug                       |
-| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                    |
-| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`) |
-| **Featured post**      | `featured: true`; drives home-page highlights                                                   |
-| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                        |
-| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers            |
+| Term                   | Definition                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| **Entry**              | One file in a collection; its id is the filename stem and the public slug                         |
+| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                      |
+| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`)   |
+| **Featured post**      | `featured: true`. The newest one is the journal hero; older featured posts stay in the dated grid |
+| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                          |
+| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers              |
 
 ---
 

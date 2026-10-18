@@ -4,8 +4,6 @@ import type { PageMetadata } from '@/lib/metadata';
 import { ORGANIZATION_SCHEMA_JSON } from '@/lib/schema/organization-json';
 import '@/styles/globals.css';
 
-const gtmId = import.meta.env.PUBLIC_GTM_ID as string | undefined;
-
 interface Props {
   metadata: PageMetadata;
 }
@@ -81,7 +79,7 @@ const googleBotParts = [
   </head>
   <body class="flex min-h-screen flex-col bg-background font-sans text-foreground">
     <slot />
-    <ConsentGate client:idle gtmId={gtmId} />
+    <ConsentGate client:idle />
     <script>
       import { initAnalytics } from '@/lib/analytics/client';
       initAnalytics();

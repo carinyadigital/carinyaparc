@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CONSENT_COOKIE_NAME } from '@/lib/constants';
 
+import { track } from './client';
 import {
   trackArticleScrollDepth,
   trackEventCtaClick,
@@ -13,7 +14,6 @@ import {
   trackSubscribeComplete,
   trackSubscribeStart,
 } from './events';
-import { trackEventAsync } from './track';
 import { ANALYTICS_EVENTS } from './types';
 
 function setConsentCookie(value: string | null): void {
@@ -35,48 +35,42 @@ describe('analytics helpers', () => {
     delete (window as { dataLayer?: unknown }).dataLayer;
   });
 
-  it('trackEventAsync follows a later change to the cookie', () => {
+  it('track follows a later change to the cookie', () => {
     setConsentCookie('accepted');
-    expect(
-      trackEventAsync(ANALYTICS_EVENTS.subscribeStart, {
-        source: 'blog:test',
-      }),
-    ).toBe(true);
+    track(ANALYTICS_EVENTS.subscribeStart, {
+      source: 'blog:test',
+    });
+    expect(window.dataLayer).toEqual([{ event: 'subscribe_start', source: 'blog:test' }]);
 
     setConsentCookie('rejected');
     window.dataLayer = [];
-
-    expect(
-      trackEventAsync(ANALYTICS_EVENTS.subscribeStart, {
-        source: 'blog:test',
-      }),
-    ).toBe(false);
+    track(ANALYTICS_EVENTS.subscribeStart, {
+      source: 'blog:test',
+    });
     expect(window.dataLayer).toEqual([]);
   });
 
-  it('trackEventAsync no-ops without consent (no dataLayer push)', () => {
+  it('track no-ops without consent (no dataLayer push)', () => {
     setConsentCookie('rejected');
 
-    const pushed = trackEventAsync(ANALYTICS_EVENTS.subscribeStart, {
+    track(ANALYTICS_EVENTS.subscribeStart, {
       source: 'blog:test',
     });
 
-    expect(pushed).toBe(false);
     expect(window.dataLayer).toEqual([]);
   });
 
-  it('trackEventAsync pushes to dataLayer and va when consent is accepted', () => {
+  it('track pushes to dataLayer and va when consent is accepted', () => {
     setConsentCookie('accepted');
 
     const va = vi.fn();
     (window as { va?: typeof va }).va = va;
 
-    const pushed = trackEventAsync(ANALYTICS_EVENTS.subscribeComplete, {
+    track(ANALYTICS_EVENTS.subscribeComplete, {
       source: 'blog:test',
       interest: 'community',
     });
 
-    expect(pushed).toBe(true);
     expect(window.dataLayer).toEqual([
       {
         event: 'subscribe_complete',

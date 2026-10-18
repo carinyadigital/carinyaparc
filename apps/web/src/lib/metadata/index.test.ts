@@ -1,7 +1,3 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -10,36 +6,6 @@ import {
   DEFAULT_OG_IMAGE_WIDTH,
 } from '../constants';
 import { generateMetadata, generatePageMetadata } from './index';
-
-const heroHome = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../../../public/images/hero-home.jpg',
-);
-
-/** Baseline JPEG frame size, skipping APP segments by their length. */
-function jpegSize(buffer: Buffer): { width: number; height: number } {
-  if (buffer[0] !== 0xff || buffer[1] !== 0xd8) {
-    throw new Error('hero-home.jpg is not a JPEG');
-  }
-  let offset = 2;
-  while (offset + 8 < buffer.length) {
-    if (buffer[offset] !== 0xff) break;
-    const marker = buffer[offset + 1] ?? 0;
-    if (marker === 0xd8 || marker === 0x01) {
-      offset += 2;
-      continue;
-    }
-    const length = buffer.readUInt16BE(offset + 2);
-    if (marker >= 0xc0 && marker <= 0xc2) {
-      return {
-        height: buffer.readUInt16BE(offset + 5),
-        width: buffer.readUInt16BE(offset + 7),
-      };
-    }
-    offset += 2 + length;
-  }
-  throw new Error('hero-home.jpg has no start-of-frame marker');
-}
 
 describe('generatePageMetadata', () => {
   it('returns title, description, and a trailing-slash canonical', () => {
@@ -57,9 +23,9 @@ describe('generatePageMetadata', () => {
 
   it('adds article published time and authors only when the page is an article', () => {
     const metadata = generatePageMetadata({
-      title: 'From MasterChef to Mud Boots',
+      title: 'Why Highland cattle',
       description: 'A journal post',
-      path: '/blog/masterchef-to-mud-boots',
+      path: '/blog/why-highland-cattle',
       type: 'article',
       publishedTime: '2026-01-15T00:00:00.000Z',
       authors: ['Jonno', '  '],
@@ -83,13 +49,7 @@ describe('generatePageMetadata', () => {
     expect(metadata.openGraph.authors).toBeUndefined();
   });
 
-  it('keeps the site photograph at its real size when no hero is passed', () => {
-    const file = jpegSize(readFileSync(heroHome));
-    expect(file).toEqual({
-      width: DEFAULT_OG_IMAGE_WIDTH,
-      height: DEFAULT_OG_IMAGE_HEIGHT,
-    });
-
+  it('uses the site share crop when no photograph is passed', () => {
     const metadata = generatePageMetadata({
       title: 'About',
       description: 'Our story',
@@ -97,9 +57,11 @@ describe('generatePageMetadata', () => {
     });
     const image = metadata.openGraph.images[0];
 
-    expect(image?.url).toMatch(/\/images\/hero-home\.jpg$/);
-    expect(image?.width).toBe(file.width);
-    expect(image?.height).toBe(file.height);
+    expect(image?.url).toMatch(/^https?:\/\/.*hero-home/);
+    expect(image?.width).toBe(DEFAULT_OG_IMAGE_WIDTH);
+    expect(image?.height).toBe(DEFAULT_OG_IMAGE_HEIGHT);
+    expect(image?.width).toBe(1200);
+    expect(image?.height).toBe(630);
     expect(image?.alt).toBe(DEFAULT_OG_IMAGE_ALT);
     expect(metadata.twitter.images).toEqual([image?.url]);
     expect(metadata.twitter.imageAlt).toBe(DEFAULT_OG_IMAGE_ALT);

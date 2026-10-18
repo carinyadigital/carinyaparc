@@ -35,16 +35,14 @@ export const DEFAULT_KEYWORDS = [
   'The Branch',
 ];
 
-export const DEFAULT_OG_IMAGE = '/images/hero-home.jpg';
 export const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
 export const PLACEHOLDER_IMAGE_SVG = '/images/placeholder.svg';
-/** Pixel size of `public/images/hero-home.jpg`. Pages with no hero stamp these. */
-export const DEFAULT_OG_IMAGE_WIDTH = 1920;
-export const DEFAULT_OG_IMAGE_HEIGHT = 1280;
-export const DEFAULT_OG_IMAGE_ALT = 'Carinya Parc regenerative farm landscape';
-/** Centre-cropped share image for a post or recipe photograph. */
+/** Centre-cropped share image. Pages with no photograph stamp these. */
 export const SOCIAL_IMAGE_WIDTH = 1200;
 export const SOCIAL_IMAGE_HEIGHT = 630;
+export const DEFAULT_OG_IMAGE_WIDTH = SOCIAL_IMAGE_WIDTH;
+export const DEFAULT_OG_IMAGE_HEIGHT = SOCIAL_IMAGE_HEIGHT;
+export const DEFAULT_OG_IMAGE_ALT = 'Carinya Parc regenerative farm landscape';
 export const TWITTER_HANDLE = '@carinyaparc';
 export const TWITTER_CARD_TYPE = 'summary_large_image';
 
@@ -63,7 +61,6 @@ export const DEFAULT_ARTICLE_SECTION = 'Blog';
 export const DEFAULT_ARTICLE_WORD_COUNT = 2000;
 export const DEFAULT_ARTICLE_KEYWORDS =
   'regenerative farming, sustainable agriculture, permaculture';
-export const DEFAULT_ARTICLE_IMAGE = '/images/hero-home.jpg';
 export const DEFAULT_AUTHOR_NAME = 'Jonathan Daddia';
 export const DEFAULT_AUTHOR_URL_PATH = '/about/jonathan';
 

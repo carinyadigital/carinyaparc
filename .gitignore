@@ -1,4 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# agents
+agents/
+
+# local files 
+*.local.md
+*.local
 
 # dependencies
 node_modules
@@ -50,7 +55,3 @@ next-env.d.ts
 
 # turbo
 .turbo
-
-# local files 
-*.local.md
-*.local

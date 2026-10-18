@@ -1,10 +1,5 @@
-import {
-  SITE_TITLE,
-  DEFAULT_OG_IMAGE,
-  DEFAULT_OG_IMAGE_WIDTH,
-  DEFAULT_OG_IMAGE_HEIGHT,
-  DEFAULT_OG_IMAGE_ALT,
-} from '../constants';
+import { SITE_TITLE, BASE_URL, DEFAULT_OG_IMAGE_ALT } from '../constants';
+import { defaultShareImage } from './share-image';
 import type { OpenGraphImage, OpenGraphMetadata } from './types';
 
 interface OpenGraphConfig {
@@ -56,9 +51,9 @@ export function generateOpenGraph(config: OpenGraphConfig): OpenGraphMetadata {
       ? images
       : [
           {
-            url: DEFAULT_OG_IMAGE,
-            width: imageWidth ?? DEFAULT_OG_IMAGE_WIDTH,
-            height: imageHeight ?? DEFAULT_OG_IMAGE_HEIGHT,
+            url: `${BASE_URL}${defaultShareImage.src}`,
+            width: imageWidth ?? defaultShareImage.width,
+            height: imageHeight ?? defaultShareImage.height,
             alt: imageAlt ?? DEFAULT_OG_IMAGE_ALT,
           },
         ];

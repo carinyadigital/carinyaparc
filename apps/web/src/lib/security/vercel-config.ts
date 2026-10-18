@@ -41,15 +41,6 @@ export interface VercelOutputConfig {
   [key: string]: unknown;
 }
 
-/**
- * Retired admin and GraphQL paths. Matching requests return HTTP 410 at the CDN
- * (and from the on-demand Astro endpoints used by local preview).
- */
-export const GONE_PATH_PATTERNS = [
-  '^/admin(?:/.*)?$',
-  '^/api/graphql(?:-playground)?(?:/.*)?$',
-] as const;
-
 export interface GenerateVercelJsonOptions {
   /** When true, emit Content-Security-Policy-Report-Only instead of enforcing. */
   reportOnly?: boolean;
@@ -104,8 +95,8 @@ function headerMapFromVercelJson(config: VercelJson): Record<string, string> {
 }
 
 /**
- * Prepend security headers (continue) and Gone routes onto the adapter's
- * Build Output config so they apply even when the platform ignores vercel.json.
+ * Prepend security headers (continue) onto the adapter's Build Output config
+ * so they apply even when the platform ignores vercel.json.
  */
 export function mergeSecurityIntoVercelOutput(
   output: VercelOutputConfig,
@@ -117,13 +108,9 @@ export function mergeSecurityIntoVercelOutput(
     headers: headerMapFromVercelJson(vercelJson),
     continue: true,
   };
-  const goneRoutes: VercelOutputRoute[] = GONE_PATH_PATTERNS.map((src) => ({
-    src,
-    status: 410,
-  }));
 
   return {
     ...output,
-    routes: [headerRoute, ...goneRoutes, ...(output.routes ?? [])],
+    routes: [headerRoute, ...(output.routes ?? [])],
   };
 }

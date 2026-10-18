@@ -2,7 +2,7 @@
 import '@/styles/pages/blog.css';
 
 import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
-import { getImage, Image } from 'astro:assets';
+import { Image } from 'astro:assets';
 import { getEntry, render } from 'astro:content';
 
 import Site from '@/layouts/Site.astro';
@@ -14,9 +14,10 @@ import EndOfPostSubscribe from '@/components/blog/EndOfPostSubscribe.astro';
 import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
-import { BASE_URL, DEFAULT_OG_IMAGE } from '@/lib/constants';
+import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
+import { BASE_URL } from '@/lib/constants';
 import { imagePresets } from '@/lib/images';
-import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
+import { buildShareImage, defaultShareImage } from '@/lib/metadata/share-image';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
@@ -49,18 +50,11 @@ const path = postUrl(slug);
 const canonicalUrl = `${BASE_URL}${path}`;
 const subscribeSource = blogSubscribeSource(slug);
 
-/** Centre-cropped 1200×630 share image when the post has a photograph. */
-let ogImagePath: string | undefined;
-let ogImageWidth: number | undefined;
-let ogImageHeight: number | undefined;
-let ogImageAlt: string | undefined;
-if (entry.data.image) {
-  const built = await getImage({ src: entry.data.image, ...socialImageCrop });
-  ogImagePath = built.src;
-  ogImageWidth = socialImageSize(built.attributes.width, socialImageCrop.width);
-  ogImageHeight = socialImageSize(built.attributes.height, socialImageCrop.height);
-  ogImageAlt = entry.data.imageAlt ?? entry.data.title;
-}
+/** Centre-cropped 1200×630 share image. Posts with no photograph use the site crop. */
+const share = entry.data.image ? await buildShareImage(entry.data.image) : defaultShareImage;
+const shareAlt = entry.data.image
+  ? (entry.data.imageAlt ?? entry.data.title)
+  : defaultShareImage.alt;
 
 const wordCount = (entry.body ?? '').trim().split(/\s+/).filter(Boolean).length;
 
@@ -69,7 +63,7 @@ const articleData = {
   slug,
   author: authorName,
   datePublished: entry.data.date.toISOString(),
-  imageUrl: ogImagePath ?? DEFAULT_OG_IMAGE,
+  imageUrl: share.src,
   description,
   excerpt: entry.data.excerpt,
   tags: tags.length > 0 ? tags.map((tag) => tag.name) : undefined,
@@ -88,10 +82,10 @@ const breadcrumbs = [
   title={`${entry.data.title} - Blog - Carinya Parc`}
   description={description}
   path={path}
-  image={ogImagePath}
-  imageWidth={ogImageWidth}
-  imageHeight={ogImageHeight}
-  imageAlt={ogImageAlt}
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt={shareAlt}
   type="article"
   publishedTime={entry.data.date.toISOString()}
   authors={[authorName]}
@@ -126,9 +120,13 @@ const breadcrumbs = [
             class="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
-          <img
-            src="/images/farm-track-gate.jpg"
+          <Image
+            src={farmTrackGate}
             alt={entry.data.title}
+            widths={imagePresets.detail.widths}
+            sizes={imagePresets.detail.sizes}
+            quality={imagePresets.detail.quality}
+            format={imagePresets.detail.format}
             loading="eager"
             fetchpriority="high"
             decoding="sync"

@@ -16,10 +16,4 @@ export {
   SECURITY_HEADER_PRESETS,
 } from './constants';
 
-export { goneResponse } from './gone';
-
-export {
-  generateVercelJson,
-  mergeSecurityIntoVercelOutput,
-  GONE_PATH_PATTERNS,
-} from './vercel-config';
+export { generateVercelJson, mergeSecurityIntoVercelOutput } from './vercel-config';

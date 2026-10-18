@@ -5,13 +5,12 @@ state: current
 version: '0.4'
 owner: engineering
 status: Draft
-last_updated: 2026-09-22
+last_updated: 2026-10-18
 related:
   - docs/product/product.md
   - docs/PRINCIPLES.md
   - docs/product/roadmap.md
   - docs/decisions/ADR-0001-astro-mdx.md
-  - docs/decisions/ADR-0002-git-is-the-publish-gate.md
 ---
 
 # Architecture — Carinya Parc website
@@ -112,7 +111,7 @@ Ordered by priority for architectural trade-offs.
 
 **Static site with islands, git as the CMS.** Astro 7 renders every public route to HTML at build time from `.astro` components and MDX content collections. React 19 islands hydrate only the contact, subscribe, event-signup and consent components. Five endpoints run as Vercel functions on demand. Content lives in `content/` at the repository root and is validated by Zod schemas in `apps/web/src/content.config.ts`; publishing is merging to `main`.
 
-The trade-off accepted is the loss of a browser editing UI. Vercel preview deployments and PR review replace draft preview and publish approval; see [ADR-0002](decisions/ADR-0002-git-is-the-publish-gate.md).
+The trade-off accepted is the loss of a browser editing UI. Vercel preview deployments and pull-request review are the draft preview and the publish approval.
 
 ### 3.2 Key decisions and trade-offs
 
@@ -151,7 +150,7 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 │  ├─ tags.json               │   ├─ src/lib/                          │
 │  └─ images/          ───────┘   ├─ src/assets/images/ · public/      │
 │                                 ├─ integrations/ · scripts/          │
-│  packages/carinya-theme ───────>└─ tests/ (parity, security)         │
+│  packages/carinya-theme ───────>└─ tests/ (security)                 │
 │  packages/eslint-config, typescript-config                           │
 │  brand/ · skills/carinya-parc                                        │
 └──────────────────────────────────────────────────────────────────────┘
@@ -175,8 +174,8 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 | **Validation**            | Zod schemas, sanitisation, spam-email list                                                                                             | `src/lib/validation/`                                                 |
 | **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                                       | `src/lib/rate-limit.ts`                                               |
 | **Integrations**          | MailerLite client (subscribers, event groups), Resend notification email                                                               | `src/lib/mailerlite/`, `src/lib/email/`                               |
-| **Security policy**       | Header presets, CSP directives, `vercel.json` generator, Gone routes                                                                   | `src/lib/security/`, `scripts/generate-vercel-json.ts`                |
-| **Build integrations**    | Merge headers and 410 routes into the Vercel output; make redirects accept a trailing slash                                            | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs` |
+| **Security policy**       | Header presets, CSP directives, `vercel.json` generator                                                                                | `src/lib/security/`, `scripts/generate-vercel-json.ts`                |
+| **Build integrations**    | Merge security headers into the Vercel output; make redirects accept a trailing slash                                                  | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs` |
 | **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization                                    | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`        |
 | **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                                                                 | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`           |
 | **Observability**         | Sentry capture and metric counters used by the handlers                                                                                | `src/lib/observability/metrics.ts`                                    |
@@ -225,7 +224,7 @@ apps/web/
 │   └── generate-vercel-json.ts
 ├── public/                   # copied verbatim to the site root
 │   ├── favicon/              # favicon.ico and PNG sizes
-│   ├── images/               # fallback and placeholder images used by plain <img>
+│   ├── images/               # placeholder SVG for entries with no photograph
 │   ├── motifs/               # brand line icons
 │   └── site.webmanifest
 ├── src/
@@ -238,8 +237,6 @@ apps/web/
 │   ├── styles/               # globals.css, components.css, pages/{blog,legal,recipes}.css
 │   └── assets/images/        # photographs imported by pages and optimised at build
 ├── tests/
-│   ├── baseline/             # production URL and metadata snapshot
-│   ├── parity.test.ts        # dist/ against tests/baseline/
 │   └── security.test.ts      # dist/ links, images, CSP hosts, headers in .vercel/output/config.json
 ├── tsconfig.json             # extends astro/tsconfigs/strict; @/* → ./src/*
 ├── vitest.config.ts          # Astro getViteConfig; src/**/*.test.{ts,tsx} and tests/**/*.test.ts
@@ -284,7 +281,7 @@ An island is always wrapped by a small `.astro` component that owns the `client:
 | `mailerlite/`    | MailerLite client: subscriber upsert, per-event group resolution                                                                                                                                                                                                                                                             |
 | `email/`         | `send-contact-notification.ts` (Resend) and `templates/`                                                                                                                                                                                                                                                                     |
 | `events/`        | `catalog.ts` — `getPublicEventBySlug` for the signup endpoint (drafts return `null`)                                                                                                                                                                                                                                         |
-| `security/`      | `csp.ts`, `headers.ts`, `gone.ts`, `constants.ts`, `vercel-config.ts` (`generateVercelJson`, `mergeSecurityIntoVercelOutput`, `GONE_PATH_PATTERNS`)                                                                                                                                                                          |
+| `security/`      | `csp.ts`, `headers.ts`, `constants.ts`, `vercel-config.ts` (`generateVercelJson`, `mergeSecurityIntoVercelOutput`)                                                                                                                                                                                                           |
 | `consent/`       | `cookie.ts` (read and write `cp_consent` in the browser), `types.ts`                                                                                                                                                                                                                                                         |
 | `analytics/`     | Consent-gated `trackEvent`, typed funnel events, `consent.ts`                                                                                                                                                                                                                                                                |
 | `client/`        | Browser-side helpers used by inline scripts: `scroll-depth`, `share`, `site-header`                                                                                                                                                                                                                                          |
@@ -300,9 +297,9 @@ Folders with several files carry their own `types.ts` and tests; `metadata/`, `s
 
 `src/styles/globals.css` is the single entry: it imports the two font packages, `@carinya/theme`, the typography plugin and `components.css`. Per-page CSS (`pages/blog.css`, `pages/legal.css`, `pages/recipes.css`) is imported at the top of the page that needs it, so it is only bundled where it is used. Tokens are never redefined in the app; they come from `packages/carinya-theme`.
 
-Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/parity.test.ts` and `tests/security.test.ts` read the built output and skip themselves when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`. `test:parity` compares the build against the production baseline in `apps/web/tests/baseline/`.
+Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/security.test.ts` reads the built output and skips itself when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`.
 
-- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers and the 410 routes into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
+- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
 - `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
 - `scripts/generate-vercel-json.ts` writes `vercel.json` from `src/lib/security/vercel-config.ts`. Run it (`pnpm --filter web generate:vercel-json`) after changing anything in `lib/security` and commit the result.
 - `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `src/pages/robots.txt.ts` builds `/robots.txt` from the configured `site`. `@sentry/astro` is added only when a DSN is present.
@@ -334,7 +331,7 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
 
-On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
+On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, so it stays outside ad-blocker lists that key on `sentry`:
 
 | URL                   | File                         | Handler                    |
 | --------------------- | ---------------------------- | -------------------------- |
@@ -344,9 +341,7 @@ On-demand endpoints (`export const prerender = false`; `POST` only, `GET` return
 | `/api/csp-report/`    | `pages/api/csp-report.ts`    | `lib/api/csp-report.ts`    |
 | `/monitoring/`        | `pages/monitoring.ts`        | `lib/api/sentry-tunnel.ts` |
 
-Retired routes: `pages/admin.ts`, `pages/admin/[...path].ts`, `pages/api/graphql.ts`, `pages/api/graphql/[...path].ts`, `pages/api/graphql-playground.ts` and `pages/api/graphql-playground/[...path].ts` all return 410 Gone through `lib/security/gone.ts`, and the same patterns are added as 410 routes in the Vercel config so the function is rarely invoked.
-
-Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico`, `/sitemap.xml` → `/sitemap-index.xml`, and ten retired post slugs that 301 to the nearest current piece.
+Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico` and `/sitemap.xml` → `/sitemap-index.xml`.
 
 ### 4.6 Layouts, trailing slashes, and how to add things
 
@@ -389,8 +384,8 @@ astro build
       → getPublishedPosts()  (draft: true excluded unless import.meta.env.DEV)
   → render: Site layout → BlogPostArticle → MDX body, Article + Breadcrumb JSON-LD
   → sitemap-index.xml, feed.xml, 404.html
-  → vercel adapter writes .vercel/output; integrations merge security headers,
-    410 routes and trailing-slash-tolerant redirects into config.json
+  → vercel adapter writes .vercel/output; integrations merge security headers
+    and trailing-slash-tolerant redirects into config.json
 ```
 
 Archive pages (`/blog/category/[slug]/`, `/blog/tag/[tag]/`, `/blog/page/[page]/`) are generated only for categories, tags and pages that have at least one published post.
@@ -495,7 +490,7 @@ Legal (standalone)
 - **References resolve at build time.** `reference('authors')` and `reference('categories')` fail the build if the target file does not exist.
 - **Drafts.** `draft: true` (posts, recipes, events) excludes an entry from production builds, archives, the feed and the sitemap; `astro dev` shows drafts so they can be previewed. The event-signup endpoint treats a draft event as missing.
 - **Dates.** `date` on posts and recipes is required and drives ordering; `startsAt` on events decides whether an event is upcoming.
-- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Post and recipe surfaces render through `astro:assets` using one preset from `apps/web/src/lib/images.ts`: `card` (widths 400, 640, 960; a third of the page on desktop), `featured` (640, 960, 1280; the journal band) or `detail` (640, 1040, 1600; the article and recipe hero). Each preset also sets `sizes` and quality 80. Sharp encodes them as webp; there is no second image service. Featured photographs use `imageAlt`. A recipe card with no photograph still runs the fallback through `astro:assets` and leaves `alt` empty, because the recipe title is the heading. Author photos use the same helper at 120px; the byline leaves alt empty because the author's name sits beside the photo.
+- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Post and recipe surfaces render through `astro:assets` using one preset from `apps/web/src/lib/images.ts`: `card` (widths 400, 640, 960; a third of the page on desktop), `featured` (640, 960, 1280; the journal band) or `detail` (640, 1040, 1600; the article and recipe hero). Each preset also sets `sizes` and quality 80. Sharp encodes them as webp; there is no second image service. Featured photographs use `imageAlt`. A recipe card with no photograph still runs the fallback through `astro:assets` and leaves `alt` empty, because the recipe title is the heading. Author photos use the same helper at 120px; the byline leaves alt empty because the author's name sits beside the photo. Page photographs are imported from `src/assets/images/` and optimised the same way. Every `og:image` is a centre-cropped 1200×630 JPEG of an imported photograph, built at build time. A page with no photograph uses the site photograph for that crop. `public/images/` holds the decorative placeholder SVG only.
 - **Recipes** must have at least one ingredient and one instruction; durations must match the ISO 8601 pattern in `src/lib/content/schema.ts`.
 - **Empty archives are not generated.** A category or tag with no published post has no page and no sitemap entry.
 
@@ -533,7 +528,7 @@ Rules common to every collection:
 | `featured`    | boolean                   | no       | Default `false`. The newest featured post is the journal hero; older featured posts stay in the dated grid |
 | `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                                                                         |
 | `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`                                                                  |
-| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise                                                          |
+| `image`       | image                     | no       | Hero and `og:image`; the site share crop otherwise                                                         |
 | `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway                                                                      |
 | `draft`       | boolean                   | no       | Default `false`                                                                                            |
 
@@ -630,7 +625,6 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 - **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. The obsolete `X-XSS-Protection` header is not sent. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
 - **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
-- **Retired surfaces.** `/admin`, `/api/graphql` and `/api/graphql-playground` (and anything below them) return **410 Gone** from a CDN route; matching on-demand endpoints exist so local preview behaves the same.
 - **Rate limiting.** Each form endpoint keeps an in-memory map keyed by lowercased email, per function instance. It stops a single browser repeating a completed form; a failed Resend or MailerLite call releases that attempt so the visitor can retry. It does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
 - **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
 - **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
@@ -645,13 +639,12 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 ### 7.3 Error handling
 
 - **404** — `src/pages/404.astro`, served by Vercel for any unmatched path. The document is `noindex, follow` and omits a canonical, because the same static file answers every unknown URL.
-- **410** — retired admin and GraphQL paths (§7.1).
 - **Endpoints** — structured JSON `{ error }` with 400/404/409/429/500/503 as appropriate; a thrown error inside a handler is captured to Sentry and returns a generic 500.
 - **Build** — a schema error, a missing referenced file or a missing image fails `astro build`, which fails CI and the Vercel deployment; nothing partial ships.
 
 ### 7.4 Caching and content freshness
 
-Every public page is static HTML on the Vercel CDN and changes only when a build runs. Freshness is therefore "last merge to `main`": there is no revalidation, no ISR and no cache tags to keep in sync. Images referenced from frontmatter are optimised at build by Astro (sharp) into hashed files; marketing photography in `src/assets/images/` is handled the same way; `public/` is served as-is. Function responses are not cached.
+Every public page is static HTML on the Vercel CDN and changes only when a build runs. Freshness is therefore "last merge to `main`": there is no revalidation, no ISR and no cache tags to keep in sync. Images referenced from frontmatter are optimised at build by Astro (sharp) into hashed files; marketing photography in `src/assets/images/` is handled the same way, including the 1200×630 JPEG share crop. `public/` is served as-is and holds no photographs. Function responses are not cached.
 
 ### 7.5 Metadata and structured data
 
@@ -659,18 +652,17 @@ Every public page is static HTML on the Vercel CDN and changes only when a build
 
 ### 7.6 Accessibility
 
-Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. Every `Site` page starts with a visually hidden “Skip to content” link that is shown on focus and moves keyboard focus to the main landmark. No automated accessibility gate runs in CI yet; Lighthouse accessibility is compared against the production baseline by hand.
+Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. Every `Site` page starts with a visually hidden “Skip to content” link that is shown on focus and moves keyboard focus to the main landmark. No automated accessibility gate runs in CI yet.
 
 ### 7.7 Testing strategy
 
-| Layer         | What                                                                                                                                                                               | Command                                       |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                           | `pnpm --filter web test`                      |
-| Parity        | `dist/` against `apps/web/tests/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                                  | `pnpm --filter web test:parity` (after build) |
-| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and enforced CSP | `pnpm --filter web test:dist` (after build)   |
-| Typecheck     | `astro check`                                                                                                                                                                      | `pnpm --filter web typecheck`                 |
+| Layer         | What                                                                                                                                                                   | Command                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                               | `pnpm --filter web test`                    |
+| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers and enforced CSP | `pnpm --filter web test:dist` (after build) |
+| Typecheck     | `astro check`                                                                                                                                                          | `pnpm --filter web typecheck`               |
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The parity and dist suites skip themselves when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The dist suite skips itself when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
 
 ### 7.8 Public HTTP surface
 
@@ -681,10 +673,9 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turb
 | `/api/events/signup/`                            | POST   | Event signup → MailerLite group for the event   | 404 draft/unknown, 400 past or external, 409 full  |
 | `/api/csp-report/`                               | POST   | CSP violation reports → Sentry                  | 204 for reports from other origins                 |
 | `/monitoring/`                                   | POST   | Browser Sentry envelopes → the project DSN      | Same-origin tunnel; GET returns 405                |
-| `/admin/**`, `/api/graphql*`                     | any    | Retired admin and GraphQL paths                 | 410 Gone                                           |
 | `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
 
-Request and response shapes are the Zod schemas in `src/lib/validation/` and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash; ten retired blog slugs redirect (301) to their replacements per `astro.config.mjs`.
+Request and response shapes are the Zod schemas in `src/lib/validation/` and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash.
 
 ---
 
@@ -722,7 +713,7 @@ push / merge → Vercel build (root: apps/web)
   → turbo run build --filter=web → astro build
       → validate content, prerender pages, optimise images, write sitemap and feed
       → Vercel adapter: static output + five functions
-      → integrations patch .vercel/output/config.json (headers, 410s, redirects)
+      → integrations patch .vercel/output/config.json (headers, redirects)
   → deploy
 ```
 
@@ -734,14 +725,13 @@ Rollout is trunk-based: merge to `main` is the production release, every pull re
 
 Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern this architecture:
 
-| ID       | Decision                                                                              | Status                                                                                    |
-| -------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| ADR-0001 | [Astro + MDX is the platform for carinyaparc.com.au](decisions/ADR-0001-astro-mdx.md) | Accepted 2026-09-21                                                                       |
-| ADR-0002 | [Git is the publish gate](decisions/ADR-0002-git-is-the-publish-gate.md)              | Accepted 2026-09-21                                                                       |
-| —        | `content/` at the repository root rather than inside `apps/web`                       | Candidate; recorded in ADR-0001 consequences for now                                      |
-| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'`        | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
-| —        | Event signups as MailerLite groups, no capacity counting                              | Candidate; taken as the default in ADR-0001                                               |
-| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app        | Candidate; shipped                                                                        |
+| ID       | Decision                                                                       | Status                                                                                    |
+| -------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| ADR-0001 | [Astro + MDX](decisions/ADR-0001-astro-mdx.md)                                 | Accepted 2026-09-21                                                                       |
+| —        | `content/` at the repository root rather than inside `apps/web`                | Candidate; content stays at the repository root                                           |
+| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'` | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
+| —        | Event signups as MailerLite groups, no capacity counting                       | Candidate; the default for event signups                                                  |
+| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app | Candidate; shipped                                                                        |
 
 ---
 
@@ -754,7 +744,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 | Form abuse across function instances                        | Medium     | Medium | Honeypot and timing in the handler; Vercel WAF rate-limit on form POSTs                                   |
 | CSP enforcement breaks a third-party script                 | Low        | Medium | Violations POST to `/api/csp-report/` and Sentry; watch after allowlist changes                           |
 | Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                                |
-| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls              |
+| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; review new `getCollection` calls                                      |
 | Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in [`AGENTS.md`](../AGENTS.md); optional git-backed editor (roadmap) |
 
 ### 10.2 Technical debt
@@ -772,7 +762,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 
 - **Editorial tooling.** Is a PR-based workflow with previews enough for the editor, or is a git-backed editor (Decap, Keystatic, or GitHub's web editor with templates) worth adding? Decide after a month of publishing through PRs.
 - **Recipe tags.** Recipe-only tags have no archive page today; surface `/recipes/tag/` pages, or leave recipe tags as labels only.
-- **Dynamic social images.** Closed. Post and recipe pages emit a centre-cropped 1200×630 JPEG of the page photograph, with `og:image:alt` and `twitter:image:alt` set to `imageAlt`. Pages with no hero keep `/images/hero-home.jpg` at that file's real dimensions. A generated card is not used.
+- **Dynamic social images.** Closed. Every page's `og:image` is a centre-cropped 1200×630 JPEG of an imported photograph, with alt text. A page with no photograph uses the site photograph. A generated card is not used.
 - **Event signup source of truth.** MailerLite groups hold the list; if a capacity or attendance record is ever needed it has to come from MailerLite exports.
 
 Mitigation timing is in [`product/roadmap.md`](product/roadmap.md). Do not track debt elsewhere in this doc set.

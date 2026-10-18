@@ -122,7 +122,7 @@ What shipped, and how:
 **Quality gates:**
 
 - Stay pages answer "Is this for me?" and "How do I enquire?" without misleading expectations.
-- New pages carry the common metadata set and pass the dist and parity checks.
+- New pages carry the common metadata set and pass the dist checks.
 
 **Exit criteria:**
 

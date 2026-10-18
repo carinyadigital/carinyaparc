@@ -5,7 +5,7 @@ Website for [Carinya Parc](https://carinyaparc.com.au) — a regenerative farm i
 ## Features
 
 - **Astro 7** static site with **MDX** content collections (`apps/web`)
-- **React 19** islands for the contact, subscribe and event-signup forms only; every other page ships no JavaScript
+- **React 19** islands for contact, subscribe, event signup, and consent. Public pages are static HTML.
 - **Content in git** at `content/` — posts, recipes, events, legal pages, authors, categories. No database, no admin UI; merging to `main` publishes
 - **Tailwind CSS 4** with design tokens in `packages/carinya-theme`
 - **pnpm** + **Turborepo** monorepo, deployed on **Vercel** with generated security headers and CSP

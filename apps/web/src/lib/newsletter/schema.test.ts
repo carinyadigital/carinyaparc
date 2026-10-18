@@ -8,7 +8,7 @@ import {
   SUBSCRIBE_INTEREST_OPTIONS,
   SUBSCRIBE_INTERESTS,
   subscribeFormSchema,
-} from './subscribe-schema';
+} from './schema';
 
 describe('subscribeFormSchema', () => {
   const validBase = {

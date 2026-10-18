@@ -10,7 +10,7 @@ import Breadcrumb from '@/components/ui/Breadcrumb.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import AuthorBlock from '@/components/blog/AuthorBlock.astro';
 import BlogPostArticle from '@/components/blog/BlogPostArticle.astro';
-import EndOfPostSubscribe from '@/components/blog/EndOfPostSubscribe.astro';
+import EndOfPostSubscribe from '@/components/newsletter/EndOfPostSubscribe.astro';
 import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
@@ -21,7 +21,7 @@ import { buildShareImage, defaultShareImage } from '@/lib/metadata/share-image';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
-import { blogSubscribeSource } from '@/lib/validation/subscribe-schema';
+import { blogSubscribeSource } from '@/lib/newsletter/schema';
 
 export const getStaticPaths = (async () => {
   const posts = await getPublishedPosts();

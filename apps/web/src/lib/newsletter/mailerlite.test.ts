@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  addToMailerLiteList,
   buildMailerLiteSubscriberPayload,
   eventGroupName,
   resetMailerLiteGroupCache,
   resolveEventGroupId,
   upsertMailerLiteSubscriber,
-} from './client';
+} from './mailerlite';
 
 describe('buildMailerLiteSubscriberPayload', () => {
   it('persists canonical interest and source as MailerLite fields', () => {
@@ -176,5 +177,35 @@ describe('resolveEventGroupId', () => {
     const cached = await resolveEventGroupId('open-day');
     expect(cached.groupId).toBe('grp_new');
     expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('posts the subscriber into the group named for the list key', async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ id: 9, name: 'event:open-day' }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: { id: 'sub_1' } }),
+      }) as unknown as typeof fetch;
+
+    const result = await addToMailerLiteList({
+      email: 'a@carinyaparc.com.au',
+      name: 'Alex',
+      source: 'event:open-day',
+      list: 'open-day',
+    });
+
+    expect(result).toEqual({ ok: true, status: 200 });
+    const [, init] = vi.mocked(global.fetch).mock.calls[1]!;
+    expect(JSON.parse(String(init?.body))).toEqual({
+      email: 'a@carinyaparc.com.au',
+      fields: { name: 'Alex', source: 'event:open-day' },
+      groups: ['9'],
+    });
   });
 });

@@ -1,11 +1,8 @@
-import { countMetric } from '@/lib/observability/metrics';
-import {
-  buildMailerLiteSubscriberPayload,
-  upsertMailerLiteSubscriber,
-} from '@/lib/mailerlite/client';
 import { jsonResponse, readJsonBody } from '@/lib/api/json';
+import { subscribe } from '@/lib/newsletter';
+import { subscribeFormSchema } from '@/lib/newsletter/schema';
+import { countMetric } from '@/lib/observability/metrics';
 import { createRateLimiter } from '@/lib/rate-limit';
-import { subscribeFormSchema } from '@/lib/validation/subscribe-schema';
 import { isSpamEmail } from '@/lib/validation/spam-email';
 
 const EMAIL_MAX_REQUESTS = 1;
@@ -22,7 +19,7 @@ export function resetSubscribeRateLimit(): void {
   emailRateLimiter.reset();
 }
 
-export async function handleSubscribePost(request: Request): Promise<Response> {
+export async function handleSubscribe(request: Request): Promise<Response> {
   let rateLimitKey: string | undefined;
 
   try {
@@ -79,15 +76,13 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
       );
     }
 
-    const subscriberData = buildMailerLiteSubscriberPayload({
+    const result = await subscribe({
       email,
-      name,
-      interest,
-      interests,
-      source,
+      ...(name ? { name } : {}),
+      ...(interest ? { interest } : {}),
+      ...(interests ? { interests } : {}),
+      ...(source ? { source } : {}),
     });
-
-    const result = await upsertMailerLiteSubscriber(subscriberData);
     if (!result.ok) {
       emailRateLimiter.release(rateLimitKey);
       rateLimitKey = undefined;
@@ -114,5 +109,3 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
     return jsonResponse({ error: 'Failed to process request' }, 400);
   }
 }
-
-export { buildMailerLiteSubscriberPayload };

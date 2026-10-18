@@ -10,12 +10,12 @@ const trackSubscribeStart = vi.fn();
 const trackSubscribeComplete = vi.fn();
 const postSubscribe = vi.fn();
 
-vi.mock('@/lib/analytics', () => ({
+vi.mock('@/lib/analytics/client', () => ({
   trackSubscribeStart: (...args: unknown[]) => trackSubscribeStart(...args),
   trackSubscribeComplete: (...args: unknown[]) => trackSubscribeComplete(...args),
 }));
 
-vi.mock('@/lib/subscribe/client', () => ({
+vi.mock('@/lib/newsletter/client', () => ({
   postSubscribe: (...args: unknown[]) => postSubscribe(...args),
 }));
 
@@ -31,17 +31,17 @@ function reactProps<T extends Record<string, unknown>>(el: Element): T {
   return props;
 }
 
-describe('InlineSubscribe', () => {
+describe('SubscribeForm', () => {
   let container: HTMLDivElement;
   let root: Root;
-  let InlineSubscribe: typeof import('@/components/islands/InlineSubscribe').InlineSubscribe;
+  let SubscribeForm: typeof import('@/components/newsletter/SubscribeForm').SubscribeForm;
 
   beforeEach(async () => {
     vi.resetModules();
     trackSubscribeStart.mockReset();
     trackSubscribeComplete.mockReset();
     postSubscribe.mockReset();
-    ({ InlineSubscribe } = await import('@/components/islands/InlineSubscribe'));
+    ({ SubscribeForm } = await import('@/components/newsletter/SubscribeForm'));
 
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -57,7 +57,7 @@ describe('InlineSubscribe', () => {
 
   it('fires subscribe_start once on first focus', async () => {
     await act(async () => {
-      root.render(<InlineSubscribe source="blog:test-post" />);
+      root.render(<SubscribeForm variant="card" source="blog:test-post" />);
     });
 
     const email = container.querySelector('#inline-subscribe-email') as HTMLInputElement;
@@ -76,7 +76,7 @@ describe('InlineSubscribe', () => {
     postSubscribe.mockResolvedValue({ ok: true });
 
     await act(async () => {
-      root.render(<InlineSubscribe source="blog:test-post" />);
+      root.render(<SubscribeForm variant="card" source="blog:test-post" />);
     });
 
     const email = container.querySelector('#inline-subscribe-email') as HTMLInputElement;
@@ -102,7 +102,7 @@ describe('InlineSubscribe', () => {
     postSubscribe.mockResolvedValue({ ok: true });
 
     await act(async () => {
-      root.render(<InlineSubscribe source="stay" variant="stay" />);
+      root.render(<SubscribeForm source="stay" variant="stay" />);
     });
 
     expect(container.querySelector('#subscribe-email-stay')).not.toBeNull();

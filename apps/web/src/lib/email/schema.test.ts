@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { inquiryTypeFromSearch } from './contact-schema';
+import { inquiryTypeFromSearch } from './schema';
 
 describe('inquiryTypeFromSearch', () => {
   it('reads a known inquiry from the contact query', () => {

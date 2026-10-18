@@ -1,13 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/mailerlite/client', async () => {
-  const actual =
-    await vi.importActual<typeof import('@/lib/mailerlite/client')>('@/lib/mailerlite/client');
-  return {
-    ...actual,
-    upsertMailerLiteSubscriber: vi.fn(),
-  };
-});
+vi.mock('@/lib/newsletter', () => ({
+  subscribe: vi.fn(),
+}));
 
 vi.mock('@/lib/observability/metrics', () => ({
   countMetric: vi.fn(),
@@ -15,9 +10,9 @@ vi.mock('@/lib/observability/metrics', () => ({
   captureMessage: vi.fn(),
 }));
 
-import { upsertMailerLiteSubscriber } from '@/lib/mailerlite/client';
+import { subscribe } from '@/lib/newsletter';
 
-import { handleSubscribePost, resetSubscribeRateLimit } from './subscribe';
+import { handleSubscribe, resetSubscribeRateLimit } from './handler';
 
 function jsonRequest(body: unknown): Request {
   return new Request('http://localhost/api/subscribe/', {
@@ -30,7 +25,7 @@ function jsonRequest(body: unknown): Request {
 describe('POST /api/subscribe', () => {
   beforeEach(() => {
     resetSubscribeRateLimit();
-    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({ ok: true, status: 200 });
+    vi.mocked(subscribe).mockResolvedValue({ ok: true, status: 200 });
   });
 
   afterEach(() => {
@@ -43,21 +38,19 @@ describe('POST /api/subscribe', () => {
       headers: { 'Content-Type': 'application/json' },
       body: '{',
     });
-    const response = await handleSubscribePost(req);
+    const response = await handleSubscribe(req);
     expect(response.status).toBe(400);
   });
 
   it('returns 400 for an invalid email', async () => {
-    const response = await handleSubscribePost(
-      jsonRequest({ email: 'nope', submissionTime: 5000 }),
-    );
+    const response = await handleSubscribe(jsonRequest({ email: 'nope', submissionTime: 5000 }));
     const body = await response.json();
     expect(response.status).toBe(400);
     expect(body.error).toMatch(/email/i);
   });
 
   it('returns 400 for an invalid interest enum', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'reader@carinyaparc.com.au',
         interest: 'farming',
@@ -68,7 +61,7 @@ describe('POST /api/subscribe', () => {
   });
 
   it('returns 400 when source exceeds 200 characters', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'reader@carinyaparc.com.au',
         source: 's'.repeat(201),
@@ -79,7 +72,7 @@ describe('POST /api/subscribe', () => {
   });
 
   it('silently succeeds on honeypot fill without calling MailerLite', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'bot@carinyaparc.com.au',
         website: 'http://spam.example',
@@ -89,11 +82,11 @@ describe('POST /api/subscribe', () => {
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body).toEqual({ success: true });
-    expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
   });
 
   it('silently succeeds when submissionTime is too fast', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'fast@carinyaparc.com.au',
         submissionTime: 500,
@@ -101,19 +94,19 @@ describe('POST /api/subscribe', () => {
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true });
-    expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
+    expect(subscribe).not.toHaveBeenCalled();
   });
 
   it('records a long ordinary address instead of pretending it subscribed', async () => {
     const email = 'regenerativeagriculture@gmail.com';
-    const response = await handleSubscribePost(jsonRequest({ email, submissionTime: 5000 }));
+    const response = await handleSubscribe(jsonRequest({ email, submissionTime: 5000 }));
 
     expect(response.status).toBe(200);
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledWith({ email });
+    expect(subscribe).toHaveBeenCalledWith({ email });
   });
 
   it('upserts to MailerLite with interest and source fields', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'blog.reader@carinyaparc.com.au',
         interest: 'community',
@@ -124,19 +117,16 @@ describe('POST /api/subscribe', () => {
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ success: true });
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(upsertMailerLiteSubscriber).mock.calls[0]?.[0]).toEqual({
+    expect(subscribe).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(subscribe).mock.calls[0]?.[0]).toEqual({
       email: 'blog.reader@carinyaparc.com.au',
-      fields: {
-        interest: 'community',
-        interests: 'community',
-        source: 'blog:planting-day',
-      },
+      interest: 'community',
+      source: 'blog:planting-day',
     });
   });
 
   it('accepts legacy interests from the standalone form', async () => {
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({
         email: 'legacy.reader@carinyaparc.com.au',
         name: 'Jordan',
@@ -147,13 +137,10 @@ describe('POST /api/subscribe', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(vi.mocked(upsertMailerLiteSubscriber).mock.calls[0]?.[0]).toEqual({
+    expect(vi.mocked(subscribe).mock.calls[0]?.[0]).toEqual({
       email: 'legacy.reader@carinyaparc.com.au',
-      fields: {
-        name: 'Jordan',
-        interest: 'restoration',
-        interests: 'restoration',
-      },
+      name: 'Jordan',
+      interests: 'regeneration',
     });
   });
 });
@@ -164,12 +151,12 @@ describe('upstream failures', () => {
   });
 
   it('hides configuration and server errors behind a generic message', async () => {
-    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({
+    vi.mocked(subscribe).mockResolvedValue({
       ok: false,
       status: 500,
       error: 'Newsletter service not configured. Please add MAILERLITE_API_KEY to .env.local',
     });
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({ email: 'reviewer@fastmail.com', submissionTime: 9000 }),
     );
     expect(response.status).toBe(503);
@@ -178,7 +165,7 @@ describe('upstream failures', () => {
   });
 
   it('lets the same address retry after the newsletter service fails', async () => {
-    vi.mocked(upsertMailerLiteSubscriber)
+    vi.mocked(subscribe)
       .mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -187,37 +174,37 @@ describe('upstream failures', () => {
       .mockResolvedValueOnce({ ok: true, status: 200 });
 
     const body = { email: 'Retry@fastmail.com', submissionTime: 5000 };
-    const failed = await handleSubscribePost(jsonRequest(body));
+    const failed = await handleSubscribe(jsonRequest(body));
     expect(failed.status).toBe(503);
 
-    const retried = await handleSubscribePost(
+    const retried = await handleSubscribe(
       jsonRequest({ email: 'retry@fastmail.com', submissionTime: 5000 }),
     );
     expect(retried.status).toBe(200);
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(2);
+    expect(subscribe).toHaveBeenCalledTimes(2);
   });
 
   it('still blocks a second subscribe after one succeeds, ignoring email case', async () => {
-    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({ ok: true, status: 200 });
-    const first = await handleSubscribePost(
+    vi.mocked(subscribe).mockResolvedValue({ ok: true, status: 200 });
+    const first = await handleSubscribe(
       jsonRequest({ email: 'Once@fastmail.com', submissionTime: 5000 }),
     );
     expect(first.status).toBe(200);
 
-    const again = await handleSubscribePost(
+    const again = await handleSubscribe(
       jsonRequest({ email: 'once@fastmail.com', submissionTime: 5000 }),
     );
     expect(again.status).toBe(429);
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(1);
+    expect(subscribe).toHaveBeenCalledTimes(1);
   });
 
   it('passes validation-style upstream errors through', async () => {
-    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({
+    vi.mocked(subscribe).mockResolvedValue({
       ok: false,
       status: 422,
       error: 'Subscription failed: The email must be a valid email address.',
     });
-    const response = await handleSubscribePost(
+    const response = await handleSubscribe(
       jsonRequest({ email: 'reviewer2@fastmail.com', submissionTime: 9000 }),
     );
     expect(response.status).toBe(422);

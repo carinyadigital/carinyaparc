@@ -1,21 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { getPublicEventBySlug, resolveEventGroupId, upsertMailerLiteSubscriber } = vi.hoisted(
-  () => ({
-    getPublicEventBySlug: vi.fn(),
-    resolveEventGroupId: vi.fn(),
-    upsertMailerLiteSubscriber: vi.fn(),
-  }),
-);
+const { getPublicEventBySlug, addToList } = vi.hoisted(() => ({
+  getPublicEventBySlug: vi.fn(),
+  addToList: vi.fn(),
+}));
 
 vi.mock('@/lib/events/catalog', () => ({
   getPublicEventBySlug,
 }));
 
-vi.mock('@/lib/mailerlite/client', () => ({
-  buildMailerLiteSubscriberPayload: (input: Record<string, unknown>) => input,
-  resolveEventGroupId,
-  upsertMailerLiteSubscriber,
+vi.mock('@/lib/newsletter', () => ({
+  addToList,
 }));
 
 vi.mock('@/lib/observability/metrics', () => ({
@@ -48,8 +43,7 @@ describe('POST /api/events/signup', () => {
     resetEventSignupRateLimit();
     process.env.EVENT_SIGNUP_RATE_LIMITING = 'false';
     getPublicEventBySlug.mockResolvedValue(upcomingEvent);
-    resolveEventGroupId.mockResolvedValue({ ok: true, status: 200, groupId: 'grp_1' });
-    upsertMailerLiteSubscriber.mockResolvedValue({ ok: true, status: 200 });
+    addToList.mockResolvedValue({ ok: true, status: 200 });
   });
 
   afterEach(() => {
@@ -91,7 +85,7 @@ describe('POST /api/events/signup', () => {
     const body = await response.json();
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
-    expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
+    expect(addToList).not.toHaveBeenCalled();
   });
 
   it('records a registration against the event MailerLite group', async () => {
@@ -109,14 +103,12 @@ describe('POST /api/events/signup', () => {
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.status).toBe('registered');
-    expect(resolveEventGroupId).toHaveBeenCalledWith('winter-planting-day');
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledWith(
-      expect.objectContaining({
-        email: 'alex@fastmail.com',
-        name: 'Alex Farmer',
-        groups: ['grp_1'],
-      }),
-    );
+    expect(addToList).toHaveBeenCalledWith({
+      email: 'alex@fastmail.com',
+      name: 'Alex Farmer',
+      source: 'event:winter-planting-day',
+      list: 'winter-planting-day',
+    });
   });
 
   it('returns 409 when the event is marked full', async () => {
@@ -134,7 +126,7 @@ describe('POST /api/events/signup', () => {
 
     expect(response.status).toBe(409);
     expect(body.full).toBe(true);
-    expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
+    expect(addToList).not.toHaveBeenCalled();
   });
 
   it('returns 404 when the event is missing', async () => {
@@ -153,7 +145,7 @@ describe('POST /api/events/signup', () => {
   });
 
   it('does not spend the allowance when the signup is not recorded', async () => {
-    upsertMailerLiteSubscriber.mockResolvedValue({
+    addToList.mockResolvedValue({
       ok: false,
       status: 500,
       error: 'Network error. Please try again later.',
@@ -171,10 +163,10 @@ describe('POST /api/events/signup', () => {
       expect(failed.status).toBe(500);
     }
 
-    upsertMailerLiteSubscriber.mockResolvedValue({ ok: true, status: 200 });
+    addToList.mockResolvedValue({ ok: true, status: 200 });
     const retried = await handleEventSignupPost(jsonRequest(body));
     expect(retried.status).toBe(200);
-    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(6);
+    expect(addToList).toHaveBeenCalledTimes(6);
   });
 
   it('returns 400 when the event uses an external signup target', async () => {
@@ -193,6 +185,6 @@ describe('POST /api/events/signup', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
+    expect(addToList).not.toHaveBeenCalled();
   });
 });

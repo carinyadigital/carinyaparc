@@ -1,5 +1,8 @@
-import { trackArticleScrollDepth } from '@/lib/analytics/events';
-import { SCROLL_DEPTH_THRESHOLDS, type ScrollDepth } from '@/lib/analytics/types';
+import {
+  SCROLL_DEPTH_THRESHOLDS,
+  trackArticleScrollDepth,
+  type ScrollDepth,
+} from '@/lib/analytics/client';
 
 /** Viewport-bottom progress through the article (0–100). */
 export function getArticleScrollPercent(article: HTMLElement): number {

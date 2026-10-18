@@ -2,6 +2,7 @@
 /**
  * On-site event signup island. Posts JSON to `/api/events/signup/` with eventSlug.
  */
+import PrivacyNote from '@/components/newsletter/PrivacyNote.astro';
 import { EventSignup } from '@/components/islands/EventSignup';
 
 interface Props {
@@ -20,4 +21,6 @@ const { eventSlug, eventTitle, isFull = false, class: className } = Astro.props;
   eventTitle={eventTitle}
   isFull={isFull}
   className={className}
-/>
+>
+  <PrivacyNote slot="privacy" class="mt-1" />
+</EventSignup>

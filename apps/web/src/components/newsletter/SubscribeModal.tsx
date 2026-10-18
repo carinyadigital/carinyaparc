@@ -1,15 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Newspaper, Shovel, Sprout, X } from 'lucide-react';
 
-import { SubscribeForm } from '@/components/islands/SubscribeForm';
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
 import { cn } from '@/lib/cn';
 
 interface SubscribeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  privacy?: ReactNode;
 }
 
-export function SubscribeModal({ open, onOpenChange }: SubscribeModalProps) {
+export function SubscribeModal({ open, onOpenChange, privacy }: SubscribeModalProps) {
   useEffect(() => {
     if (!open) {
       return;
@@ -85,7 +86,13 @@ export function SubscribeModal({ open, onOpenChange }: SubscribeModalProps) {
             </li>
           </ul>
         </div>
-        <SubscribeForm showName={false} showInterests={false} source="header-modal" />
+        <SubscribeForm
+          variant="page"
+          showName={false}
+          showInterests={false}
+          source="header-modal"
+          privacy={privacy}
+        />
       </div>
     </div>
   );

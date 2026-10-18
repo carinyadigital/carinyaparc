@@ -1,4 +1,4 @@
-import type { SubscribeInterest } from '@/lib/validation/subscribe-schema';
+import type { SubscribeInterest } from '@/lib/newsletter/schema';
 import { API_SUBSCRIBE_PATH } from '@/lib/urls';
 
 export type SubscribeClientPayload = {

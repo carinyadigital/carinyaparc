@@ -1,7 +1,4 @@
-import {
-  resolveSubscribeInterest,
-  type SubscribeInterest,
-} from '@/lib/validation/subscribe-schema';
+import { resolveSubscribeInterest, type SubscribeInterest } from '@/lib/newsletter/schema';
 
 const MAILERLITE_API_BASE = 'https://connect.mailerlite.com/api';
 
@@ -206,4 +203,44 @@ export async function resolveEventGroupId(
     console.error('Fetch error:', error);
     return { ok: false, status: 500, error: 'Network error. Please try again later.' };
   }
+}
+
+export type NewsletterSubscriber = {
+  email: string;
+  name?: string;
+  interest?: SubscribeInterest;
+  interests?: string;
+  source?: string;
+};
+
+/** Upsert a newsletter subscriber. */
+export function subscribeWithMailerLite(input: NewsletterSubscriber): Promise<MailerLiteResult> {
+  return upsertMailerLiteSubscriber(buildMailerLiteSubscriberPayload(input));
+}
+
+/**
+ * Add a subscriber to the list named for `list`.
+ * Callers pass a list key (an event slug); this adapter maps it to a MailerLite group.
+ */
+export async function addToMailerLiteList(
+  input: NewsletterSubscriber & { list: string },
+): Promise<MailerLiteResult> {
+  const group = await resolveEventGroupId(input.list);
+  if (!group.ok) {
+    return group;
+  }
+  if (!group.groupId) {
+    return { ok: false, status: 500, error: 'Subscription failed: Missing group id' };
+  }
+
+  return upsertMailerLiteSubscriber(
+    buildMailerLiteSubscriberPayload({
+      email: input.email,
+      name: input.name,
+      interest: input.interest,
+      interests: input.interests,
+      source: input.source,
+      groups: [group.groupId],
+    }),
+  );
 }

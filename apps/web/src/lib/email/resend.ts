@@ -1,20 +1,6 @@
 import { Resend } from 'resend';
 
-export interface EmailSendResult {
-  success: boolean;
-  messageId?: string;
-  error?: string;
-}
-
-export type OutboundEmail = {
-  from: string;
-  to: string;
-  replyTo: string;
-  subject: string;
-  html: string;
-  text: string;
-  tags: { name: string; value: string }[];
-};
+import type { EmailSendResult, OutboundEmail } from '@/lib/email/types';
 
 // Use a placeholder key during build when the real key is absent.
 const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key_for_build');
@@ -70,7 +56,7 @@ export async function deliverEmail(message: OutboundEmail): Promise<EmailSendRes
       };
     }
 
-    console.log(`Contact notification sent successfully. Message ID: ${result.data?.id}`);
+    console.log(`Email sent successfully. Message ID: ${result.data?.id}`);
 
     return {
       success: true,
@@ -87,7 +73,7 @@ export async function deliverEmail(message: OutboundEmail): Promise<EmailSendRes
       };
     }
 
-    console.error('Failed to send contact notification email:', error);
+    console.error('Failed to send email:', error);
 
     let errorMessage = 'Failed to send email notification';
 
@@ -117,10 +103,6 @@ export async function verifyEmailServiceConfig(): Promise<{
 
   if (!process.env.RESEND_API_KEY) {
     errors.push('RESEND_API_KEY is not configured');
-  }
-
-  if (!process.env.CONTACT_EMAIL_RECIPIENT) {
-    errors.push('CONTACT_EMAIL_RECIPIENT is not configured');
   }
 
   if (process.env.RESEND_API_KEY && process.env.NODE_ENV === 'development') {

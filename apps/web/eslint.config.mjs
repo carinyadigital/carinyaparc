@@ -65,8 +65,7 @@ const eslintConfig = [
             },
             {
               name: '@/lib/email/resend',
-              message:
-                'Only lib/email may import resend.ts. Call sendContactNotification() from @/lib/email.',
+              message: 'Only lib/email may import resend.ts. Call send() from @/lib/email.',
             },
           ],
         },
@@ -102,20 +101,28 @@ const eslintConfig = [
                 'Components may import @/lib/newsletter/schema and @/lib/newsletter/client only.',
             },
             {
+              name: '@/lib/contact',
+              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
+            },
+            {
+              name: '@/lib/contact/handler',
+              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
+            },
+            {
+              name: '@/lib/contact/notification',
+              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
+            },
+            {
               name: '@/lib/email',
-              message: 'Components may import @/lib/email/schema and @/lib/email/client only.',
+              message: 'Components do not import the email service.',
             },
             {
               name: '@/lib/email/index',
-              message: 'Components may import @/lib/email/schema and @/lib/email/client only.',
-            },
-            {
-              name: '@/lib/email/handler',
-              message: 'Components may import @/lib/email/schema and @/lib/email/client only.',
+              message: 'Components do not import the email service.',
             },
             {
               name: '@/lib/email/resend',
-              message: 'Components may import @/lib/email/schema and @/lib/email/client only.',
+              message: 'Components do not import the email service.',
             },
           ],
         },

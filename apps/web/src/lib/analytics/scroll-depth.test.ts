@@ -4,6 +4,9 @@
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { CONSENT_COOKIE_NAME } from '@/lib/constants';
+
+import { bindPageArticleScrollDepth } from './client';
 import { bindArticleScrollDepth, getArticleScrollPercent } from './scroll-depth';
 
 describe('article scroll depth', () => {
@@ -74,5 +77,37 @@ describe('article scroll depth', () => {
 
     unbind();
     article.remove();
+  });
+
+  it('tracks the first article when bound from the analytics client', () => {
+    document.cookie = `${CONSENT_COOKIE_NAME}=accepted; Path=/`;
+    window.dataLayer = [];
+
+    const article = document.createElement('article');
+    document.body.appendChild(article);
+    Object.defineProperty(article, 'offsetHeight', { value: 1000 });
+    vi.spyOn(article, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      bottom: 1000,
+      left: 0,
+      right: 0,
+      width: 100,
+      height: 1000,
+      x: 0,
+      y: 0,
+      toJSON() {
+        return {};
+      },
+    });
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 250 });
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+
+    bindPageArticleScrollDepth();
+
+    expect(window.dataLayer).toEqual([{ event: 'article_scroll_depth', depth: 25 }]);
+
+    article.remove();
+    document.cookie = `${CONSENT_COOKIE_NAME}=; Path=/; Max-Age=0`;
+    delete window.dataLayer;
   });
 });

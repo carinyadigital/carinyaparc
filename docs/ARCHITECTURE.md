@@ -247,7 +247,7 @@ Newsletter subscribe is the same pipeline without the event lookup: one submissi
 
 The cookie is readable by client script on purpose. Consent is not a secret, and no server reads it.
 
-**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/lib/analytics/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
+**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/lib/analytics/client.ts`, `apps/web/src/components/consent/ConsentGate.tsx`
 
 ---
 

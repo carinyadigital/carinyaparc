@@ -161,6 +161,7 @@ const RETIRED_EVENT_NAMES = [
   'contact_form_success',
 ] as const;
 
+// The track suite sits in this file, beside initAnalytics.
 describe('track', () => {
   beforeEach(() => {
     setConsentCookie(null);

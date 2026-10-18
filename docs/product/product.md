@@ -134,7 +134,7 @@ The website brings this value to life by:
 
 - **Regenerate page**
   - Curated overview of the regenerative project.
-  - States the published soil baseline (organic carbon 1.6% to 3.1%) and links to that journal post. Planting days stay on the page.
+  - Links to deeper blog posts on major themes (e.g., soil, trees, failures).
 
 - **Blog**
   - Long-form narrative posts (e.g., restoring 42 ha of land, lessons from failure).

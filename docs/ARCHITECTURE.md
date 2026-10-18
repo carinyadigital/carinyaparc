@@ -5,7 +5,7 @@ version: '0.5'
 status: Active
 last_updated: 2026-10-18
 related:
-  - docs/product/product.md
+  - docs/PRODUCT.md
   - docs/PRINCIPLES.md
   - docs/decisions/ADR-0001-astro-mdx.md
 ---
@@ -14,7 +14,7 @@ related:
 
 > **Ownership rule.** When the authoring model, runtime split, public routes, content contract, security policy, or deployment topology change, this document must be updated in the same PR.
 
-> **State.** `current` (as-is). Decisions live in [`docs/decisions/`](decisions/). Engineering rules live in [`PRINCIPLES.md`](PRINCIPLES.md). Product scope lives in [`product/product.md`](product/product.md).
+> **State.** `current` (as-is). Decisions live in [`docs/decisions/`](decisions/). Engineering rules live in [`PRINCIPLES.md`](PRINCIPLES.md). Product scope lives in [`PRODUCT.md`](PRODUCT.md).
 
 The public website for one farm: static pages built from files in the repository, a handful of on-demand form and report endpoints, and no database.
 
@@ -24,7 +24,7 @@ The public website for one farm: static pages built from files in the repository
 
 ## Requirements Overview
 
-The site publishes marketing pages, a journal, recipes, an events list, and legal pages. Visitors can send a contact enquiry, join the newsletter, and sign up for an event. Authors publish by merging a pull request. Behaviour and scope are in [`product/product.md`](product/product.md).
+The site publishes marketing pages, a journal, recipes, an events list, and legal pages. Visitors can send a contact enquiry, join the newsletter, and sign up for an event. Authors publish by merging a pull request. Behaviour and scope are in [`PRODUCT.md`](PRODUCT.md).
 
 ## Quality Goals
 
@@ -47,7 +47,7 @@ The first goal wins when they conflict.
 | Reviewer | —       | The preview is the draft. Merging to `main` publishes.                              |
 | Operator | —       | Environment variables and third-party keys live on the host, not in the repository. |
 
-**Source files:** `docs/product/product.md`, `docs/PRINCIPLES.md`
+**Source files:** `docs/PRODUCT.md`, `docs/PRINCIPLES.md`
 
 ---
 

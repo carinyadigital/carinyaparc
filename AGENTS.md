@@ -8,7 +8,7 @@ Guidance for coding agents on the Carinya Parc website. This file is the agent e
 
 Carinya Parc ([carinyaparc.com.au](https://carinyaparc.com.au)) is a regenerative farm in The Branch, NSW. This repository is a pnpm and Turborepo monorepo. The site is `apps/web`. Content is files in `content/`. There is no database.
 
-Also read `docs/product/product.md`, `brand/voice.md`, `apps/web/README.md`, and `apps/web/.env.example`.
+Also read `docs/PRODUCT.md`, `brand/voice.md`, `apps/web/README.md`, and `apps/web/.env.example`.
 
 ## Setup
 

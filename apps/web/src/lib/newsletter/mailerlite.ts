@@ -129,10 +129,6 @@ export async function upsertMailerLiteSubscriber(
   }
 }
 
-export function eventGroupName(slug: string): string {
-  return `event:${slug}`;
-}
-
 type GroupCache = Map<string, string>;
 
 const groupIdCache: GroupCache = new Map();
@@ -143,22 +139,21 @@ export function resetMailerLiteGroupCache(): void {
 }
 
 /**
- * Find or create a MailerLite group named for the event slug.
- * Group ids are cached per instance so repeat signups skip the lookup.
+ * Find or create a MailerLite group with the given name.
+ * The name is used exactly as given. Group ids are cached for this process
+ * so a repeat signup for the same list skips the lookup.
  */
-export async function resolveEventGroupId(
-  slug: string,
+export async function resolveGroupId(
+  name: string,
 ): Promise<MailerLiteResult & { groupId?: string }> {
   if (!process.env.MAILERLITE_API_KEY) {
     return missingApiKeyResult();
   }
 
-  const cached = groupIdCache.get(slug);
+  const cached = groupIdCache.get(name);
   if (cached) {
     return { ok: true, status: 200, groupId: cached };
   }
-
-  const name = eventGroupName(slug);
 
   try {
     const listUrl = new URL(`${MAILERLITE_API_BASE}/groups`);
@@ -176,7 +171,7 @@ export async function resolveEventGroupId(
     const existing = listBody.data?.find((group) => group.name === name);
     if (existing) {
       const groupId = String(existing.id);
-      groupIdCache.set(slug, groupId);
+      groupIdCache.set(name, groupId);
       return { ok: true, status: 200, groupId };
     }
 
@@ -197,7 +192,7 @@ export async function resolveEventGroupId(
       return { ok: false, status: 500, error: 'Subscription failed: Missing group id' };
     }
 
-    groupIdCache.set(slug, groupId);
+    groupIdCache.set(name, groupId);
     return { ok: true, status: 201, groupId };
   } catch (error) {
     console.error('Fetch error:', error);
@@ -219,13 +214,13 @@ export function subscribeWithMailerLite(input: NewsletterSubscriber): Promise<Ma
 }
 
 /**
- * Add a subscriber to the list named for `list`.
- * Callers pass a list key (an event slug); this adapter maps it to a MailerLite group.
+ * Add a subscriber to the MailerLite group named `list`.
+ * The list name is the group name, used exactly as given.
  */
 export async function addToMailerLiteList(
   input: NewsletterSubscriber & { list: string },
 ): Promise<MailerLiteResult> {
-  const group = await resolveEventGroupId(input.list);
+  const group = await resolveGroupId(input.list);
   if (!group.ok) {
     return group;
   }

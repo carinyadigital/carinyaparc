@@ -107,7 +107,7 @@ describe('POST /api/events/signup', () => {
       email: 'alex@fastmail.com',
       name: 'Alex Farmer',
       source: 'event:winter-planting-day',
-      list: 'winter-planting-day',
+      list: 'event:winter-planting-day',
     });
   });
 

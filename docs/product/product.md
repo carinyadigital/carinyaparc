@@ -1,5 +1,5 @@
 ---
-title: Carinya Parc – Product Overview
+title: Product Strategy – Carinya Parc Website
 status: active
 owner: product
 last_updated: 2026-05-31
@@ -16,7 +16,7 @@ This document describes the product vision for Carinya Parc as expressed through
 | --------------------------------------- | --------------------------------------------------------------- |
 | **This document**                       | What and why — vision, scope, features, non-goals               |
 | [`product/roadmap.md`](roadmap.md)      | When — phased delivery                                          |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture, routes, content; debt in §10 only |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture, routes, content; debt in §11 only |
 | [`PRINCIPLES.md`](../PRINCIPLES.md)     | Engineering rules                                               |
 
 ---

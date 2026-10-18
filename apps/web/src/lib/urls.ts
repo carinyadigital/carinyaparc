@@ -1,4 +1,4 @@
-import type { InquiryType } from '@/lib/email/schema';
+import type { InquiryType } from '@/lib/contact/schema';
 
 /** Public content URLs always include a trailing slash so they match `trailingSlash: 'always'`. */
 

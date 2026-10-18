@@ -10,7 +10,6 @@ import vercel from '@astrojs/vercel';
 import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 
-import vercelRedirectTrailingSlash from './integrations/vercel-redirect-trailing-slash.mjs';
 import { mergeSecurityIntoVercelOutput } from './src/lib/security/vercel-config';
 
 const sentryDsn = (process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN || '').trim();
@@ -22,8 +21,8 @@ if (sentryDsn) {
 }
 
 /**
- * Copy security headers from the generated vercel.json into the adapter's
- * Build Output config so they apply on Vercel.
+ * Merge security headers into the adapter's Build Output config so they
+ * apply on Vercel.
  *
  * @returns {import('astro').AstroIntegration}
  */
@@ -65,7 +64,6 @@ export default defineConfig({
     sitemap({
       filter: (page) => !page.includes('/monitoring/'),
     }),
-    vercelRedirectTrailingSlash(),
     ...(sentryDsn
       ? [
           sentry({

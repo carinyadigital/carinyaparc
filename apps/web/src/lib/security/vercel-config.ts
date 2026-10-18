@@ -12,17 +12,8 @@ export interface VercelHeadersRule {
   headers: VercelHeaderEntry[];
 }
 
-export interface VercelRedirect {
-  source: string;
-  destination: string;
-  permanent: boolean;
-}
-
 export interface VercelJson {
-  $schema: string;
-  trailingSlash: boolean;
   headers: VercelHeadersRule[];
-  redirects: VercelRedirect[];
 }
 
 export interface VercelOutputRoute {
@@ -62,24 +53,15 @@ function securityHeaderEntries(): VercelHeaderEntry[] {
   );
 }
 
-/** Shape written to `vercel.json` and merged into the Vercel Build Output config. */
+/** Header rules merged into the Vercel Build Output config at build time. */
 export function generateVercelJson(options: GenerateVercelJsonOptions = {}): VercelJson {
   const reportOnly = options.reportOnly ?? CSP_REPORT_ONLY;
 
   return {
-    $schema: 'https://openapi.vercel.sh/vercel.json',
-    trailingSlash: true,
     headers: [
       {
         source: '/(.*)',
         headers: [...securityHeaderEntries(), cspHeader(reportOnly)],
-      },
-    ],
-    redirects: [
-      {
-        source: '/favicon.ico',
-        destination: '/favicon/favicon.ico',
-        permanent: true,
       },
     ],
   };
@@ -96,7 +78,7 @@ function headerMapFromVercelJson(config: VercelJson): Record<string, string> {
 
 /**
  * Prepend security headers (continue) onto the adapter's Build Output config
- * so they apply even when the platform ignores vercel.json.
+ * so they apply on every route.
  */
 export function mergeSecurityIntoVercelOutput(
   output: VercelOutputConfig,

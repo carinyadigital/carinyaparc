@@ -3,10 +3,8 @@ type: Roadmap
 domain: carinya-parc-website
 version: '0.6'
 owner: product
-status: Draft
+status: active
 last_updated: 2026-09-22
-parent_product: docs/product/product.md
-parent_roadmap: null
 related:
   - docs/product/product.md
   - docs/ARCHITECTURE.md
@@ -20,9 +18,9 @@ related:
 | --------------------------------------- | ------------------------------------------------- |
 | [`product.md`](product.md)              | What and why                                      |
 | **This document**                       | When — sequencing and phase gates                 |
-| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture; current debt in §10 |
+| [`ARCHITECTURE.md`](../ARCHITECTURE.md) | How and where — architecture; current debt in §11 |
 
-This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHITECTURE.md) §10. Stories and acceptance criteria are scoped when a phase starts.
+This document does not list technical debt — see [`ARCHITECTURE.md`](../ARCHITECTURE.md) §11. Stories and acceptance criteria are scoped when a phase starts.
 
 ---
 
@@ -88,7 +86,7 @@ What shipped, and how:
 
 **In scope:**
 
-- Content templates for posts, recipes and events (frontmatter with every field, matching [`ARCHITECTURE.md`](../ARCHITECTURE.md) §6.4), and a short how-to for the editor.
+- Content templates for posts, recipes and events. The collection contract is [`ARCHITECTURE.md`](../ARCHITECTURE.md) §8; the field rules are the schemas in `apps/web/src/content.config.ts`. Add a short how-to for the editor.
 - Real `imageAlt` on every entry; a schema rule or lint that flags placeholder alt text.
 - Path-scoped review: CODEOWNERS or branch rules so a content-only PR needs one human approval and no engineering review.
 - A scheduled production deploy if events or dated content go stale between merges.

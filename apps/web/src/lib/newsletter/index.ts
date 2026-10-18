@@ -14,7 +14,7 @@ export type SubscribeInput = {
 };
 
 export type AddToListInput = SubscribeInput & {
-  /** List key. Event signup passes the event slug. */
+  /** List name, used as given (event signup passes `event:<slug>`). */
   list: string;
 };
 

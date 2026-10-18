@@ -1,30 +1,10 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { describe, expect, it } from 'vitest';
 
 import { CSP_REPORT_ONLY, CSP_REPORT_URI } from './constants';
 import { generateVercelJson, mergeSecurityIntoVercelOutput } from './vercel-config';
 
-const WEB_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-
 describe('generateVercelJson', () => {
   const config = generateVercelJson();
-
-  it('normalises trailing slashes at the CDN', () => {
-    expect(config.trailingSlash).toBe(true);
-  });
-
-  it('redirects the root favicon to the hashed-free public file', () => {
-    expect(config.redirects).toEqual([
-      {
-        source: '/favicon.ico',
-        destination: '/favicon/favicon.ico',
-        permanent: true,
-      },
-    ]);
-  });
 
   it('ships HSTS, framing, referrer, permissions, and CSP on every path', () => {
     const headers = Object.fromEntries(
@@ -45,13 +25,6 @@ describe('generateVercelJson', () => {
     expect(headers[cspName]).toContain(`report-uri ${CSP_REPORT_URI}`);
     expect(headers[cspName]).toContain("'unsafe-inline'");
     expect(headers[cspName]).not.toContain('fonts.googleapis.com');
-  });
-
-  it('matches the committed vercel.json', () => {
-    const committed = JSON.parse(
-      readFileSync(path.join(WEB_ROOT, 'vercel.json'), 'utf8'),
-    ) as unknown;
-    expect(committed).toEqual(config);
   });
 });
 

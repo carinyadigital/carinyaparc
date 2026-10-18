@@ -55,5 +55,5 @@ Do not copy tokens into the site app.
 
 ## Production vs prototype
 
-- **Production (this repo):** reuse `apps/web/src/components/` — `ui/` primitives (`.astro` for static, `.tsx` for islands), `sections/` for page sections, `islands/` for the React forms and consent gate. Pages and chrome are `.astro`; add React only when the browser needs it. Do not invent a parallel component set. Site-specific CSS stays in `apps/web/src/styles/`.
+- **Production (this repo):** reuse `apps/web/src/components/` — `ui/` primitives (`.astro` for static, `.tsx` for islands) and `sections/` for page sections. The newsletter island lives with that feature. Contact, event signup, and consent live under `islands/`. Pages and chrome are `.astro`; add React only when the browser needs it. Do not invent a parallel component set. Site-specific CSS stays in `apps/web/src/styles/`.
 - **Throwaway mocks:** static HTML is fine; use the token names and visual rules above. Prototype inside the Astro app (`apps/web`) when you need Tailwind. Do not invent a second token sheet.

@@ -1,10 +1,8 @@
 ---
 type: Architecture
 scope: carinyaparc-website
-state: current
-version: '0.4'
-owner: engineering
-status: Draft
+version: '0.5'
+status: Active
 last_updated: 2026-10-18
 related:
   - docs/product/product.md
@@ -17,767 +15,417 @@ related:
 
 > **Ownership rule.** When the authoring model, runtime split, public routes, content contract, security policy, or deployment topology change, this document must be updated in the same PR.
 
-> **State.** `current` (as-is). Architecture decisions live in [`docs/decisions/`](decisions/).
+> **State.** `current` (as-is). Decisions live in [`docs/decisions/`](decisions/). Engineering rules live in [`PRINCIPLES.md`](PRINCIPLES.md). Product scope lives in [`product/product.md`](product/product.md).
 
-**How** the Carinya Parc website is built and behaves — architecture, runtime, data model, integration boundaries — and **where** code, content and routes live.
-
-| Doc                                        | Role                                                                          |
-| ------------------------------------------ | ----------------------------------------------------------------------------- |
-| [`product/product.md`](product/product.md) | What and why                                                                  |
-| [`product/roadmap.md`](product/roadmap.md) | When                                                                          |
-| **This document**                          | How and where — plus risks, technical debt, and open questions (**§10 only**) |
-| [`PRINCIPLES.md`](PRINCIPLES.md)           | Engineering rules                                                             |
+The public website for one farm: static pages built from files in the repository, a handful of on-demand form and report endpoints, and no database.
 
 ---
 
-## 1. Context and scope
+# 1. Introduction and Goals
 
-### 1.1 System context
+## Requirements Overview
+
+The site publishes marketing pages, a journal, recipes, an events list, and legal pages. Visitors can send a contact enquiry, join the newsletter, and sign up for an event. Authors publish by merging a pull request. Behaviour and scope are in [`product/product.md`](product/product.md).
+
+## Quality Goals
+
+The first goal wins when they conflict.
+
+| Priority | Quality goal                     | Scenario (one line)                                                                                       |
+| -------- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1        | Trust and security               | Every response carries the security policy, form input is validated, and secrets never reach the browser. |
+| 2        | Hermetic builds                  | A build needs only the repository. Missing or invalid content fails the build.                            |
+| 3        | Performance on regional mobile   | Public pages are static HTML. Client JavaScript is limited to interaction.                                |
+| 4        | Editorial reliability            | One content pipeline. A draft stays out of production until it is deliberately published.                 |
+| 5        | Maintainability for a small team | Pages stay thin. A schema, a query, or an integration has one home.                                       |
+
+## Stakeholders
+
+| Role     | Contact | Expectations of this architecture                                                   |
+| -------- | ------- | ----------------------------------------------------------------------------------- |
+| Visitor  | —       | Pages load as HTML. Forms accept or fail clearly. Analytics waits for consent.      |
+| Author   | —       | Content is files. Drafts are visible locally and on a preview deployment.           |
+| Reviewer | —       | The preview is the draft. Merging to `main` publishes.                              |
+| Operator | —       | Environment variables and third-party keys live on the host, not in the repository. |
+
+**Source files:** `docs/product/product.md`, `docs/PRINCIPLES.md`
+
+---
+
+# 2. Architecture Constraints
+
+- **Technical:** TypeScript strict mode. Public pages are prerendered. A route that must read the request is an explicit on-demand endpoint. There is no database and no authentication.
+- **Organisational:** One property and, in practice, one editor. Branch protection on `main` is the publish gate. Roles beyond pull-request review, and multi-property tenancy, are out of scope.
+- **Conventions:** pnpm and Turborepo. The site is `apps/web`. Shared packages are `@carinya/theme`, `@repo/eslint-config`, and `@repo/typescript-config`. `content/`, `brand/`, `skills/`, and `docs/` sit at the repository root and are not installable packages. User-visible copy is Australian English.
+
+**Source files:** `.nvmrc`, `package.json`, `pnpm-workspace.yaml`, `apps/web/astro.config.mjs`, `docs/PRINCIPLES.md`
+
+---
+
+# 3. Context and Scope
+
+## Business Context
 
 ```text
-                          ┌────────────────────────────────────────────┐
-                          │ Downstream services (HTTPS)                │
-                          │  MailerLite  · Resend · Sentry             │
-                          │  Google Tag Manager · Vercel Analytics     │
-                          └───────▲───────────────▲────────────────────┘
-                                  │               │ consent-gated beacons
-        static HTML, CSS, images  │ server calls  │ (browser → GTM / Vercel)
-┌──────────────┐    HTTPS   ┌─────┴───────────────┴──────────────────────┐
-│   Visitor    │───────────>│ Vercel                                     │
-│   browser    │<───────────│  CDN: prerendered pages from apps/web      │
-└──────────────┘            │  Functions (on demand, prerender = false): │
-       ▲                    │   POST /api/contact/      → Resend         │
-       │ preview URL        │   POST /api/subscribe/    → MailerLite     │
-       │                    │   POST /api/events/signup/→ MailerLite grp │
-       │                    │   POST /api/csp-report/   → Sentry         │
-┌──────┴───────┐  PR merge  │   POST /monitoring/       → Sentry tunnel  │
-│ Author /     │───────────>│  Build: astro build from git (content/)    │
-│ reviewer     │  (GitHub)  └────────────────────────────────────────────┘
-└──────────────┘
-                     No database. Content is MDX and YAML in the repository.
+Author / reviewer
+  | pull request, then merge to main
+  v
+GitHub  --build-->  Vercel
+                      |  static HTML to the visitor
+                      |  form and report calls onward
+                      v
+                    MailerLite · Resend · Sentry
+                    GTM and Vercel Analytics (browser, after consent)
 ```
 
-**Actors**
+**The website owns:** the public pages, the journal, recipes, events, and legal pages, the five on-demand HTTP endpoints, security headers and the content security policy, metadata and structured data, photography and static assets, and the content model in `content/`.
 
-- **Public visitor** — reads marketing pages, the blog, recipes and events; submits the contact, subscribe or event-signup forms.
-- **Author** — a person or a content agent who writes MDX under `content/` in a branch and opens a pull request.
-- **Reviewer** — a human who approves and merges the pull request. Merging is publishing.
-- **Operator** — manages the Vercel project, environment variables and third-party API keys.
+**The website does not own:** newsletter CRM logic beyond the MailerLite API, payments, booking, inventory, social publishing, farm operations, or a second property. There is no admin UI.
 
-### 1.2 System boundary
+## Technical Context
 
-This system owns the public marketing site (home, about, regenerate, contact, subscribe, get-involved), the blog and recipe surfaces, the events listing, the legal pages, the five on-demand HTTP endpoints, security headers and CSP, SEO metadata and JSON-LD, and the static assets (photography, motifs, favicons, manifest). It also owns the content model in `content/` and the schemas that validate it.
+| Neighbour                            | Direction | Interface              | Notes                                                                                         |
+| ------------------------------------ | --------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| Visitor browser                      | down      | HTTPS                  | Static HTML, CSS, and images. Form posts are JSON or form-encoded.                            |
+| GitHub                               | up        | Git                    | System of record for code and content.                                                        |
+| Vercel                               | down      | HTTPS, build           | CDN for prerendered pages. Functions for the five on-demand routes. Preview per pull request. |
+| MailerLite                           | down      | HTTPS                  | Newsletter subscribers, and one group per event signup.                                       |
+| Resend                               | down      | HTTPS                  | Contact-form notification email.                                                              |
+| Sentry                               | down      | HTTPS                  | Server errors, and browser envelopes via the same-origin tunnel.                              |
+| Google Tag Manager, Vercel Analytics | down      | HTTPS from the browser | Loaded only after consent.                                                                    |
 
-It does not own newsletter CRM logic beyond the MailerLite API, payments, booking or inventory, social media publishing, agronomic or property operations, or multi-property tenancy. There is no admin UI, no database and no authentication of any kind.
-
-**Upstream and downstream**
-
-| System                                | Relationship                                                                 |
-| ------------------------------------- | ---------------------------------------------------------------------------- |
-| GitHub (`carinyadigital/carinyaparc`) | System of record for code and content; branch protection is the publish gate |
-| Vercel                                | Hosting, CDN, on-demand functions, image optimisation, preview per PR        |
-| MailerLite                            | Downstream — newsletter subscribers and one group per event for signups      |
-| Resend                                | Downstream — contact-form notification email                                 |
-| Sentry                                | Downstream — client and server errors, CSP violation reports                 |
-| Google Tag Manager / Vercel Analytics | Downstream — usage analytics and Speed Insights, loaded only after consent   |
+**Source files:** `apps/web/astro.config.mjs`, `apps/web/src/pages/api/`, `apps/web/src/pages/monitoring.ts`
 
 ---
 
-## 2. Quality goals and constraints
+# 4. Solution Strategy
 
-Ordered by priority for architectural trade-offs.
+Governed by [ADR-0001](decisions/ADR-0001-astro-mdx.md).
 
-| Priority | Quality goal                         | Implication                                                                                                                     |
-| -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | **Trust and security**               | Security headers and CSP on every response; Zod-validated input; no secrets in the client bundle; no admin surface to protect   |
-| 2        | **Hermetic builds**                  | `astro build` needs only the repository; CI builds every pull request without secrets; content validation fails the build early |
-| 3        | **Performance on regional mobile**   | Static HTML from the CDN; zero client JavaScript by default, React islands only for forms and consent; optimised images         |
-| 4        | **Editorial reliability**            | One content pipeline (MDX in git); drafts excluded from production; every change reviewed and previewed before it is live       |
-| 5        | **Maintainability for a small team** | Thin pages; content queries and integrations in `src/lib/`; colocated Vitest for logic; one place to change a schema            |
+| Principle                                 | Consequence                                                                                                                                                                                               | Quality goal                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Static site, islands only for interaction | Astro prerenders every public route. React hydrates the contact, subscribe, event-signup, and consent islands.                                                                                            | Performance, trust                     |
+| Git is the CMS                            | Content is MDX and YAML under `content/`, validated on every build. Merging to `main` publishes. There is no browser editor.                                                                              | Editorial reliability, hermetic builds |
+| Content stays outside the app             | Authors do not open `apps/`. The app reads `content/` through a relative root.                                                                                                                            | Maintainability                        |
+| On-demand is explicit                     | Five routes set prerender off and run as functions. Everything else is static HTML.                                                                                                                       | Performance, trust                     |
+| Providers stay behind a folder entry      | MailerLite is called from the newsletter folder. Resend is called from the email folder. Features call `subscribe`, `addToList`, or `send`.                                                               | Maintainability, trust                 |
+| Security policy is generated              | Headers and the content security policy are defined once and merged into the build output. The policy is a host allowlist with inline scripts, because prerendered HTML cannot carry a per-request nonce. | Trust                                  |
+| No database                               | Event signups are a MailerLite group named for the event. Capacity is a hand-set flag.                                                                                                                    | Hermetic builds                        |
 
-**Constraints**
+The system will not do: a browser editing UI, payments or booking, authenticated accounts, incremental revalidation, or a second image pipeline.
 
-- TypeScript strict mode; no `any` in new code ([`PRINCIPLES.md`](PRINCIPLES.md)).
-- Australian English for user-visible copy ([`product.md`](product/product.md)).
-- One property and, in practice, one editor. Roles, approvals beyond PR review, and multi-tenant patterns are out of scope.
-- Public pages are prerendered. Anything that needs a request (forms, reports, the Sentry tunnel) is an explicit on-demand endpoint (`src/pages/api/` or `src/pages/monitoring.ts`).
-- Monorepo shape: `apps/web` plus `packages/carinya-theme`, `packages/eslint-config`, `packages/typescript-config`, with `content/`, `brand/` and `skills/` at the root. It is not flattened to a single app.
+**Source files:** `docs/decisions/ADR-0001-astro-mdx.md`, `apps/web/astro.config.mjs`, `apps/web/src/content.config.ts`, `apps/web/src/lib/email/index.ts`, `apps/web/src/lib/newsletter/index.ts`
 
 ---
 
-## 3. Solution strategy
+# 5. Building Block View
 
-### 3.1 Architectural style
-
-**Static site with islands, git as the CMS.** Astro 7 renders every public route to HTML at build time from `.astro` components and MDX content collections. React 19 islands hydrate only the contact, subscribe, event-signup and consent components. Five endpoints run as Vercel functions on demand. Content lives in `content/` at the repository root and is validated by Zod schemas in `apps/web/src/content.config.ts`; publishing is merging to `main`.
-
-The trade-off accepted is the loss of a browser editing UI. Vercel preview deployments and pull-request review are the draft preview and the publish approval.
-
-### 3.2 Key decisions and trade-offs
-
-| Choice                                                 | Satisfies                                  | Trade-off accepted                                                                          |
-| ------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Astro + MDX content collections                        | Hermetic builds, security, ownable content | No browser editor; content changes need a PR and a deploy                                   |
-| `content/` at the repository root                      | Authors and agents never touch `apps/`     | Collections reach out of the app (`CONTENT_ROOT = '../../content'`); path-scoped CODEOWNERS |
-| `output: 'static'`, endpoints opt out with `prerender` | Fast TTFB, CDN-served HTML                 | Anything dynamic must be an explicit endpoint or an island                                  |
-| React islands for forms and consent only               | Lean client JS                             | Two component flavours (`.astro` and `.tsx`) in one tree                                    |
-| Event signups as MailerLite groups                     | No database                                | No capacity counting; `isFull` is set by hand in frontmatter                                |
-| Security headers generated into `vercel.json`          | One source of truth, unit-tested policy    | CSP is host-allowlist + `'unsafe-inline'`; nonces are impossible on prerendered HTML        |
-| `@carinya/theme` workspace package                     | Tokens shared with future surfaces         | A second package to version alongside the app                                               |
-| Self-hosted fonts via fontsource                       | No third-party font hosts in CSP           | Fonts ship from our origin and count against page weight                                    |
-
-### 3.3 Principles applied
-
-From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; content queries in `src/lib/content/` so draft filtering and sorting live in one place; metadata and JSON-LD as small composable helpers; validation at the boundary; colocated tests for logic that is not trivially a template.
-
----
-
-## 4. Building block view
-
-### 4.1 Containers
+## Whitebox Overall System
 
 ```text
-┌──────────────────────────────────────────────────────────────────────┐
-│ Repository                                                           │
-│                                                                      │
-│  content/                       apps/web (Astro 7)                   │
-│  ├─ posts/*.mdx      ───────┐   ├─ astro.config.mjs                  │
-│  ├─ recipes/*.mdx           │   ├─ vercel.json (generated)           │
-│  ├─ events/*.mdx            ├──>├─ src/content.config.ts             │
-│  ├─ legal/*.mdx             │   ├─ src/pages/  (routes + api/)       │
-│  ├─ authors/*.yaml          │   ├─ src/layouts/ (Base, Site)         │
-│  ├─ categories/*.yaml       │   ├─ src/components/                   │
-│  ├─ tags.json               │   ├─ src/lib/                          │
-│  └─ images/          ───────┘   ├─ src/assets/images/ · public/      │
-│                                 ├─ integrations/ · scripts/          │
-│  packages/carinya-theme ───────>└─ tests/ (security)                 │
-│  packages/eslint-config, typescript-config                           │
-│  brand/ · skills/carinya-parc                                        │
-└──────────────────────────────────────────────────────────────────────┘
-                 │ astro build (Vercel adapter)
-                 v
-   dist/ static HTML + assets  ·  .vercel/output (functions, routes, headers)
+┌──────────────────────────────────────────────────────────────────┐
+│ Repository                                                       │
+│                                                                  │
+│  content/                         apps/web                       │
+│  posts, recipes, events, legal    pages and layouts render       │
+│  authors, categories, tags        components present             │
+│  images                           lib/ queries, forms, policy    │
+│                                                                   │
+│  packages/carinya-theme ───────── styles                         │
+└──────────────────────────────────────────────────────────────────┘
+        │ astro build
+        v
+   dist/ static HTML          .vercel/output functions and headers
 ```
 
-### 4.2 Components
+**Motivation.** Pages, content, and integrations change for different reasons. Keeping content at the repository root lets an author publish without opening application code.
 
-| Block                     | Responsibility                                                                                                                         | Location                                                                           |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Collections**           | Six collections and their Zod schemas; `reference()` for author/category, `image()` for heroes                                         | `apps/web/src/content.config.ts`, `src/lib/content/schema.ts`                      |
-| **Content queries**       | Published-only filtering, sorting, card shapes, archives with at least one post, upcoming events                                       | `src/lib/content/{posts,recipes,events,dates}.ts`                                  |
-| **Pages**                 | One `.astro` file per route; `getStaticPaths` from the queries                                                                         | `src/pages/**`                                                                     |
-| **Layouts**               | `Base.astro` (head, metadata, Organization JSON-LD, consent island), `Site.astro` (skip link, header, `#stay` newsletter band, footer) | `src/layouts/`                                                                     |
-| **UI primitives**         | Button, Eyebrow, Breadcrumb, JsonLd, MotifTile, form fields                                                                            | `src/components/ui/`                                                               |
-| **Sections and chrome**   | Hero, PageHeader, ImpactStats; header, footer; blog, recipes, marketing, newsletter sections                                           | `src/components/{sections,header,footer,blog,recipes,marketing,newsletter}/`       |
-| **Islands**               | ContactForm, SubscribeForm (variants) and its modal, EventSignup, ConsentGate                                                          | `src/components/islands/`, `src/components/newsletter/`, `src/components/consent/` |
-| **Endpoints**             | `prerender = false` routes delegating to feature handlers                                                                              | `src/pages/api/`, `src/pages/monitoring.ts`, `src/lib/api/`                        |
-| **Validation**            | Shared sanitisation and spam-email list; feature schemas live with the feature                                                         | `src/lib/validation/`, `src/lib/newsletter/schema.ts`, `src/lib/email/schema.ts`   |
-| **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                                       | `src/lib/rate-limit.ts`                                                            |
-| **Integrations**          | Newsletter subscribe and event lists (MailerLite adapter), contact email (Resend adapter)                                              | `src/lib/newsletter/`, `src/lib/email/`                                            |
-| **Security policy**       | Header presets, CSP directives, `vercel.json` generator                                                                                | `src/lib/security/`, `scripts/generate-vercel-json.ts`                             |
-| **Build integrations**    | Merge security headers into the Vercel output; make redirects accept a trailing slash                                                  | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs`              |
-| **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization                                    | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`                     |
-| **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                                                                 | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`                        |
-| **Observability**         | Sentry capture and metric counters used by the handlers                                                                                | `src/lib/observability/metrics.ts`                                                 |
-| **Feed**                  | RSS builder for `/feed.xml`                                                                                                            | `src/lib/blog/build-feed.ts`, `src/pages/feed.xml.ts`                              |
-| **Theme**                 | Design tokens consumed by `src/styles/globals.css`                                                                                     | `packages/carinya-theme`                                                           |
+**Contained building blocks.**
 
-### 4.3 Repository layout
+| Block                 | Responsibility                                                                |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Content               | The six collections, tag names, and hero images.                              |
+| Site                  | Routes, layouts, and components. Reads content through the query helpers.     |
+| Contact               | Validates and sends the enquiry notification.                                 |
+| Newsletter            | Subscribes an address and adds an address to a named list.                    |
+| Email                 | Sends one outbound message. Does not know which feature asked.                |
+| Security policy       | Header and content-security-policy definitions, merged into the build output. |
+| Consent and analytics | Browser-only. The consent cookie gates analytics.                             |
+| Theme                 | Design tokens consumed by the site stylesheet.                                |
 
-Architectural rule: **pages load data through `src/lib/content/`; components render; `src/lib/` holds integrations and side effects; `content/` holds only content.**
+**Important interfaces.**
+
+- Public URLs end in `/`. Internal links are built in one place so a form post is not redirected and turned into a GET.
+- On-demand routes accept POST and answer GET with 405. The Sentry tunnel is `/monitoring/`, outside `/api/`, so it stays off common blocker lists.
+
+| URL                   | Handler                     |
+| --------------------- | --------------------------- |
+| `/api/contact/`       | `lib/contact/handler.ts`    |
+| `/api/subscribe/`     | `lib/newsletter/handler.ts` |
+| `/api/events/signup/` | `lib/api/events-signup.ts`  |
+| `/api/csp-report/`    | `lib/api/csp-report.ts`     |
+| `/monitoring/`        | `lib/api/sentry-tunnel.ts`  |
+
+Static routes cover the home, about, regenerate, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it.
+
+An island may import a feature's schema and browser client only. The provider file is imported by that folder's server entry and nothing else.
+
+### Repository layout
 
 ```text
 .
-├── apps/
-│   └── web/                  # Astro 7 + MDX public site — the product
-├── content/                  # The CMS: MDX, YAML, images, tags.json
+├── apps/web/                 # the site
+├── content/                  # posts, recipes, events, legal, authors, categories, images, tags.json
 ├── packages/
-│   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens and theme
-│   ├── eslint-config/        # @repo/eslint-config (base, react-internal, next)
-│   └── typescript-config/    # @repo/typescript-config (base, react-library, nextjs)
-├── brand/                    # voice.md, positioning.md (not a workspace package)
-├── skills/
-│   └── carinya-parc/         # Product-local agent skill (not a workspace package)
-├── docs/
-│   ├── ARCHITECTURE.md       # this file
-│   ├── PRINCIPLES.md
-│   ├── product/
-│   └── decisions/
-├── .github/workflows/ci.yml  # Lint, typecheck, format, test, build web, dist tests
-├── pnpm-workspace.yaml       # apps/web and packages/*
-├── turbo.json                # Task graph and declared env vars
-├── prettier.config.mjs       # Shared Prettier config (+ prettier-plugin-astro)
-└── package.json              # Root scripts: web:dev, web:build, lint, typecheck, format, test
+│   ├── carinya-theme/
+│   ├── eslint-config/
+│   └── typescript-config/
+├── brand/                    # voice and positioning
+├── skills/carinya-parc/
+├── docs/                     # this file, principles, product, decisions
+├── .github/workflows/ci.yml
+├── pnpm-workspace.yaml
+└── turbo.json
 ```
-
-`pnpm-workspace.yaml` includes `apps/web` and `packages/*`. `brand/`, `skills/`, `docs/` and `content/` are source trees, not installable packages. `content/` sits outside `apps/` deliberately: a writer or content agent never needs to open application code, and the app reaches it through a relative `CONTENT_ROOT` in `src/content.config.ts`.
-
-### 4.4 `apps/web` layout
 
 ```text
-apps/web/
-├── astro.config.mjs          # site URL, static output, trailingSlash 'always', redirects, integrations
-├── vercel.json               # generated by scripts/generate-vercel-json.ts — headers, CSP, favicon redirect
-├── integrations/
-│   └── vercel-redirect-trailing-slash.mjs
-├── scripts/
-│   └── generate-vercel-json.ts
-├── public/                   # copied verbatim to the site root
-│   ├── favicon/              # favicon.ico and PNG sizes
-│   ├── images/               # placeholder SVG for entries with no photograph
-│   ├── motifs/               # brand line icons
-│   └── site.webmanifest
-├── src/
-│   ├── content.config.ts     # the six collections and their Zod schemas
-│   ├── config/navigation.ts  # header and footer navigation
-│   ├── pages/                # routes (§4.5)
-│   ├── layouts/              # Base.astro, Site.astro
-│   ├── components/           # by concern (§4.4.1)
-│   ├── lib/                  # by concern (§4.4.2)
-│   ├── styles/               # globals.css, components.css, pages/{blog,legal,recipes}.css
-│   └── assets/images/        # photographs imported by pages and optimised at build
-├── tests/
-│   └── security.test.ts      # dist/ links, images, CSP hosts, headers in .vercel/output/config.json
-├── tsconfig.json             # extends astro/tsconfigs/strict; @/* → ./src/*
-├── vitest.config.ts          # Astro getViteConfig; src/**/*.test.{ts,tsx} and tests/**/*.test.ts
-├── vitest.setup.ts
-├── eslint.config.mjs
-└── .env.example
+apps/web/src/
+├── content.config.ts         # the six collections
+├── pages/                    # routes and the on-demand endpoints
+├── layouts/                  # Base.astro (document), Site.astro (chrome)
+├── components/               # server-rendered, plus islands where the browser must interact
+├── lib/                      # queries, features, security, metadata
+├── styles/
+└── assets/images/            # photographs imported by pages
 ```
 
-#### 4.4.1 Components
+## Level 2
 
-Everything under `src/components/` is an `.astro` component unless it is an island.
+### White box `apps/web`
 
-| Folder        | Holds                                                                                                                                                                                                                                          |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ui/`         | Primitives: `Button`, `Breadcrumb`, `Eyebrow`, `JsonLd`, `MotifTile` (`.astro`) and the form primitives islands share (`Input`, `Select`, `Textarea`, `FormField`, `Alert`, `Button.tsx`)                                                      |
-| `sections/`   | Shared page chrome: `Hero`, `HeroText`, `PageHeader`, `PageIntro`, `ImpactStats`                                                                                                                                                               |
-| `header/`     | `Header.astro` (mounts `SubscribeModalHost` with `client:idle`)                                                                                                                                                                                |
-| `footer/`     | `Footer`, `FooterNav`, `SocialLinks`                                                                                                                                                                                                           |
-| `blog/`       | Journal UI: `PostCard`, `FeaturedPosts`, `LatestPosts`, `PaginatedPosts`, `PaginationNav`, `BlogPostArticle`, `AuthorBlock`, `RelatedPosts`, `BlogTopicNav`, `JournalIntro`, `JournalPostGrid`, `JournalSubscribeBand`, `ShareBar`             |
-| `recipes/`    | `RecipeCard`, `RecipeGrid`, `RecipeMeta`, `RecipeIngredients`, `RecipeInstructions`, `RecipeTags`                                                                                                                                              |
-| `marketing/`  | Sections for the marketing pages: `SectionWithImage`, `WaysToHelpSection`, `PartnersSection`, `GetInvolvedCTA`, `SubscribeSection`, `ContactFormSection`, `InlineSubscribeForm`, `EventCard`, `EventSignup`, `EventsEmptyState`, `Icon`, `Tag` |
-| `islands/`    | React that is not owned by one feature: `ConsentGate`, `ContactForm`, `EventSignup`                                                                                                                                                            |
-| `consent/`    | `ConsentBanner.tsx`, rendered by `ConsentGate`                                                                                                                                                                                                 |
-| `newsletter/` | `SubscribeForm` (one island, variants via props), `SubscribeModal`, `SubscribeModalHost`, `NewsletterBand`, `EndOfPostSubscribe`, `PrivacyNote`                                                                                                |
-| `share/`      | `ShareBar.astro` (generic share strip)                                                                                                                                                                                                         |
-| `analytics/`  | `ArticleScrollDepth.astro` — binds `lib/client/scroll-depth` on pages that render an `<article>`                                                                                                                                               |
+- **Purpose:** turn `content/` and the page components into static HTML, and serve the five request-time routes.
+- **Interfaces:** `lib/content/` is the only read path for published entries. `lib/email` exposes `send()`. `lib/newsletter` exposes `subscribe()` and `addToList()`. `lib/contact` owns the enquiry schema, handler, and notification.
+- **Directory:** `src/lib/content/`, `src/lib/contact/`, `src/lib/newsletter/`, `src/lib/email/`, `src/lib/security/`, `src/lib/consent/`, `src/lib/analytics/`, `src/lib/metadata/`, `src/lib/schema/`.
 
-An island is always wrapped by a small `.astro` component that owns the `client:*` directive (for example `marketing/ContactFormSection.astro` mounts `islands/ContactForm.tsx` with `client:visible`). Pages import the wrapper, never the island; only `Base.astro` (`ConsentGate`) and `Header.astro` (`SubscribeModalHost`) mount one directly. A feature island imports that feature's `schema.ts` and `client.ts` only.
-
-#### 4.4.2 Library
-
-| Folder or file   | Holds                                                                                                                                                                                                                                                                                                                        |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `content/`       | Read-side helpers over the collections: `posts.ts` (`getPublishedPosts`, `getFeaturedPosts`, `getRelatedPosts`, `getCategoriesWithPosts`, `getTagsWithPosts`, `toPostSummary`, `tagName`, `isPublished`), `recipes.ts`, `events.ts` (`getUpcomingEvents`), `dates.ts`, `schema.ts` (regexes shared with `content.config.ts`) |
-| `urls.ts`        | `postUrl`, `categoryUrl`, `tagUrl`, `recipeUrl`, `eventsListingUrl`, the `API_*_PATH` constants, and `SENTRY_TUNNEL_PATH` — all with trailing slashes                                                                                                                                                                        |
-| `constants.ts`   | `BASE_URL` (from `PUBLIC_SITE_URL`), site title and description, default OG image, favicon paths, `LOCAL_BUSINESS`, social profiles, breadcrumb names                                                                                                                                                                        |
-| `metadata/`      | `generatePageMetadata` composed from `title`, `description`, `canonical`, `openGraph`, `twitter`, `robots`, `icons`, `viewport`; `types.ts`                                                                                                                                                                                  |
-| `schema/`        | JSON-LD generators: `organization` (and `organization-json` for the `<head>`), `breadcrumb`, `localBusiness`, `article`, `recipe`; `index.ts` re-exports                                                                                                                                                                     |
-| `validation/`    | Shared `sanitize.ts` (plain-Node strip and escape), `spam-email.ts`, and `event-signup-schema.ts`. Contact and subscribe schemas live in `email/schema.ts` and `newsletter/schema.ts`                                                                                                                                        |
-| `api/`           | Shared HTTP helpers in `json.ts` (`jsonResponse`, `readJsonBody`, `methodNotAllowed`), plus handlers that are not a feature module: `events-signup.ts`, `csp-report.ts`, `sentry-tunnel.ts`                                                                                                                                  |
-| `rate-limit.ts`  | `createRateLimiter` — in-memory, per instance                                                                                                                                                                                                                                                                                |
-| `newsletter/`    | `schema.ts` and `client.ts` (browser), `index.ts` (`subscribe`, `addToList`), `handler.ts`, and `mailerlite.ts` (the only file that calls MailerLite). Event signup calls `addToList()`                                                                                                                                      |
-| `email/`         | `schema.ts` and `client.ts` (browser), `index.ts` (`sendContactNotification`), `handler.ts`, `resend.ts` (the only file that calls Resend), and `templates/`                                                                                                                                                                 |
-| `events/`        | `catalog.ts` — `getPublicEventBySlug` for the signup endpoint (drafts return `null`)                                                                                                                                                                                                                                         |
-| `security/`      | `csp.ts`, `headers.ts`, `constants.ts`, `vercel-config.ts` (`generateVercelJson`, `mergeSecurityIntoVercelOutput`)                                                                                                                                                                                                           |
-| `consent/`       | Browser only: `client.ts` (read and write `cp_consent`), `types.ts`. No server half                                                                                                                                                                                                                                          |
-| `analytics/`     | Browser only: `client.ts` re-exports consent-gated `trackEvent` and the typed funnel helpers. No server half                                                                                                                                                                                                                 |
-| `client/`        | Browser-side helpers used by inline scripts: `scroll-depth`, `share`, `site-header`                                                                                                                                                                                                                                          |
-| `blog/`          | `build-feed.ts` — RSS 2.0 builder for `/feed.xml`                                                                                                                                                                                                                                                                            |
-| `recipes/`       | `format-duration.ts` — ISO 8601 durations to display text                                                                                                                                                                                                                                                                    |
-| `observability/` | `metrics.ts` — `countMetric`, `captureException` (Sentry when configured)                                                                                                                                                                                                                                                    |
-| `cn.ts`          | `clsx` + `tailwind-merge`                                                                                                                                                                                                                                                                                                    |
-
-Folders with several files carry their own `types.ts` and tests. `metadata/`, `schema/` and `security/` re-export from `index.ts`. `newsletter/` and `email/` use `index.ts` as the server API (`subscribe` / `addToList`, `sendContactNotification`); components import `schema.ts` and `client.ts` from those folders and never the server entry. `analytics/` and `consent/` are browser-only, so their public module is `client.ts` and they have no server half.
-
-#### 4.4.3 Styles, tests, integrations
-
-`src/styles/globals.css` is the single entry: it imports the two font packages, `@carinya/theme`, the typography plugin and `components.css`. Per-page CSS (`pages/blog.css`, `pages/legal.css`, `pages/recipes.css`) is imported at the top of the page that needs it, so it is only bundled where it is used. Tokens are never redefined in the app; they come from `packages/carinya-theme`.
-
-Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/security.test.ts` reads the built output and skips itself when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`.
-
-- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
-- `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
-- `scripts/generate-vercel-json.ts` writes `vercel.json` from `src/lib/security/vercel-config.ts`. Run it (`pnpm --filter web generate:vercel-json`) after changing anything in `lib/security` and commit the result.
-- `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `src/pages/robots.txt.ts` builds `/robots.txt` from the configured `site`. `@sentry/astro` is added only when a DSN is present.
-
-### 4.5 Routes
-
-Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directory'`). Static routes are built to `dist/`; the on-demand endpoints run as Vercel functions.
-
-| URL                      | File                               | Source                                                              |
-| ------------------------ | ---------------------------------- | ------------------------------------------------------------------- |
-| `/`                      | `pages/index.astro`                | Hard-coded sections + latest and featured posts                     |
-| `/about/`                | `pages/about/index.astro`          | Hard-coded                                                          |
-| `/about/the-property/`   | `pages/about/the-property.astro`   | Hard-coded                                                          |
-| `/about/jonathan/`       | `pages/about/jonathan.astro`       | Hard-coded                                                          |
-| `/regenerate/`           | `pages/regenerate.astro`           | Hard-coded                                                          |
-| `/contact/`              | `pages/contact.astro`              | `ContactForm` island                                                |
-| `/subscribe/`            | `pages/subscribe.astro`            | `SubscribeForm` island                                              |
-| `/get-involved/events/`  | `pages/get-involved/events.astro`  | `events` collection, upcoming only; `EventSignup` island            |
-| `/blog/`                 | `pages/blog/index.astro`           | `posts`, first 6                                                    |
-| `/blog/page/[page]/`     | `pages/blog/page/[page].astro`     | `paginate()`, 6 per page, page 1 omitted                            |
-| `/blog/[slug]/`          | `pages/blog/[slug].astro`          | One `posts` entry, related posts, Article JSON-LD                   |
-| `/blog/category/[slug]/` | `pages/blog/category/[slug].astro` | Categories with at least one published post                         |
-| `/blog/tag/[tag]/`       | `pages/blog/tag/[tag].astro`       | Tags used by at least one published post                            |
-| `/recipes/`              | `pages/recipes/index.astro`        | `recipes` collection                                                |
-| `/recipes/[slug]/`       | `pages/recipes/[slug].astro`       | One `recipes` entry, Recipe JSON-LD                                 |
-| `/legal/[slug]/`         | `pages/legal/[slug].astro`         | `legal` collection                                                  |
-| `/feed.xml`              | `pages/feed.xml.ts`                | RSS 2.0, newest 20 posts                                            |
-| `/robots.txt`            | `pages/robots.txt.ts`              | Crawl rules; sitemap URL from the configured `site`                 |
-| `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
-| `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
-
-On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, so it stays outside ad-blocker lists that key on `sentry`:
-
-| URL                   | File                         | Handler                     |
-| --------------------- | ---------------------------- | --------------------------- |
-| `/api/contact/`       | `pages/api/contact.ts`       | `lib/email/handler.ts`      |
-| `/api/subscribe/`     | `pages/api/subscribe.ts`     | `lib/newsletter/handler.ts` |
-| `/api/events/signup/` | `pages/api/events/signup.ts` | `lib/api/events-signup.ts`  |
-| `/api/csp-report/`    | `pages/api/csp-report.ts`    | `lib/api/csp-report.ts`     |
-| `/monitoring/`        | `pages/monitoring.ts`        | `lib/api/sentry-tunnel.ts`  |
-
-Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico` and `/sitemap.xml` → `/sitemap-index.xml`.
-
-### 4.6 Layouts, trailing slashes, and how to add things
-
-**Layouts.** `layouts/Base.astro` owns the HTML document: `<head>` built from a `PageMetadata` object (title, description, canonical, robots, Open Graph, Twitter, icons, RSS link), the Organization JSON-LD, `globals.css`, and the `ConsentGate` island at the end of `<body>`. `layouts/Site.astro` wraps `Base` with a “Skip to content” link (the first focusable control; activating it moves focus to `<main id="main">`), the header, `<main>`, the `#stay` newsletter band, footer and the scroll-depth reporter. Pages pass `title`, `description`, `path` and optionally `image`, `type` (`website` | `article`), `publishedTime`, `authors`, `overlay` (transparent header over a hero), `showFooter`, `showNewsletter`, `noIndex` and `omitCanonical`. Blog posts pass `publishedTime` (ISO 8601) and `authors` (display names). `generateOpenGraph` keeps those fields only when `type` is `article`, and `Base.astro` renders them as `article:published_time` and `article:author`. Recipe pages stay `type="article"` without those fields. `showNewsletter` defaults to on; blog routes pass `false` so journal subscribe modules do not stack a second band, and the 404 page hides it with the footer. `Site` calls `generatePageMetadata` from those props; a page that needs more control (extra keywords) builds the object itself and passes `metadata`. The 404 page passes `noIndex` and `omitCanonical` so unknown URLs stay out of the index and do not advertise the error-template URL as their canonical. Every page uses `Site`. Nothing uses `Base` directly.
-
-**Trailing slashes.** `trailingSlash: 'always'` means Astro dev and Vercel both redirect `/blog` to `/blog/`. Consequences:
-
-- Internal links come from `lib/urls.ts` or are written with a trailing slash.
-- Endpoint paths (`API_*_PATH`) end in `/` so a `POST` is not 308-redirected and turned into a `GET`.
-- Redirect sources in `astro.config.mjs` are written with the trailing slash; the trailing-slash integration makes the compiled route accept both forms.
-
-**Metadata and JSON-LD.** Metadata is data, not markup. `lib/metadata/index.ts` composes the `PageMetadata` object from small functions (`generateTitle`, `generateCanonicalUrl`, `generateOpenGraph`, …) and `Base.astro` is the only place that turns it into `<meta>` tags. JSON-LD is layered: `Base.astro` always emits Organization; a page adds `<JsonLd />` for BreadcrumbList (derived from the path unless `breadcrumbs` is passed) and, where relevant, `article`, `recipe` or `includeLocalBusiness`. The generators in `lib/schema/` are pure functions with tests.
-
-**A page.** Create `src/pages/<kebab-name>.astro` (or `<name>/index.astro` for a section root). Wrap the content in `<Site title description path>`, add `<JsonLd />`, and compose existing components from `sections/` and `marketing/`. If the page should appear in the header or footer, add it to `src/config/navigation.ts`. Static pages need no `getStaticPaths`.
-
-**A content-driven section.** Add a collection in `content.config.ts` pointing at `${CONTENT_ROOT}/<name>`, a read helper in `lib/content/<name>.ts` that applies `isPublished` and sorting, a URL helper in `lib/urls.ts`, then a `[slug].astro` whose `getStaticPaths` maps the helper's result to `{ params: { slug: entry.id }, props: { entry } }`. Create the `content/<name>/` folder and a first entry so the build has something to validate. Document the frontmatter in §6.4.
-
-**An island.** Write the React component under `src/components/<feature>/` when it belongs to one feature (newsletter, and the same shape for a future contact folder), or under `src/components/islands/` when it does not. Keep it free of server imports: a feature island may import that feature's `schema.ts` and `client.ts` only. Mount it from a small `.astro` wrapper with `client:visible` (or `client:idle` for chrome that is not in the first viewport). Post to a path from `lib/urls.ts`. Add a colocated test if it holds state.
-
-**An endpoint.** Add `src/pages/api/<name>.ts` with `export const prerender = false`, a `POST` that delegates to the feature `handler.ts` (or `lib/api/<name>.ts` when the route is not a feature module), and a `GET` that returns `methodNotAllowed()`. In the handler: `readJsonBody`, the feature Zod schema, honeypot and timing checks, `createRateLimiter`, sanitisation, then the server function from the feature `index.ts`. The provider lives in its own file and is imported only from that `index.ts`. Add the path constant to `lib/urls.ts`, any new env var to `.env.example`, `turbo.json` and `eslint.config.mjs`, and a handler test alongside.
-
-**A redirect.** Add it to `redirects` in `astro.config.mjs` with the trailing slash on the source. Do not edit `vercel.json` by hand for redirects; it is generated.
-
-**A security header or CSP host.** Change `lib/security/constants.ts`, run `pnpm --filter web generate:vercel-json`, and update `tests/security.test.ts` if the expected host list changes.
-
-Then run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm web:build` and `pnpm --filter web test:dist` from the root, and update this document.
+**Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/urls.ts`, `apps/web/src/pages/`, `apps/web/src/layouts/`, `packages/carinya-theme/`
 
 ---
 
-## 5. Runtime view
+# 6. Runtime View
 
-### 5.1 Page build from content
+## Publish a page
 
-```text
-astro build
-  → content.config.ts loads the six collections from ../../content via glob()
-  → Zod schemas validate frontmatter; reference() resolves author and category;
-    image() registers hero files for optimisation (a bad entry fails the build)
-  → src/pages/blog/[slug].astro getStaticPaths()
-      → getPublishedPosts()  (draft: true excluded unless import.meta.env.DEV)
-  → render: Site layout → BlogPostArticle → MDX body, Article + Breadcrumb JSON-LD
-  → sitemap-index.xml, feed.xml, 404.html
-  → vercel adapter writes .vercel/output; integrations merge security headers
-    and trailing-slash-tolerant redirects into config.json
-```
+1. An author edits a file under `content/` on a branch. `draft: true` keeps a post, recipe, or event out of production while it is unfinished.
+2. The pull request builds the site and deploys a preview.
+3. A reviewer merges to `main`.
+4. The production build validates frontmatter, prerenders pages, and the CDN serves the new HTML.
 
-Archive pages (`/blog/category/[slug]/`, `/blog/tag/[tag]/`, `/blog/page/[page]/`) are generated only for categories, tags and pages that have at least one published post.
+There is no revalidation. A draft that remains on `main` stays unpublished. Archive pages are generated only for categories, tags, and pages that have a published post.
 
-### 5.2 Publish via pull request
+## Contact enquiry
 
-```text
-Author (human or agent)
-  → branch; add or edit content/posts/{slug}.mdx (draft: true while unfinished)
-  → open PR → CI: lint, typecheck, format, tests, astro build, dist tests
-  → Vercel preview deployment = draft preview URL
-Reviewer
-  → reads the preview, reviews the diff, approves (branch protection requires it)
-  → merge to main → Vercel production build → CDN serves the new HTML
-```
+1. The contact island posts JSON to `/api/contact/`.
+2. The handler refuses the form when it is disabled (503), rejects an invalid body (400), and treats a filled honeypot or a submission under two seconds as success without sending.
+3. An in-memory limit of 3 submissions per email per 24 hours returns 429. A failed send releases that attempt.
+4. The notification is sanitised and sent with `send()` to the configured recipient. Failure is a generic 500.
 
-There is no revalidation step: every merge is a full build. A post that must sit on `main` unpublished keeps `draft: true`.
+## Event signup
 
-### 5.3 Contact form submission
+1. The event island posts to `/api/events/signup/`.
+2. Validation, honeypot, timing, the spam-email list, and a limit of 5 per email per 24 hours run first.
+3. A draft or unknown event is 404. A past event or an external signup link is 400. A full event is 409.
+4. `addToList({ list: event:<slug> })` finds or creates that MailerLite group and upserts the subscriber.
 
-```text
-Browser: ContactForm island (react-hook-form + Zod) → POST /api/contact/ (JSON)
-Function: handleContactPost
-  → CONTACT_FORM_ENABLE check (503 if disabled)
-  → Zod contactFormSchema (400 with field details)
-  → honeypot `website` filled → 200 with success message, counted as spam
-  → submissionTime < 2 s → same
-  → in-memory rate limit by email (3 per 24 h by default) → 429
-  → sanitise → Resend notification to CONTACT_EMAIL_RECIPIENT → 200
-```
+Newsletter subscribe is the same pipeline without the event lookup: one submission per email per day, then a MailerLite upsert.
 
-### 5.4 Event signup
+## Consent
 
-```text
-Browser: EventSignup island → POST /api/events/signup/ { eventSlug, name, email, ... }
-Function: handleEventSignupPost
-  → Zod → honeypot → timing → spam-email list → in-memory rate limit (5 per 24 h)
-  → getPublicEventBySlug (drafts count as missing → 404)
-  → event in the past → 400; event has signupTarget → 400 (external signup)
-  → event.isFull → 409 with a waitlist hint
-  → resolveEventGroupId(slug): find or create the MailerLite group named for the event
-  → upsert subscriber with source `event:{slug}` and that group → 200
-```
+1. The page HTML contains no analytics scripts.
+2. The consent island reads `cp_consent`. With no cookie, the banner is shown.
+3. Accept writes the cookie for one year (`Path=/`, `SameSite=Lax`, `Secure` on https) and loads Google Tag Manager, when a container id is set, plus Vercel Analytics and Speed Insights.
+4. Reject loads nothing.
 
-Subscribe (`/api/subscribe/`) is the same shape without the event lookup: one submission per email per day, then a MailerLite upsert with interests and source.
+The cookie is readable by client script on purpose. Consent is not a secret, and no server reads it.
 
-### 5.5 Consent flow
-
-```text
-Page loads with no analytics scripts in the HTML
-  → ConsentGate island (client:idle) reads cp_consent from document.cookie
-  → no cookie → ConsentBanner
-  → accepted → write cp_consent (Path=/, Max-Age 1 year, SameSite=Lax, Secure on https)
-             → inject GTM (PUBLIC_GTM_ID) and Vercel Analytics + Speed Insights
-  → rejected → nothing loads
-```
-
-The cookie is readable by client script by design; consent state is not sensitive and there is no server that needs to read it.
-
-### 5.6 CSP violation report
-
-```text
-Browser → POST /api/csp-report/ (report-uri; trailing slash so the POST is not redirected)
-Function: handleCspReportPost
-  → body ≤ 32 KB, JSON, legacy `csp-report` or Reporting API array
-  → keep reports whose document-uri is our origin or a *.vercel.app preview
-  → console.warn each, forward up to 10 per minute per instance to Sentry as warnings
-  → 204
-```
+**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
 
 ---
 
-## 6. Data model
+# 7. Deployment View
 
-### 6.1 Collections
+## Infrastructure Level 1
 
-All six are declared in `apps/web/src/content.config.ts` and loaded from `content/` with Astro's `glob()` loader. An entry's id is its filename without extension, so **slug uniqueness is filesystem uniqueness** and the public URL is derived from the filename.
+| Service                 | Platform                   | Role                                                         |
+| ----------------------- | -------------------------- | ------------------------------------------------------------ |
+| Public pages and assets | Vercel CDN                 | Prerendered HTML, images, sitemap, feed                      |
+| Form and report routes  | Vercel Functions           | Contact, subscribe, event signup, CSP reports, Sentry tunnel |
+| Source                  | GitHub                     | Code and content. Merge to `main` is the production release. |
+| Newsletter              | MailerLite                 | Subscribers and per-event groups                             |
+| Contact mail            | Resend                     | Enquiry notification                                         |
+| Errors                  | Sentry                     | Server capture, and browser envelopes through `/monitoring/` |
+| Analytics               | Google Tag Manager, Vercel | After consent only                                           |
 
-| Collection     | Files                       | Key fields                                                                                                                                                                                |
-| -------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **posts**      | `content/posts/*.mdx`       | title, date, author → authors, category → categories (optional), tags[], featured, excerpt, description, image, imageAlt, draft; MDX body                                                 |
-| **recipes**    | `content/recipes/*.mdx`     | title, date, author, difficulty, servings, prepTime/cookTime/totalTime (ISO 8601), excerpt, description, image, imageAlt, tags[], ingredients[], instructions[], draft; optional MDX body |
-| **events**     | `content/events/*.mdx`      | title, startsAt, location, isFull, signupTarget (optional http(s) URL), draft                                                                                                             |
-| **legal**      | `content/legal/*.mdx`       | title, description; MDX body                                                                                                                                                              |
-| **authors**    | `content/authors/*.yaml`    | name, image, bio                                                                                                                                                                          |
-| **categories** | `content/categories/*.yaml` | name, description                                                                                                                                                                         |
+**Motivation.** The pages do not need a server. The five routes do, because they accept a request and call a third party.
 
-`content/tags.json` is a slug → display-name map, not a collection. A tag is any string in a post or recipe's `tags`; unknown slugs display as themselves.
+**Quality.** A build succeeds with no secrets set. Optional integrations fail the request with a clear error when their key is missing. Public HTML changes only when a build runs. Function responses are not cached. Rollback is redeploying the previous Vercel deployment. Content and code share one pipeline.
 
-### 6.2 Relationships
+**Mapping.** The site block and the theme become the CDN output. Contact, newsletter, email, and the security policy run in the build and, for the form routes, in the functions. Consent and analytics run in the browser.
 
-```text
-Post ──author──> Author            Recipe ──author──> Author
-Post ──category──> Category (opt)  Recipe ──tags──> tag slugs (tags.json for names)
-Post ──tags──> tag slugs
-Event (standalone; signups live in MailerLite as a group named for the event slug)
-Legal (standalone)
-```
+## Infrastructure Level 2
 
-### 6.3 Invariants
+The Vercel project root is `apps/web`.
 
-- **References resolve at build time.** `reference('authors')` and `reference('categories')` fail the build if the target file does not exist.
-- **Drafts.** `draft: true` (posts, recipes, events) excludes an entry from production builds, archives, the feed and the sitemap; `astro dev` shows drafts so they can be previewed. The event-signup endpoint treats a draft event as missing.
-- **Dates.** `date` on posts and recipes is required and drives ordering; `startsAt` on events decides whether an event is upcoming.
-- **Images.** `image` is a relative path to `content/images/*` validated by Astro's `image()` helper, so the file must exist and is optimised at build. On posts and recipes, `imageAlt` is optional and falls back to the title. Post and recipe surfaces render through `astro:assets` using one preset from `apps/web/src/lib/images.ts`: `card` (widths 400, 640, 960; a third of the page on desktop), `featured` (640, 960, 1280; the journal band) or `detail` (640, 1040, 1600; the article and recipe hero). Each preset also sets `sizes` and quality 80. Sharp encodes them as webp; there is no second image service. Featured photographs use `imageAlt`. A recipe card with no photograph still runs the fallback through `astro:assets` and leaves `alt` empty, because the recipe title is the heading. Author photos use the same helper at 120px; the byline leaves alt empty because the author's name sits beside the photo. Page photographs are imported from `src/assets/images/` and optimised the same way. Every `og:image` is a centre-cropped 1200×630 JPEG of an imported photograph, built at build time. A page with no photograph uses the site photograph for that crop. `public/images/` holds the decorative placeholder SVG only.
-- **Recipes** must have at least one ingredient and one instruction; durations must match the ISO 8601 pattern in `src/lib/content/schema.ts`.
-- **Empty archives are not generated.** A category or tag with no published post has no page and no sitemap entry.
+| Environment | What it runs                          | Content                                                 |
+| ----------- | ------------------------------------- | ------------------------------------------------------- |
+| Local       | `astro dev`                           | Working tree. Drafts visible.                           |
+| Preview     | Vercel deployment of the pull request | The branch. Same content security policy as production. |
+| Production  | Vercel deployment of `main`           | `main`. Secrets in the host's environment.              |
 
-### 6.4 Frontmatter contract
+No variable is required to build. `PUBLIC_SITE_URL` is the canonical origin. `PUBLIC_GTM_ID` and `PUBLIC_SENTRY_DSN` are the browser-visible ids. `MAILERLITE_API_KEY`, `RESEND_API_KEY`, the contact recipient and from address, and the form rate-limit switches are server-only. The task runner lists build-relevant variables so its cache key includes them.
 
 ```text
-content/
-├── posts/*.mdx           # journal
-├── recipes/*.mdx
-├── events/*.mdx          # empty is fine — the listing renders an empty state
-├── legal/*.mdx           # privacy-policy, terms-of-service
-├── authors/*.yaml        # referenced by id from posts and recipes
-├── categories/*.yaml     # referenced by id from posts
-├── images/*.jpg          # hero images referenced from frontmatter
-└── tags.json             # { "slug": "Display name" }
-```
-
-Rules common to every collection:
-
-- The entry id, and therefore the URL slug, is the filename without its extension. Use lowercase kebab-case (`SLUG_PATTERN` in `lib/content/schema.ts`).
-- Frontmatter is validated by the Zod schemas in `apps/web/src/content.config.ts` on every build and by `astro check`. An invalid file fails the build; a missing optional field takes its default.
-- `image` is an image import resolved relative to the entry file (`"../images/hero-home.jpg"`). Astro validates that the file exists and optimises it at build. Paths must resolve to a file on disk relative to the entry; `public/` URLs are not accepted here.
-- `draft: true` (where the collection has it) excludes the entry from production builds, the sitemap and the RSS feed. In `astro dev` drafts render so they can be previewed. Legal, authors and categories have no draft flag.
-- Dates are ISO strings (`"2026-04-18"`) and are coerced to `Date`.
-
-#### 6.4.1 `posts`
-
-| Field         | Type                      | Required | Notes                                                                                                      |
-| ------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `title`       | string, ≤ 200             | yes      |                                                                                                            |
-| `date`        | date                      | yes      | Sort key, newest first                                                                                     |
-| `author`      | reference to `authors`    | yes      | `"jonno"`                                                                                                  |
-| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts                                                          |
-| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`                                                                    |
-| `featured`    | boolean                   | no       | Default `false`. The newest featured post is the journal hero; older featured posts stay in the dated grid |
-| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                                                                         |
-| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`                                                                  |
-| `image`       | image                     | no       | Hero and `og:image`; the site share crop otherwise                                                         |
-| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway                                                                      |
-| `draft`       | boolean                   | no       | Default `false`                                                                                            |
-
-```mdx
----
-title: 'Our first planting day: 1,150 trees, 26 people, one brown snake'
-date: '2026-04-18'
-author: 'jonno'
-category: 'regeneration'
-tags: ['restoration', 'regeneration', 'agroforestry']
-featured: true
-excerpt: 'We opened the gate for the first time and 26 people turned up with gloves.'
-description: "Carinya Parc's first community planting day along the Branch River."
-image: '../images/river-valley-aerial.jpg'
-imageAlt: 'The Branch River bend at Carinya Parc'
-draft: false
----
-```
-
-#### 6.4.2 `recipes`
-
-| Field          | Type                         | Required | Notes                        |
-| -------------- | ---------------------------- | -------- | ---------------------------- |
-| `title`        | string, ≤ 200                | yes      |                              |
-| `date`         | date                         | yes      |                              |
-| `author`       | reference to `authors`       | yes      |                              |
-| `difficulty`   | `easy` \| `medium` \| `hard` | no       |                              |
-| `servings`     | integer ≥ 1                  | no       |                              |
-| `prepTime`     | ISO 8601 duration (`PT10M`)  | no       | Hours, minutes, seconds only |
-| `cookTime`     | ISO 8601 duration            | no       |                              |
-| `totalTime`    | ISO 8601 duration            | no       | Used in Recipe JSON-LD       |
-| `excerpt`      | string, ≤ 500                | yes      |                              |
-| `description`  | string, ≤ 300                | no       | Falls back to `excerpt`      |
-| `image`        | image                        | no       |                              |
-| `imageAlt`     | string                       | no       |                              |
-| `tags`         | string[]                     | no       | Default `[]`                 |
-| `ingredients`  | `{ item: string }[]`, ≥ 1    | yes      |                              |
-| `instructions` | `{ step: string }[]`, ≥ 1    | yes      | Rendered in order            |
-| `draft`        | boolean                      | no       | Default `false`              |
-
-The MDX body is optional prose above or below the structured ingredients and steps.
-
-#### 6.4.3 `events`
-
-| Field          | Type          | Required | Notes                                                                        |
-| -------------- | ------------- | -------- | ---------------------------------------------------------------------------- |
-| `title`        | string, ≤ 200 | yes      |                                                                              |
-| `startsAt`     | date-time     | yes      | Listing shows events starting after build time; rebuild to drop a past event |
-| `location`     | string, ≤ 200 | yes      |                                                                              |
-| `isFull`       | boolean       | no       | Default `false`; set by hand — there is no capacity counter                  |
-| `signupTarget` | http(s) URL   | no       | When set, the card links out instead of showing the on-site form             |
-| `draft`        | boolean       | no       | Default `false`; the signup endpoint also refuses drafts                     |
-
-On-site signups (`/api/events/signup/`) are added to a MailerLite group named for the event slug. Nothing is stored in this repository or on the server.
-
-#### 6.4.4 `legal`
-
-| Field         | Type   | Required |
-| ------------- | ------ | -------- |
-| `title`       | string | yes      |
-| `description` | string | yes      |
-
-The body is the policy text; the page renders it with the `legal-prose` styles.
-
-#### 6.4.5 `authors` and `categories` (YAML)
-
-| Collection   | Fields                                                                    |
-| ------------ | ------------------------------------------------------------------------- |
-| `authors`    | `name` (required), `image` (optional path under `content/images/`), `bio` |
-| `categories` | `name` (required), `description`                                          |
-
-The filename is the id other entries reference. Categories only get an archive page once a published post uses them.
-
-#### 6.4.6 `tags.json`
-
-A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/posts.ts` falls back to the slug itself, so an entry is only needed when the label differs from the slug (`"comfort-food": "Comfort Food"`).
-
-### 6.5 Glossary
-
-| Term                   | Definition                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
-| **Entry**              | One file in a collection; its id is the filename stem and the public slug                         |
-| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                      |
-| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`)   |
-| **Featured post**      | `featured: true`. The newest one is the journal hero; older featured posts stay in the dated grid |
-| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                          |
-| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers              |
-
----
-
-## 7. Cross-cutting concepts
-
-### 7.1 Security
-
-- **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. The obsolete `X-XSS-Protection` header is not sent. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
-- **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
-- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by lowercased email, per function instance. It stops a single browser repeating a completed form; a failed Resend or MailerLite call releases that attempt so the visitor can retry. It does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
-- **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
-- **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
-- **Secrets.** `MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN` are server-only. Only `PUBLIC_*` variables reach the browser.
-
-### 7.2 Observability
-
-- **Sentry** (`@sentry/astro`) on client and server when a DSN is set; source maps upload when `SENTRY_AUTH_TOKEN` is present. The browser SDK is initialised from `sentry.client.config.ts` on every page, independent of the analytics consent gate, and posts envelopes to `/monitoring/`. That route forwards only an envelope whose DSN matches the configured Sentry project. The server SDK is initialised from `sentry.server.config.ts` and posts straight to the DSN. Handlers call `captureException` and `countMetric` through `src/lib/observability/metrics.ts`.
-- **Vercel Analytics and Speed Insights** load only after consent, from the `ConsentGate` island.
-- **Logging.** Endpoints log rejection reasons and the email domain, never the address or message body.
-
-### 7.3 Error handling
-
-- **404** — `src/pages/404.astro`, served by Vercel for any unmatched path. The document is `noindex, follow` and omits a canonical, because the same static file answers every unknown URL.
-- **Endpoints** — structured JSON `{ error }` with 400/404/409/429/500/503 as appropriate; a thrown error inside a handler is captured to Sentry and returns a generic 500.
-- **Build** — a schema error, a missing referenced file or a missing image fails `astro build`, which fails CI and the Vercel deployment; nothing partial ships.
-
-### 7.4 Caching and content freshness
-
-Every public page is static HTML on the Vercel CDN and changes only when a build runs. Freshness is therefore "last merge to `main`": there is no revalidation, no ISR and no cache tags to keep in sync. Images referenced from frontmatter are optimised at build by Astro (sharp) into hashed files; marketing photography in `src/assets/images/` is handled the same way, including the 1200×630 JPEG share crop. `public/` is served as-is and holds no photographs. Function responses are not cached.
-
-### 7.5 Metadata and structured data
-
-`src/lib/metadata/` composes title, description, canonical (trailing slash, omitted when a page passes `omitCanonical`), robots (`noIndex` / `noFollow` flow through `generatePageMetadata` and `generateMetadata`), Open Graph and Twitter tags; `Base.astro` renders them and the Organization JSON-LD on every page. `src/lib/schema/` builds Article, Recipe (with instructions and image), BreadcrumbList and LocalBusiness JSON-LD; page-level `<JsonLd>` emits them. `LOCAL_BUSINESS` in `src/lib/constants.ts` holds the address and coordinates. The sitemap comes from `@astrojs/sitemap` (`/sitemap-index.xml`, with `/sitemap.xml` redirected to it) and the feed from `@astrojs/rss` at `/feed.xml`.
-
-### 7.6 Accessibility
-
-Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. Every `Site` page starts with a visually hidden “Skip to content” link that is shown on focus and moves keyboard focus to the main landmark. No automated accessibility gate runs in CI yet.
-
-### 7.7 Testing strategy
-
-| Layer         | What                                                                                                                                                                   | Command                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, newsletter and email adapters, metadata, schema, security policy, consent, islands                                   | `pnpm --filter web test`                    |
-| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers and enforced CSP | `pnpm --filter web test:dist` (after build) |
-| Typecheck     | `astro check`                                                                                                                                                          | `pnpm --filter web typecheck`               |
-
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The dist suite skips itself when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
-
-### 7.8 Public HTTP surface
-
-| Route                                            | Method | Purpose                                         | Notes                                              |
-| ------------------------------------------------ | ------ | ----------------------------------------------- | -------------------------------------------------- |
-| `/api/contact/`                                  | POST   | Contact form → Resend notification              | GET returns 405                                    |
-| `/api/subscribe/`                                | POST   | Newsletter subscription → MailerLite subscriber | One submission per email per day                   |
-| `/api/events/signup/`                            | POST   | Event signup → MailerLite group for the event   | 404 draft/unknown, 400 past or external, 409 full  |
-| `/api/csp-report/`                               | POST   | CSP violation reports → Sentry                  | 204 for reports from other origins                 |
-| `/monitoring/`                                   | POST   | Browser Sentry envelopes → the project DSN      | Same-origin tunnel; GET returns 405                |
-| `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
-
-Request and response shapes are the Zod schemas beside each feature (`lib/newsletter/schema.ts`, `lib/email/schema.ts`, `lib/validation/event-signup-schema.ts`) and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash.
-
----
-
-## 8. Deployment and environments
-
-### 8.1 Topology
-
-| Environment    | How                                       | Data                           | Notes                                                               |
-| -------------- | ----------------------------------------- | ------------------------------ | ------------------------------------------------------------------- |
-| **Local**      | `pnpm web:dev` (`astro dev`)              | `content/` in the working tree | Drafts visible; `.env` from `apps/web/.env.example`                 |
-| **Preview**    | Vercel deployment per pull request        | The PR branch                  | Same CSP as production; the draft preview for authors and reviewers |
-| **Production** | Vercel project, root directory `apps/web` | `main`                         | Secrets in Vercel environment variables                             |
-
-### 8.2 Configuration
-
-From `apps/web/.env.example`:
-
-| Variable                                                                                                         | Purpose                                                |
-| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `PUBLIC_SITE_URL`                                                                                                | Canonical origin for metadata, JSON-LD and the sitemap |
-| `PUBLIC_GTM_ID`                                                                                                  | GTM container, injected after consent                  |
-| `PUBLIC_SENTRY_DSN`, `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`                           | Sentry; the integration is skipped when no DSN is set  |
-| `MAILERLITE_API_KEY`                                                                                             | Subscribe and event-signup endpoints                   |
-| `RESEND_API_KEY`, `CONTACT_EMAIL_RECIPIENT`, `CONTACT_EMAIL_FROM`                                                | Contact notification email                             |
-| `CONTACT_FORM_ENABLE`, `CONTACT_FORM_RATE_LIMITING`, `CONTACT_RATE_LIMIT_MAX`, `CONTACT_RATE_LIMIT_WINDOW_HOURS` | Contact endpoint switches                              |
-| `EVENT_SIGNUP_RATE_LIMITING`, `EVENT_SIGNUP_RATE_LIMIT_MAX`, `EVENT_SIGNUP_RATE_LIMIT_WINDOW_HOURS`              | Event-signup switches                                  |
-
-No variable is required to build. `turbo.json` lists the build-relevant variables so Turborepo's cache keys include them.
-
-### 8.3 Build and release
-
-```text
-push / merge → Vercel build (root: apps/web)
-  → pnpm install (workspace)
-  → turbo run build --filter=web → astro build
-      → validate content, prerender pages, optimise images, write sitemap and feed
-      → Vercel adapter: static output + five functions
-      → integrations patch .vercel/output/config.json (headers, redirects)
+merge → Vercel build (root apps/web)
+  → astro build validates content, prerenders pages, writes the sitemap and feed
+  → adapter emits static files and five functions
+  → security integration writes headers into the build output
   → deploy
 ```
 
-Rollout is trunk-based: merge to `main` is the production release, every pull request gets a preview. Rollback is redeploying the previous Vercel deployment. Content and code share one pipeline; there is no separate content release.
+**Source files:** `apps/web/astro.config.mjs`, `apps/web/.env.example`, `turbo.json`, `.github/workflows/ci.yml`
 
 ---
 
-## 9. Architectural decisions
+# 8. Cross-cutting Concepts
 
-Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern this architecture:
+## Domain model and persistence
 
-| ID       | Decision                                                                       | Status                                                                                    |
-| -------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| ADR-0001 | [Astro + MDX](decisions/ADR-0001-astro-mdx.md)                                 | Accepted 2026-09-21                                                                       |
-| —        | `content/` at the repository root rather than inside `apps/web`                | Candidate; content stays at the repository root                                           |
-| —        | Public CSP: host allowlist + `'unsafe-inline'`, not nonce + `'strict-dynamic'` | Candidate; rationale in `src/lib/security/constants.ts`; revisit only if pages go dynamic |
-| —        | Event signups as MailerLite groups, no capacity counting                       | Candidate; the default for event signups                                                  |
-| —        | `@carinya/theme` as a workspace package; UI primitives stay inlined in the app | Candidate; shipped                                                                        |
+State lives in git. There is no database. An entry's id is its filename without the extension, so the public slug is the filename. Slugs are lowercase kebab-case.
+
+| Collection | Files                       | Required fields                                                           |
+| ---------- | --------------------------- | ------------------------------------------------------------------------- |
+| posts      | `content/posts/*.mdx`       | title, date, author, excerpt                                              |
+| recipes    | `content/recipes/*.mdx`     | title, date, author, excerpt, at least one ingredient and one instruction |
+| events     | `content/events/*.mdx`      | title, startsAt, location                                                 |
+| legal      | `content/legal/*.mdx`       | title, description                                                        |
+| authors    | `content/authors/*.yaml`    | name                                                                      |
+| categories | `content/categories/*.yaml` | name                                                                      |
+
+`content/tags.json` maps a slug to a display name when the slug is not the label. `content/images/` holds hero files referenced from frontmatter.
+
+Invariants:
+
+- A missing author or category reference fails the build.
+- `draft: true` on a post, recipe, or event removes it from production HTML, archives, the feed, and the sitemap. Local dev still renders it. The event-signup endpoint treats a draft as missing.
+- `image` is a path relative to the entry, not a public URL. The file must exist and is optimised at build.
+- Post and recipe photographs use one of three presets (`card`, `featured`, `detail`) and are encoded as WebP. The share image is a separate 1200×630 JPEG crop. `public/images/` holds a placeholder SVG only.
+- Recipe durations match an ISO 8601 hours-minutes-seconds pattern.
+- `isFull` is set by hand. Nothing counts event capacity.
+- A category or tag with no published post has no archive page.
+
+## Security
+
+```text
+Visitor browser
+    | HTTPS, no secrets
+    v
+Vercel CDN (static HTML, consent cookie only)
+    |
+    +-- after consent --> GTM, Vercel Analytics
+    |
+Vercel Functions (server keys)
+    +-- MailerLite, Resend, Sentry
+```
+
+- Headers include HSTS (two years, preload), frame denial, a strict referrer policy, and a permissions policy that turns camera, microphone, and geolocation off. The content security policy is enforced, not report-only. Violations POST to `/api/csp-report/` (body at most 32 KB; up to 10 forwarded per minute per instance).
+- Each form keeps an in-memory limit keyed by lowercased email, per function instance. It is a nuisance filter. A failed upstream call releases the attempt. Durable control is a WAF rule on POST to the contact, subscribe, and event routes. The tunnel uses a one-minute window keyed by client IP.
+- Text is stripped of control characters and HTML-significant characters before it reaches email or MailerLite. Logs record the email domain, never the address or the message.
+- The only cookie is `cp_consent`, set by the browser, not httpOnly.
+
+## Observability
+
+Sentry is initialised for the browser and the server when a DSN is set. The browser posts envelopes to `/monitoring/`, which forwards an envelope only when its DSN matches the configured project. Handlers capture exceptions and count submissions by status. Vercel Analytics and Speed Insights load only after consent.
+
+## Testing
+
+| Tier      | Where                                       | What                                                                                                                            |
+| --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Unit      | Colocated `*.test.ts` under `apps/web/src/` | Handlers, validation, sanitisation, rate limit, adapters, metadata, structured data, security policy, consent, stateful islands |
+| Dist      | `apps/web/tests/security.test.ts`           | Built links, images, content-security-policy hosts, and headers. Skips itself when `dist/` is absent.                           |
+| Typecheck | `astro check`                               | Types and content frontmatter                                                                                                   |
+
+Presentational components are not unit-tested. There is no browser end-to-end suite. Form submission is checked on a preview.
+
+## Build and release
+
+| Workflow | Trigger                         | Checks                                                     |
+| -------- | ------------------------------- | ---------------------------------------------------------- |
+| CI       | Pull request and push to `main` | Lint, typecheck, format, unit tests, web build, dist tests |
+| Vercel   | Pull request and `main`         | Production build of `apps/web`, then deploy                |
+
+A schema error, a broken reference, or a missing image fails the build. Nothing partial ships.
+
+**Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/content/`, `apps/web/src/lib/security/`, `apps/web/src/lib/observability/metrics.ts`, `apps/web/src/lib/images.ts`, `.github/workflows/ci.yml`
 
 ---
 
-## 10. Risks, technical debt, and open questions
+# 10. Quality Requirements
 
-### 10.1 Risks
+## Quality Scenarios
 
-| Risk                                                        | Likelihood | Impact | Mitigation direction                                                                                      |
-| ----------------------------------------------------------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
-| Form abuse across function instances                        | Medium     | Medium | Honeypot and timing in the handler; Vercel WAF rate-limit on form POSTs                                   |
-| CSP enforcement breaks a third-party script                 | Low        | Medium | Violations POST to `/api/csp-report/` and Sentry; watch after allowlist changes                           |
-| Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                                |
-| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; review new `getCollection` calls                                      |
-| Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in [`AGENTS.md`](../AGENTS.md); optional git-backed editor (roadmap) |
+| Quality goal          | Scenario                                                                                                                  | Measure                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Trust and security    | An invalid contact body is rejected and no notification is sent. Built HTML carries the enforced content security policy. | Handler tests return 400 without sending. The dist suite finds the policy header and no unexpected hosts. |
+| Hermetic builds       | CI builds the site with no third-party keys set.                                                                          | The web build succeeds. A missing key fails the request at runtime with a clear error, not the build.     |
+| Performance           | A journal or recipe page is static HTML. Analytics scripts are absent until consent.                                      | View source of a content page has no tag-manager or Vercel analytics script.                              |
+| Editorial reliability | A post with `draft: true` is absent from the production HTML, the sitemap, and the feed.                                  | Production build output does not contain that slug. `astro dev` still renders it.                         |
+| Maintainability       | Published entries are read through `lib/content/`. A provider module is imported only by its folder entry.                | A new page does not call the collection loader itself. The import boundary fails lint.                    |
 
-### 10.2 Technical debt
-
-- **Rate limiting is in-memory per instance** as well as a Vercel WAF rule on form POSTs. `createRateLimiter` still resets when an instance is recycled; the WAF is the durable control. The Sentry tunnel at `/monitoring/` sits outside `/api/*`, so a durable WAF rule for that path has to name it explicitly.
-- **CSP carries `'unsafe-inline'`** for scripts and styles. Prerendered HTML cannot nonce inline scripts; the policy relies on host allowlists. The policy is enforced.
-- **Events freshness is tied to deploys.** An event flips from upcoming to past only when the site rebuilds. `isFull` is set by hand.
-- **Posts render the full MDX body.** There is no automatic midpoint subscribe form. `SubscribeForm` (the `compact` and `band` variants, on the regenerate page and the journal band) could become an MDX component authors place explicitly (roadmap Phase 4).
-- **Placeholder `imageAlt` values.** `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
-- **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
-- **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
-- **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.
-
-### 10.3 Open questions
-
-- **Editorial tooling.** Is a PR-based workflow with previews enough for the editor, or is a git-backed editor (Decap, Keystatic, or GitHub's web editor with templates) worth adding? Decide after a month of publishing through PRs.
-- **Recipe tags.** Recipe-only tags have no archive page today; surface `/recipes/tag/` pages, or leave recipe tags as labels only.
-- **Dynamic social images.** Closed. Every page's `og:image` is a centre-cropped 1200×630 JPEG of an imported photograph, with alt text. A page with no photograph uses the site photograph. A generated card is not used.
-- **Event signup source of truth.** MailerLite groups hold the list; if a capacity or attendance record is ever needed it has to come from MailerLite exports.
-
-Mitigation timing is in [`product/roadmap.md`](product/roadmap.md). Do not track debt elsewhere in this doc set.
+**Source files:** `apps/web/src/lib/contact/handler.test.ts`, `apps/web/tests/security.test.ts`, `.github/workflows/ci.yml`
 
 ---
 
-## 11. Graduation candidates
+# 11. Risks and Technical Debts
 
-Patterns that may lift to a shared package if a second product or surface adopts them.
+## Risks
 
-| Pattern                                                                              | Trigger for graduation                                   |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| **Security policy generator** (`src/lib/security` → `vercel.json` + output merge)    | A second Astro or static site on Vercel in the portfolio |
-| **Content query layer** (`src/lib/content/` with draft filtering and card shapes)    | A second content site sharing the collection shapes      |
-| **Metadata + JSON-LD composer split**                                                | A third site requiring the same SEO structure            |
-| **Form endpoint pipeline** (Zod → honeypot → timing → limiter → sanitise → upstream) | Reused by another form-bearing site                      |
-| **Consent gate island**                                                              | Any other consent-gated analytics surface                |
+| ID  | Risk                                                             | Likelihood | Impact | Mitigation                                                                                                       |
+| --- | ---------------------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| R1  | Form abuse across function instances                             | Medium     | Medium | Honeypot and timing in the handler. WAF rate limit on form POSTs.                                                |
+| R2  | The content security policy blocks a third-party script          | Low        | Medium | Violations are reported to Sentry. Watch them after an allowlist change.                                         |
+| R3  | The events list stays stale between deploys                      | Medium     | Low    | A content merge redeploys. A past event drops off only on the next build.                                        |
+| R4  | A new query bypasses the published-only filter and leaks a draft | Low        | High   | Pages read through `lib/content/`. Review any new collection read.                                               |
+| R5  | Editing through pull requests is too much friction               | Medium     | Medium | The preview deployment is the draft review. A git-backed editor is an open question, not a second content store. |
 
-Until then, these remain conventions inside `apps/web` documented in this file and [`AGENTS.md`](../AGENTS.md).
+## Technical debt
+
+- **Rate limiting is in-memory per instance.** The WAF is the durable control. The tunnel path sits outside `/api/`, so a WAF rule for it has to name `/monitoring/` explicitly.
+- **The content security policy allows inline scripts and styles.** Prerendered HTML cannot nonce them. The policy is still enforced.
+- **Event freshness is tied to deploys.** `isFull` is set by hand.
+- **The journal does not insert a subscribe form mid-article.** Subscribe modules are placed by the page.
+- **Some alternative text is still a placeholder,** and the local-business coordinates in `src/lib/constants.ts` are a placeholder published in the structured data.
+- **No browser end-to-end tests.** Islands are unit-tested. Forms are checked on a preview.
+- **The app and the repository root do not share one TypeScript major.** The app stays on the line its linter supports.
+
+## Open questions
+
+1. **Editorial tooling.** Is the pull-request preview enough, or is a git-backed editor worth adding? It must not become a second source of content.
+2. **Recipe tags.** They have no archive page. Either add one or leave them as labels.
+3. **Event capacity.** MailerLite holds the list. A capacity or attendance record would have to come from MailerLite, not from a new store in this repository.
+
+**Source files:** `apps/web/src/lib/rate-limit.ts`, `apps/web/src/lib/security/constants.ts`, `apps/web/src/lib/constants.ts`
+
+---
+
+# 12. Glossary
+
+| Term               | Definition                                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| Entry              | One file in a collection. Its id is the filename stem and the public slug.                         |
+| Draft              | `draft: true`. Excluded from production, the sitemap, and the feed. Still rendered in local dev.   |
+| Island             | A React component hydrated in the browser for interaction. Mounted from a server-rendered wrapper. |
+| On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5.                 |
+| Preview            | The Vercel deployment of a pull request. The draft a reviewer reads.                               |
+| Featured post      | `featured: true`. The newest one is the journal hero.                                              |
+| Provider           | The third-party adapter inside a feature folder. Imported only by that folder's server entry.      |
+
+**Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/content/`, `apps/web/src/lib/email/resend.ts`, `apps/web/src/lib/newsletter/mailerlite.ts`

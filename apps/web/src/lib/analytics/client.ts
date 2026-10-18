@@ -1,7 +1,7 @@
 import { getConsent, onConsentChange } from '@/lib/consent/client';
 
 import { loadGtm, pushToDataLayer } from './gtm';
-import type { AnalyticsEventName } from './types';
+import type { AnalyticsEventName, AnalyticsProperties } from './types';
 import { loadVercel, trackVercel } from './vercel';
 
 let analyticsLoaded = false;
@@ -30,33 +30,44 @@ export function initAnalytics(): void {
   });
 }
 
-/** Send one event to each analytics vendor. Does nothing unless the visitor has accepted. */
-export function track(event: AnalyticsEventName, params: Record<string, unknown> = {}): void {
+/** Send one event to each analytics vendor that is present. Does nothing unless the visitor has accepted. */
+export function track(event: AnalyticsEventName, properties: AnalyticsProperties): void {
   if (getConsent() !== 'accepted') {
     return;
   }
 
-  pushToDataLayer(event, params);
-  trackVercel(event, params);
+  pushToDataLayer(event, properties);
+  trackVercel(event, properties);
 }
 
 export { bindPageArticleScrollDepth } from './scroll-depth';
 export {
   trackArticleScrollDepth,
-  trackEventCtaClick,
+  trackArticleScrolled,
+  trackContactFormCompleted,
+  trackContactFormFailed,
+  trackContactFormStarted,
+  trackContactFormSubmitted,
+  trackContactFormViewed,
+  trackEventSelected,
   trackEventSignupComplete,
-  trackSubscribeComplete,
-  trackSubscribeStart,
+  trackEventSignupCompleted,
+  trackNewsletterSubscribed,
+  trackNewsletterSubscriptionStarted,
 } from './events';
 export {
   ANALYTICS_EVENTS,
   EVENTS_LISTING_SOURCE,
   SCROLL_DEPTH_THRESHOLDS,
   type AnalyticsEventName,
-  type AnalyticsEventParams,
-  type ArticleScrollDepthParams,
-  type EventCtaClickParams,
-  type EventSignupCompleteParams,
+  type AnalyticsProperties,
+  type ArticleScrolledProperties,
+  type ContactErrorCode,
+  type ContactFormProperties,
+  type DataLayerTrack,
+  type EventProperties,
+  type InquiryType,
+  type NewsletterProperties,
   type ScrollDepth,
-  type SubscribeFunnelParams,
+  type SubscribeInterest,
 } from './types';

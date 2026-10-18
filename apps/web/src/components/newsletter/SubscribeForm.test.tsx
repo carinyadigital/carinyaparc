@@ -6,13 +6,14 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const trackSubscribeStart = vi.fn();
-const trackSubscribeComplete = vi.fn();
+const trackNewsletterSubscriptionStarted = vi.fn();
+const trackNewsletterSubscribed = vi.fn();
 const postSubscribe = vi.fn();
 
 vi.mock('@/lib/analytics/client', () => ({
-  trackSubscribeStart: (...args: unknown[]) => trackSubscribeStart(...args),
-  trackSubscribeComplete: (...args: unknown[]) => trackSubscribeComplete(...args),
+  trackNewsletterSubscriptionStarted: (...args: unknown[]) =>
+    trackNewsletterSubscriptionStarted(...args),
+  trackNewsletterSubscribed: (...args: unknown[]) => trackNewsletterSubscribed(...args),
 }));
 
 vi.mock('@/lib/newsletter/client', () => ({
@@ -38,8 +39,8 @@ describe('SubscribeForm', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    trackSubscribeStart.mockReset();
-    trackSubscribeComplete.mockReset();
+    trackNewsletterSubscriptionStarted.mockReset();
+    trackNewsletterSubscribed.mockReset();
     postSubscribe.mockReset();
     ({ SubscribeForm } = await import('@/components/newsletter/SubscribeForm'));
 
@@ -55,7 +56,7 @@ describe('SubscribeForm', () => {
     container.remove();
   });
 
-  it('fires subscribe_start once on first focus', async () => {
+  it('records a subscription start once on first focus, without an interest key', async () => {
     await act(async () => {
       root.render(<SubscribeForm variant="card" source="blog:test-post" />);
     });
@@ -68,11 +69,12 @@ describe('SubscribeForm', () => {
       props.onFocus?.();
     });
 
-    expect(trackSubscribeStart).toHaveBeenCalledTimes(1);
-    expect(trackSubscribeStart).toHaveBeenCalledWith({ source: 'blog:test-post' });
+    expect(trackNewsletterSubscriptionStarted).toHaveBeenCalledTimes(1);
+    expect(trackNewsletterSubscriptionStarted).toHaveBeenCalledWith({ source: 'blog:test-post' });
+    expect(trackNewsletterSubscriptionStarted.mock.calls[0]?.[0]).not.toHaveProperty('interest');
   });
 
-  it('fires subscribe_complete with source on successful submit', async () => {
+  it('records a subscribed event with source on successful submit', async () => {
     postSubscribe.mockResolvedValue({ ok: true });
 
     await act(async () => {
@@ -94,7 +96,7 @@ describe('SubscribeForm', () => {
     });
 
     await vi.waitFor(() => {
-      expect(trackSubscribeComplete).toHaveBeenCalledWith({ source: 'blog:test-post' });
+      expect(trackNewsletterSubscribed).toHaveBeenCalledWith({ source: 'blog:test-post' });
     });
   });
 
@@ -127,6 +129,68 @@ describe('SubscribeForm', () => {
     });
     expect(container.textContent).toContain("You're on the list");
     expect(container.textContent).not.toContain('Join a growing community of supporters');
-    expect(trackSubscribeComplete).toHaveBeenCalledWith({ source: 'stay' });
+    expect(trackNewsletterSubscribed).toHaveBeenCalledWith({ source: 'stay' });
+  });
+
+  it('records completion with source and interest from the end-of-article form', async () => {
+    postSubscribe.mockResolvedValue({ ok: true });
+
+    await act(async () => {
+      root.render(<SubscribeForm variant="end" source="blog:slug" />);
+    });
+
+    const email = container.querySelector('#end-subscribe-email') as HTMLInputElement;
+    const emailProps = reactProps<{
+      onChange?: (e: { target: { value: string } }) => void;
+    }>(email);
+    const interest = container.querySelector('#end-subscribe-interest') as HTMLSelectElement;
+    const interestProps = reactProps<{
+      onChange?: (e: { target: { value: string } }) => void;
+    }>(interest);
+
+    await act(async () => {
+      emailProps.onChange?.({ target: { value: 'reader@carinyaparc.com.au' } });
+      interestProps.onChange?.({ target: { value: 'learning' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(trackNewsletterSubscribed).toHaveBeenCalledWith({
+        source: 'blog:slug',
+        interest: 'learning',
+      });
+    });
+  });
+
+  it('does not record a start or a completion from the standalone subscribe page', async () => {
+    postSubscribe.mockResolvedValue({ ok: true });
+
+    await act(async () => {
+      root.render(<SubscribeForm variant="page" source="subscribe-page" showName={false} />);
+    });
+
+    const email = container.querySelector('#email') as HTMLInputElement;
+    const emailProps = reactProps<{
+      onChange?: (e: { target: { value: string } }) => void;
+    }>(email);
+
+    await act(async () => {
+      emailProps.onChange?.({ target: { value: 'reader@carinyaparc.com.au' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("You're in");
+    });
+    expect(trackNewsletterSubscriptionStarted).not.toHaveBeenCalled();
+    expect(trackNewsletterSubscribed).not.toHaveBeenCalled();
   });
 });

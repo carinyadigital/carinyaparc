@@ -1,4 +1,4 @@
-import type { AnalyticsEventName } from './types';
+import type { AnalyticsEventName, AnalyticsProperties } from './types';
 
 /** Load Vercel Analytics and Speed Insights. The bundles are fetched only when this runs. */
 export function loadVercel(): void {
@@ -24,15 +24,15 @@ async function injectBeacons(): Promise<void> {
  * the three-argument form the site already sends.
  */
 type VercelTrackWindow = Window & {
-  va?: (command: 'track', eventName: string, properties?: Record<string, unknown>) => void;
+  va?: (command: 'track', eventName: string, properties?: AnalyticsProperties) => void;
 };
 
 /** Forward one custom event when Vercel Analytics has installed its queue function. */
-export function trackVercel(event: AnalyticsEventName, params: Record<string, unknown>): void {
+export function trackVercel(event: AnalyticsEventName, properties: AnalyticsProperties): void {
   if (typeof window === 'undefined') {
     return;
   }
 
   const analyticsWindow = window as VercelTrackWindow;
-  analyticsWindow.va?.('track', event, params);
+  analyticsWindow.va?.('track', event, properties);
 }

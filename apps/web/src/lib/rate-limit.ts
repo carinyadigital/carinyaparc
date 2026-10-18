@@ -55,13 +55,24 @@ export function createRateLimiter(options: { maxRequests: number; windowMs: numb
         };
       }
 
+      // Do not count a request that is already over the cap. A duplicate submit
+      // while the allowed request is in flight would otherwise leave the count
+      // above the cap after that request releases, so a failed send cannot be retried.
+      if (record.count >= maxRequests) {
+        record.lastAttempt = now;
+        return {
+          limited: true,
+          remainingRequests: 0,
+          resetTime: now + windowMs,
+        };
+      }
+
       record.count += 1;
       record.lastAttempt = now;
       map.set(key, record);
 
-      const limited = record.count > maxRequests;
       return {
-        limited,
+        limited: false,
         remainingRequests: Math.max(0, maxRequests - record.count),
         resetTime: record.lastAttempt + windowMs,
       };

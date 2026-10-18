@@ -167,6 +167,36 @@ describe('upstream failures', () => {
     expect(body.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
   });
 
+  it('lets the same address retry when a duplicate submit races a failed signup', async () => {
+    let finishFirst: (result: { ok: false; status: number; error: string }) => void = () => {};
+    const pending = new Promise<{ ok: false; status: number; error: string }>((resolve) => {
+      finishFirst = resolve;
+    });
+    vi.mocked(subscribe).mockImplementationOnce(() => pending);
+
+    const body = { email: 'race@fastmail.com', submissionTime: 5000 };
+    const first = handleSubscribe(jsonRequest(body));
+    await vi.waitFor(() => {
+      expect(subscribe).toHaveBeenCalledTimes(1);
+    });
+
+    const raced = await handleSubscribe(jsonRequest(body));
+    expect(raced.status).toBe(429);
+    expect(subscribe).toHaveBeenCalledTimes(1);
+
+    finishFirst({
+      ok: false,
+      status: 500,
+      error: 'Network error. Please try again later.',
+    });
+    expect((await first).status).toBe(503);
+
+    vi.mocked(subscribe).mockResolvedValueOnce({ ok: true, status: 200 });
+    const retried = await handleSubscribe(jsonRequest(body));
+    expect(retried.status).toBe(200);
+    expect(subscribe).toHaveBeenCalledTimes(2);
+  });
+
   it('lets the same address retry after the newsletter service fails', async () => {
     vi.mocked(subscribe)
       .mockResolvedValueOnce({

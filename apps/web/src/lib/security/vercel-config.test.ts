@@ -40,6 +40,7 @@ describe('generateVercelJson', () => {
     expect(headers['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
     expect(headers['Permissions-Policy']).toContain('camera=()');
     expect(headers['X-Content-Type-Options']).toBe('nosniff');
+    expect(headers['X-XSS-Protection']).toBeUndefined();
 
     const cspName = CSP_REPORT_ONLY
       ? 'Content-Security-Policy-Report-Only'
@@ -68,6 +69,7 @@ describe('mergeSecurityIntoVercelOutput', () => {
     expect(merged.routes?.[0]).toMatchObject({ src: '/(.*)', continue: true });
     const first = merged.routes?.[0] as { headers: Record<string, string> };
     expect(first.headers['X-Frame-Options']).toBe('DENY');
+    expect(first.headers['X-XSS-Protection']).toBeUndefined();
     expect(merged.routes?.slice(1, 1 + GONE_PATH_PATTERNS.length)).toEqual(
       GONE_PATH_PATTERNS.map((src) => ({ src, status: 410 })),
     );

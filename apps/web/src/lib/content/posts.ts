@@ -6,7 +6,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 
 import tagNames from '../../../../../content/tags.json';
-import { formatContentDate, formatJournalMeta } from './dates';
+import { estimateReadTimeMinutes, formatContentDate, formatJournalMeta } from './dates';
 import { categoryUrl, postUrl, tagUrl } from '../urls';
 
 export type PostEntry = CollectionEntry<'posts'>;
@@ -19,6 +19,8 @@ export interface PostSummary {
   formattedDate: string;
   /** "Jul 2026 · 4 min" */
   meta: string;
+  /** Minutes at 200 words, from the body, with the excerpt only when the body is missing. */
+  readMinutes: number;
   excerpt: string;
   description: string;
   categoryName: string | null;
@@ -86,13 +88,15 @@ export async function toPostSummary(entry: PostEntry): Promise<PostSummary> {
     entry.data.category ? getEntry(entry.data.category) : Promise.resolve(undefined),
   ]);
   const description = entry.data.description ?? entry.data.excerpt;
+  const readingText = entry.body ?? entry.data.excerpt;
   return {
     id: entry.id,
     slug: entry.id,
     title: entry.data.title,
     date: entry.data.date,
     formattedDate: formatContentDate(entry.data.date),
-    meta: formatJournalMeta(entry.data.date, entry.body ?? entry.data.excerpt),
+    meta: formatJournalMeta(entry.data.date, readingText),
+    readMinutes: estimateReadTimeMinutes(readingText),
     excerpt: entry.data.excerpt,
     description,
     categoryName: category?.data.name ?? null,

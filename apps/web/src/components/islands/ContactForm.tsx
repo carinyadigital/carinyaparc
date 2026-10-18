@@ -9,6 +9,14 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import {
+  trackContactFormCompleted,
+  trackContactFormFailed,
+  trackContactFormStarted,
+  trackContactFormSubmitted,
+  trackContactFormViewed,
+  type ContactErrorCode,
+} from '@/lib/analytics/client';
 import { postContact } from '@/lib/contact/client';
 import {
   contactFormClientSchema,
@@ -17,6 +25,29 @@ import {
   type ContactFormData,
   type InquiryType,
 } from '@/lib/contact/schema';
+
+function httpStatus(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null || !('status' in error)) {
+    return undefined;
+  }
+
+  return typeof error.status === 'number' ? error.status : undefined;
+}
+
+/** Map a failed POST to a short code. A missing status, including a thrown network error, is `request_failed`. */
+function contactErrorCode(error: unknown): ContactErrorCode {
+  const status = httpStatus(error);
+  if (status === 400) {
+    return 'invalid';
+  }
+  if (status === 429) {
+    return 'rate_limited';
+  }
+  if (status === 503) {
+    return 'unavailable';
+  }
+  return 'request_failed';
+}
 
 const INQUIRY_OPTIONS: { value: InquiryType; label: string }[] = [
   { value: 'partnership', label: 'A grant or partnership' },
@@ -32,6 +63,7 @@ interface ContactFormProps {
 
 export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
   const formLoadTime = useRef<number>(0);
+  const hasStarted = useRef(false);
   const [isFormReady, setIsFormReady] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [submitError, setSubmitError] = useState('');
@@ -50,6 +82,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
   useEffect(() => {
     formLoadTime.current = Date.now();
     setIsFormReady(true);
+    trackContactFormViewed({ form_id: 'contact' });
 
     const inquiry = inquiryTypeFromSearch(window.location.search);
     if (inquiry) {
@@ -57,9 +90,22 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
     }
   }, [setValue]);
 
+  const handleFormInteraction = () => {
+    if (hasStarted.current) {
+      return;
+    }
+
+    hasStarted.current = true;
+    trackContactFormStarted({ form_id: 'contact' });
+  };
+
   const onSubmit = async (data: ContactFormClientData) => {
     setStatus('loading');
     setSubmitError('');
+    trackContactFormSubmitted({
+      form_id: 'contact',
+      inquiry_type: data.inquiryType,
+    });
 
     const submissionTime = formLoadTime.current > 0 ? Date.now() - formLoadTime.current : 0;
 
@@ -71,12 +117,21 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
 
     try {
       await postContact(fullData);
+      trackContactFormCompleted({
+        form_id: 'contact',
+        inquiry_type: data.inquiryType,
+      });
       reset();
       formLoadTime.current = Date.now();
       setStatus('success');
       onSuccess?.();
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to submit form');
+      trackContactFormFailed({
+        form_id: 'contact',
+        inquiry_type: data.inquiryType,
+        error_code: contactErrorCode(error),
+      });
       setStatus('error');
       setSubmitError(err.message);
       onError?.(err);
@@ -138,6 +193,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
       )}
 
       <form
+        onFocus={handleFormInteraction}
         onSubmit={(event) => {
           void handleSubmit(onSubmit)(event);
         }}

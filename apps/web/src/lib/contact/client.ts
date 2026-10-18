@@ -4,7 +4,7 @@ import { API_CONTACT_PATH } from '@/lib/urls';
 
 export type ContactClientResult = { success: true; message: string };
 
-/** POST a contact payload to `/api/contact/`. */
+/** POST a contact payload to `/api/contact/`. A non-OK response throws an Error with its HTTP status. */
 export async function postContact(data: ContactFormData): Promise<ContactClientResult> {
   const sanitized = sanitizeContactFormData(data);
   const response = await fetch(API_CONTACT_PATH, {
@@ -21,7 +21,9 @@ export async function postContact(data: ContactFormData): Promise<ContactClientR
   const result = (await response.json()) as { error?: string; message?: string; success?: boolean };
 
   if (!response.ok) {
-    throw new Error(result.error || 'Failed to submit form');
+    const error = new Error(result.error || 'Failed to submit form');
+    // Keep the status on the error so the form can map a short code.
+    throw Object.assign(error, { status: response.status });
   }
 
   return { success: true, message: result.message || 'Message sent' };

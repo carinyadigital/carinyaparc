@@ -104,7 +104,10 @@ describe('article scroll depth', () => {
 
     bindPageArticleScrollDepth();
 
-    expect(window.dataLayer).toEqual([{ event: 'article_scroll_depth', depth: 25 }]);
+    expect(window.dataLayer).toEqual([
+      { properties: null },
+      { event: 'Article Scrolled', properties: { percent_scrolled: 25 } },
+    ]);
 
     article.remove();
     document.cookie = `${CONSENT_COOKIE_NAME}=; Path=/; Max-Age=0`;

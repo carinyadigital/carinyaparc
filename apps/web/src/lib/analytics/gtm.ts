@@ -1,4 +1,4 @@
-import type { AnalyticsEventName } from './types';
+import type { AnalyticsEventName, AnalyticsProperties } from './types';
 
 function containerId(): string | undefined {
   const id = import.meta.env.PUBLIC_GTM_ID;
@@ -31,14 +31,20 @@ export function loadGtm(): void {
   document.head.appendChild(script);
 }
 
-/** Push one custom event. Creates the data layer if the container script has not. */
-export function pushToDataLayer(event: AnalyticsEventName, params: Record<string, unknown>): void {
-  if (typeof window === 'undefined') {
+/**
+ * Record one custom event with its parameters under `properties`.
+ * The first push clears parameters from the previous event. The tag manager
+ * keeps those parameters until something overwrites them, so a later event
+ * would still show an earlier interest or inquiry type.
+ * When the data layer is not there, this sink does nothing.
+ */
+export function pushToDataLayer(event: AnalyticsEventName, properties: AnalyticsProperties): void {
+  if (typeof window === 'undefined' || !window.dataLayer) {
     return;
   }
 
-  window.dataLayer = window.dataLayer ?? [];
-  window.dataLayer.push({ event, ...params });
+  window.dataLayer.push({ properties: null });
+  window.dataLayer.push({ event, properties });
 }
 
 declare global {

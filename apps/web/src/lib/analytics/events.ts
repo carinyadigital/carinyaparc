@@ -1,38 +1,82 @@
 import {
   ANALYTICS_EVENTS,
-  type ArticleScrollDepthParams,
-  type EventCtaClickParams,
-  type EventSignupCompleteParams,
-  type SubscribeFunnelParams,
+  type ArticleScrolledProperties,
+  type ContactFormProperties,
+  type EventProperties,
+  type NewsletterProperties,
+  type ScrollDepth,
 } from '@/lib/analytics/types';
 
 import { track } from './client';
 
-function omitUndefined(params: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
+function omitUndefined<T extends object>(properties: T): T {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([, value]) => value !== undefined),
+  ) as T;
 }
 
-/** First interaction with an in-flow subscribe form. */
-export function trackSubscribeStart(params: SubscribeFunnelParams): void {
-  track(ANALYTICS_EVENTS.subscribeStart, omitUndefined({ ...params }));
+/** Visitor focused an in-flow subscribe form. */
+export function trackNewsletterSubscriptionStarted(properties: NewsletterProperties): void {
+  track(ANALYTICS_EVENTS.newsletterSubscriptionStarted, omitUndefined(properties));
 }
 
-/** Successful subscribe API response. */
-export function trackSubscribeComplete(params: SubscribeFunnelParams): void {
-  track(ANALYTICS_EVENTS.subscribeComplete, omitUndefined({ ...params }));
+/** Visitor finished an in-flow subscribe. */
+export function trackNewsletterSubscribed(properties: NewsletterProperties): void {
+  track(ANALYTICS_EVENTS.newsletterSubscribed, omitUndefined(properties));
 }
 
-/** In-article get-involved CTA click. */
-export function trackEventCtaClick(params: EventCtaClickParams): void {
-  track(ANALYTICS_EVENTS.eventCtaClick, { ...params });
+/** Visitor chose an event from a listing or a call to action. */
+export function trackEventSelected(properties: EventProperties): void {
+  track(ANALYTICS_EVENTS.eventSelected, omitUndefined(properties));
 }
 
-/** Successful event signup. */
-export function trackEventSignupComplete(params: EventSignupCompleteParams): void {
-  track(ANALYTICS_EVENTS.eventSignupComplete, { ...params });
+/** Visitor completed an on-site event signup. */
+export function trackEventSignupCompleted(properties: EventProperties): void {
+  track(ANALYTICS_EVENTS.eventSignupCompleted, omitUndefined(properties));
 }
 
-/** Article scroll depth threshold (25 / 50 / 75 / 100). */
-export function trackArticleScrollDepth(params: ArticleScrollDepthParams): void {
-  track(ANALYTICS_EVENTS.articleScrollDepth, { depth: params.depth });
+/** Reader passed an article depth threshold. */
+export function trackArticleScrolled(properties: ArticleScrolledProperties): void {
+  track(ANALYTICS_EVENTS.articleScrolled, omitUndefined(properties));
+}
+
+/** Contact form came into view. */
+export function trackContactFormViewed(properties: ContactFormProperties): void {
+  track(ANALYTICS_EVENTS.contactFormViewed, omitUndefined(properties));
+}
+
+/** Visitor started filling in the contact form. */
+export function trackContactFormStarted(properties: ContactFormProperties): void {
+  track(ANALYTICS_EVENTS.contactFormStarted, omitUndefined(properties));
+}
+
+/** Visitor sent the contact form. */
+export function trackContactFormSubmitted(properties: ContactFormProperties): void {
+  track(ANALYTICS_EVENTS.contactFormSubmitted, omitUndefined(properties));
+}
+
+/** Contact form was accepted. */
+export function trackContactFormCompleted(properties: ContactFormProperties): void {
+  track(ANALYTICS_EVENTS.contactFormCompleted, omitUndefined(properties));
+}
+
+/** Contact form was sent and did not succeed. */
+export function trackContactFormFailed(properties: ContactFormProperties): void {
+  track(ANALYTICS_EVENTS.contactFormFailed, omitUndefined(properties));
+}
+
+/**
+ * The page scroll binder still passes a threshold as `depth`.
+ * Record that threshold as `percent_scrolled`.
+ */
+export function trackArticleScrollDepth(params: { depth: ScrollDepth }): void {
+  trackArticleScrolled({ percent_scrolled: params.depth });
+}
+
+/**
+ * On-site signup still calls this name with an event id and a source.
+ * Forward those fields to the catalog helper.
+ */
+export function trackEventSignupComplete(params: { event_id: string; source: string }): void {
+  trackEventSignupCompleted(params);
 }

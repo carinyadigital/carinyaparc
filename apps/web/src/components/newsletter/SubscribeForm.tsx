@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { trackSubscribeComplete, trackSubscribeStart } from '@/lib/analytics/client';
+import {
+  trackNewsletterSubscribed,
+  trackNewsletterSubscriptionStarted,
+} from '@/lib/analytics/client';
 import { cn } from '@/lib/cn';
 import { postSubscribe } from '@/lib/newsletter/client';
 import {
@@ -274,7 +277,7 @@ function InlineSubscribeForm({
       return;
     }
     startedRef.current = true;
-    trackSubscribeStart({ source });
+    trackNewsletterSubscriptionStarted({ source });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -307,7 +310,7 @@ function InlineSubscribeForm({
     });
 
     if (result.ok) {
-      trackSubscribeComplete({ source });
+      trackNewsletterSubscribed({ source });
       setStatus('success');
       setEmail('');
       return;
@@ -519,7 +522,7 @@ function EndSubscribeForm({ source = '', className, privacy }: SubscribeFormProp
     }
     startedRef.current = true;
     const interestParam = nextInterest || interest || undefined;
-    trackSubscribeStart({
+    trackNewsletterSubscriptionStarted({
       source,
       ...(interestParam ? { interest: interestParam } : {}),
     });
@@ -559,7 +562,7 @@ function EndSubscribeForm({ source = '', className, privacy }: SubscribeFormProp
     });
 
     if (result.ok) {
-      trackSubscribeComplete({
+      trackNewsletterSubscribed({
         source,
         ...(submittedInterest ? { interest: submittedInterest } : {}),
       });

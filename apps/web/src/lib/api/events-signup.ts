@@ -1,9 +1,5 @@
 import { getPublicEventBySlug } from '@/lib/events/catalog';
-import {
-  buildMailerLiteSubscriberPayload,
-  resolveEventGroupId,
-  upsertMailerLiteSubscriber,
-} from '@/lib/mailerlite/client';
+import { addToList } from '@/lib/newsletter';
 import { jsonResponse, readJsonBody } from '@/lib/api/json';
 import { captureException, countMetric } from '@/lib/observability/metrics';
 import { createRateLimiter } from '@/lib/rate-limit';
@@ -123,21 +119,12 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
     const name = sanitizePlainText(data.name);
     const email = sanitizePlainText(data.email).toLowerCase();
 
-    const group = await resolveEventGroupId(event.slug);
-    if (!group.ok || !group.groupId) {
-      releaseRateLimit();
-      countMetric('event.signups', 1, { status: 'failed' });
-      return jsonResponse({ error: 'Failed to record your signup. Please try again.' }, 500);
-    }
-
-    const result = await upsertMailerLiteSubscriber(
-      buildMailerLiteSubscriberPayload({
-        email,
-        name,
-        source: `event:${event.slug}`,
-        groups: [group.groupId],
-      }),
-    );
+    const result = await addToList({
+      email,
+      name,
+      source: `event:${event.slug}`,
+      list: `event:${event.slug}`,
+    });
 
     if (!result.ok) {
       releaseRateLimit();

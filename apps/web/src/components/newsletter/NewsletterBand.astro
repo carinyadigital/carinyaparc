@@ -4,7 +4,7 @@
  * marketing pages; blog routes suppress it so journal subscribe modules do not
  * stack a second band.
  */
-import { InlineSubscribe } from '@/components/islands/InlineSubscribe';
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
 ---
 
 <section id="stay" class="bg-paperbark py-16 sm:py-24" aria-labelledby="stay-heading">
@@ -23,7 +23,7 @@ import { InlineSubscribe } from '@/components/islands/InlineSubscribe';
       </div>
 
       <div class="flex justify-center lg:justify-end">
-        <InlineSubscribe client:visible source="stay" variant="stay" />
+        <SubscribeForm client:visible source="stay" variant="stay" />
       </div>
     </div>
   </div>

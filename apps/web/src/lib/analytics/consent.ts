@@ -1,4 +1,4 @@
-import { readConsentCookie } from '@/lib/consent/cookie';
+import { readConsentCookie } from '@/lib/consent/client';
 
 /** Cached positive consent for the current page session. Reset in tests via `resetAnalyticsConsentCache`. */
 let acceptedCache: true | null = null;

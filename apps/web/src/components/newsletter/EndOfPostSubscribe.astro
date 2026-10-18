@@ -1,0 +1,19 @@
+---
+/**
+ * End-of-article subscribe island. Posts JSON to `/api/subscribe/` with source attribution.
+ */
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
+import PrivacyNote from '@/components/newsletter/PrivacyNote.astro';
+
+interface Props {
+  /** Attribution passed to `/api/subscribe`, e.g. `blog:{slug}`. */
+  source: string;
+  class?: string;
+}
+
+const { source, class: className } = Astro.props;
+---
+
+<SubscribeForm client:visible variant="end" source={source} className={className}>
+  <PrivacyNote slot="privacy" class="mt-4 text-center" />
+</SubscribeForm>

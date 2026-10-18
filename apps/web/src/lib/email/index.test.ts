@@ -10,7 +10,7 @@ vi.mock('resend', () => ({
   },
 }));
 
-import { sendContactNotification } from './send-contact-notification';
+import { sendContactNotification } from './index';
 
 const payload = {
   firstName: 'Alex',

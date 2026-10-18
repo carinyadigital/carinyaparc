@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  addToMailerLiteList,
   buildMailerLiteSubscriberPayload,
-  eventGroupName,
   resetMailerLiteGroupCache,
-  resolveEventGroupId,
+  resolveGroupId,
   upsertMailerLiteSubscriber,
-} from './client';
+} from './mailerlite';
 
 describe('buildMailerLiteSubscriberPayload', () => {
   it('persists canonical interest and source as MailerLite fields', () => {
@@ -120,7 +120,7 @@ describe('upsertMailerLiteSubscriber', () => {
   });
 });
 
-describe('resolveEventGroupId', () => {
+describe('resolveGroupId', () => {
   const originalFetch = global.fetch;
   const originalApiKey = process.env.MAILERLITE_API_KEY;
 
@@ -139,24 +139,22 @@ describe('resolveEventGroupId', () => {
     }
   });
 
-  it('names groups after the event slug', () => {
-    expect(eventGroupName('winter-planting-day')).toBe('event:winter-planting-day');
-  });
-
-  it('reuses an existing group with a matching name', async () => {
+  it('reuses an existing group whose name matches exactly', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ data: [{ id: 9, name: 'event:open-day' }] }),
     }) as unknown as typeof fetch;
 
-    const result = await resolveEventGroupId('open-day');
+    const result = await resolveGroupId('event:open-day');
     expect(result.ok).toBe(true);
     expect(result.groupId).toBe('9');
     expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [url] = vi.mocked(global.fetch).mock.calls[0]!;
+    expect(new URL(String(url)).searchParams.get('filter[name]')).toBe('event:open-day');
   });
 
-  it('creates a group when none exists and caches the id', async () => {
+  it('creates a group under the given name and caches the id by that name', async () => {
     global.fetch = vi
       .fn()
       .mockResolvedValueOnce({
@@ -168,13 +166,59 @@ describe('resolveEventGroupId', () => {
         ok: true,
         status: 201,
         json: async () => ({ data: { id: 'grp_new' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ id: 4, name: 'event:open-day' }] }),
       }) as unknown as typeof fetch;
 
-    const created = await resolveEventGroupId('open-day');
+    const created = await resolveGroupId('volunteers');
     expect(created).toMatchObject({ ok: true, groupId: 'grp_new' });
 
-    const cached = await resolveEventGroupId('open-day');
+    const [listUrl] = vi.mocked(global.fetch).mock.calls[0]!;
+    expect(new URL(String(listUrl)).searchParams.get('filter[name]')).toBe('volunteers');
+    const [, createInit] = vi.mocked(global.fetch).mock.calls[1]!;
+    expect(JSON.parse(String(createInit?.body))).toEqual({ name: 'volunteers' });
+
+    const cached = await resolveGroupId('volunteers');
     expect(cached.groupId).toBe('grp_new');
     expect(global.fetch).toHaveBeenCalledTimes(2);
+
+    const other = await resolveGroupId('event:open-day');
+    expect(other.groupId).toBe('4');
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('posts the subscriber into the group named by the list', async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: [{ id: 9, name: 'volunteers' }] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: { id: 'sub_1' } }),
+      }) as unknown as typeof fetch;
+
+    const result = await addToMailerLiteList({
+      email: 'a@carinyaparc.com.au',
+      name: 'Alex',
+      source: 'event:open-day',
+      list: 'volunteers',
+    });
+
+    expect(result).toEqual({ ok: true, status: 200 });
+    const [listUrl] = vi.mocked(global.fetch).mock.calls[0]!;
+    expect(new URL(String(listUrl)).searchParams.get('filter[name]')).toBe('volunteers');
+    const [, init] = vi.mocked(global.fetch).mock.calls[1]!;
+    expect(JSON.parse(String(init?.body))).toEqual({
+      email: 'a@carinyaparc.com.au',
+      fields: { name: 'Alex', source: 'event:open-day' },
+      groups: ['9'],
+    });
   });
 });

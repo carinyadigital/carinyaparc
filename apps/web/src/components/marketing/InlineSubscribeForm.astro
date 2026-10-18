@@ -2,7 +2,8 @@
 /**
  * Single-field email capture used on /regenerate/.
  */
-import { InlineSubscribe } from '@/components/islands/InlineSubscribe';
+import PrivacyNote from '@/components/newsletter/PrivacyNote.astro';
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
 import Tag from './Tag.astro';
 
 interface Props {
@@ -12,12 +13,9 @@ const { class: className } = Astro.props;
 ---
 
 <div class={className}>
-  <InlineSubscribe
-    client:visible
-    source="regenerate"
-    variant="compact"
-    submitLabel="Join the list"
-  />
+  <SubscribeForm client:visible source="regenerate" variant="compact" submitLabel="Join the list">
+    <PrivacyNote slot="privacy" class="mt-4" />
+  </SubscribeForm>
 
   <div class="mt-[22px] flex flex-wrap gap-2.5">
     <Tag tone="eucalypt">Planting days</Tag>

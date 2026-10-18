@@ -2,7 +2,8 @@
 /**
  * Newsletter subscribe island. Posts JSON to `/api/subscribe/`.
  */
-import { SubscribeForm } from '@/components/islands/SubscribeForm';
+import PrivacyNote from '@/components/newsletter/PrivacyNote.astro';
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
 
 interface Props {
   showName?: boolean;
@@ -14,7 +15,10 @@ const { showName = true, showInterests = true } = Astro.props;
 
 <SubscribeForm
   client:visible
+  variant="page"
   showName={showName}
   showInterests={showInterests}
   source="subscribe-page"
-/>
+>
+  <PrivacyNote slot="privacy" class="mt-4 text-center" />
+</SubscribeForm>

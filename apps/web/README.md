@@ -1,6 +1,6 @@
 # `apps/web` — Carinya Parc public site
 
-Astro 7 + MDX. Static HTML for every page, React islands for the contact, subscribe and event-signup forms, and five on-demand endpoints running as Vercel functions. Folder-by-folder detail is in `docs/ARCHITECTURE.md`; the rules are in `docs/PRINCIPLES.md`.
+Astro 7 + MDX. Static HTML for every page, React islands for contact, subscribe, event signup, and consent, and five on-demand endpoints running as Vercel functions. How the system is built is in `docs/ARCHITECTURE.md`; the rules are in `docs/PRINCIPLES.md`.
 
 ## Commands
 
@@ -11,7 +11,6 @@ pnpm web:dev                    # http://localhost:4321, drafts visible
 pnpm web:build                  # dist/ and .vercel/output/
 pnpm --filter web test          # Vitest: src/**/*.test.ts(x) plus tests/ (dist suites skip without a build)
 pnpm --filter web test:dist     # links, images, CSP hosts, headers — run after a build
-pnpm --filter web generate:vercel-json   # regenerate vercel.json from src/lib/security
 pnpm lint && pnpm typecheck && pnpm format:check   # from the root, across the monorepo
 ```
 
@@ -21,7 +20,7 @@ Posts, recipes, events, legal pages, authors, categories and `tags.json` live at
 
 ## Endpoints
 
-The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`); each delegates to a handler in `src/lib/api/`:
+The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`). Contact and subscribe delegate to `src/lib/contact/handler.ts` and `src/lib/newsletter/handler.ts`. The others delegate to `src/lib/api/`:
 
 | Path                  | Does                                                           |
 | --------------------- | -------------------------------------------------------------- |
@@ -31,7 +30,7 @@ The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`
 | `/api/csp-report/`    | Receives CSP violation reports                                 |
 | `/monitoring/`        | Forwards browser Sentry envelopes to the configured project    |
 
-Redirects are in `astro.config.mjs`. Security headers and the CSP are generated into `vercel.json` and merged into the Vercel Build Output config at build time.
+Redirects are in `astro.config.mjs`. Security headers and the CSP are defined in `src/lib/security/` and merged into the Vercel Build Output config at build time.
 
 ## Tests
 
@@ -39,4 +38,4 @@ Unit tests are colocated under `src/` (`*.test.ts`, `*.test.tsx`) and cover the 
 
 ## Environment
 
-Copy `.env.example` to `.env`. Nothing is required for a local build. `PUBLIC_*` variables are the only ones the browser sees (`PUBLIC_SITE_URL`, `PUBLIC_GTM_ID`, `PUBLIC_SENTRY_DSN`). `MAILERLITE_API_KEY`, `RESEND_API_KEY` and the `CONTACT_*` / `EVENT_SIGNUP_*` settings are read by the endpoint handlers only; Sentry is enabled when a DSN is present. Browser reports go through `/monitoring/`. A new variable must also be added to `turbo.json` and the allow list in `eslint.config.mjs`.
+Copy `.env.example` to `.env`. Nothing is required for a local build. `PUBLIC_*` variables are the only ones the browser sees (`PUBLIC_SITE_URL`, `PUBLIC_GTM_ID`, `PUBLIC_SENTRY_DSN`). `MAILERLITE_API_KEY`, `RESEND_API_KEY`, and the `CONTACT_*` / `EVENT_SIGNUP_*` settings are server-only, read by the newsletter adapter, the email adapter, and the contact notification. Sentry is enabled when a DSN is present. Browser reports go through `/monitoring/`. A new variable must also be added to `turbo.json` and the allow list in `eslint.config.mjs`.

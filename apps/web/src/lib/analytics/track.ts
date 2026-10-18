@@ -1,4 +1,4 @@
-import { hasAnalyticsConsent } from '@/lib/analytics/consent';
+import { getConsent } from '@/lib/consent/client';
 import type { AnalyticsEventName } from '@/lib/analytics/types';
 
 type DataLayerWindow = Window & {
@@ -37,7 +37,7 @@ function pushToVercelAnalytics(event: AnalyticsEventName, params: Record<string,
  * Consent-gated analytics push. No-ops when consent is missing, rejected, or unknowable.
  */
 export function trackEvent(event: AnalyticsEventName, params: Record<string, unknown> = {}): void {
-  if (!hasAnalyticsConsent()) {
+  if (getConsent() !== 'accepted') {
     return;
   }
 
@@ -50,7 +50,7 @@ export function trackEventAsync(
   event: AnalyticsEventName,
   params: Record<string, unknown> = {},
 ): boolean {
-  if (!hasAnalyticsConsent()) {
+  if (getConsent() !== 'accepted') {
     return false;
   }
 

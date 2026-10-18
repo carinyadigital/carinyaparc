@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder_key_for_
 /** Send one message through Resend. The only function that talks to the provider. */
 export async function deliverEmail(message: OutboundEmail): Promise<EmailSendResult> {
   if (!process.env.RESEND_API_KEY) {
-    console.error('RESEND_API_KEY is not configured');
+    console.error('Email service not configured: RESEND_API_KEY is not set');
     return {
       success: false,
       error: 'Email service is not configured',
@@ -102,7 +102,8 @@ export async function verifyEmailServiceConfig(): Promise<{
   const errors: string[] = [];
 
   if (!process.env.RESEND_API_KEY) {
-    errors.push('RESEND_API_KEY is not configured');
+    console.error('Email service not configured: RESEND_API_KEY is not set');
+    errors.push('Email service is not configured');
   }
 
   if (process.env.RESEND_API_KEY && process.env.NODE_ENV === 'development') {

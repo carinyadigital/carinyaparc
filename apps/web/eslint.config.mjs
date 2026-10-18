@@ -1,6 +1,14 @@
+import { createRequire } from 'node:module';
+
 import { config as baseConfig } from '@repo/eslint-config/base';
 import eslintPluginAstro from 'eslint-plugin-astro';
 import prettier from 'eslint-plugin-prettier';
+
+// The Astro plugin looks for the TypeScript parser from the app directory.
+// pnpm only links that parser next to the plugin, so load it from there.
+const tsParser = createRequire(import.meta.resolve('eslint-plugin-astro'))(
+  '@typescript-eslint/parser',
+);
 
 /**
  * Provider adapters are private to the folder that owns them.
@@ -57,6 +65,14 @@ const featureEntryPatterns = [
 const eslintConfig = [
   ...baseConfig,
   ...eslintPluginAstro.configs.recommended,
+  {
+    files: ['*.astro', '**/*.astro'],
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+      },
+    },
+  },
   {
     rules: {
       'turbo/no-undeclared-env-vars': [

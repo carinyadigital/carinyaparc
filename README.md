@@ -12,7 +12,7 @@ Website for [Carinya Parc](https://carinyaparc.com.au) — a regenerative farm i
 
 ## Documentation
 
-See [`docs/`](docs/) — architecture ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)), product (`docs/product/`) and decisions (`docs/decisions/`). Guidance for coding agents is in [`AGENTS.md`](AGENTS.md); the app's own notes are in [`apps/web/README.md`](apps/web/README.md).
+See [`docs/`](docs/) — architecture ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)), product ([`docs/PRODUCT.md`](docs/PRODUCT.md)) and decisions (`docs/decisions/`). Guidance for coding agents is in [`AGENTS.md`](AGENTS.md); the app's own notes are in [`apps/web/README.md`](apps/web/README.md).
 
 ## Getting started
 

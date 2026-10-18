@@ -22,4 +22,11 @@ describe('generateJsonLd', () => {
     expect(types).toContain('BreadcrumbList');
     expect(types).toContain('LocalBusiness');
   });
+
+  it('places the LocalBusiness pin on 315 Warraba Road', () => {
+    // Parcel centroid of lot 7 DP718145, NSW Spatial Services. Not a surveyed gate.
+    expect(LOCAL_BUSINESS.address.streetAddress).toBe('315 Warraba Road');
+    expect(LOCAL_BUSINESS.address.addressLocality).toBe('The Branch');
+    expect(LOCAL_BUSINESS.geo).toEqual({ latitude: -32.53684, longitude: 152.0023 });
+  });
 });

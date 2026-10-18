@@ -5,9 +5,8 @@ version: '0.5'
 status: Active
 last_updated: 2026-10-18
 related:
-  - docs/product/product.md
+  - docs/PRODUCT.md
   - docs/PRINCIPLES.md
-  - docs/product/roadmap.md
   - docs/decisions/ADR-0001-astro-mdx.md
 ---
 
@@ -15,7 +14,7 @@ related:
 
 > **Ownership rule.** When the authoring model, runtime split, public routes, content contract, security policy, or deployment topology change, this document must be updated in the same PR.
 
-> **State.** `current` (as-is). Decisions live in [`docs/decisions/`](decisions/). Engineering rules live in [`PRINCIPLES.md`](PRINCIPLES.md). Product scope lives in [`product/product.md`](product/product.md).
+> **State.** `current` (as-is). Decisions live in [`docs/decisions/`](decisions/). Engineering rules live in [`PRINCIPLES.md`](PRINCIPLES.md). Product scope lives in [`PRODUCT.md`](PRODUCT.md).
 
 The public website for one farm: static pages built from files in the repository, a handful of on-demand form and report endpoints, and no database.
 
@@ -25,7 +24,7 @@ The public website for one farm: static pages built from files in the repository
 
 ## Requirements Overview
 
-The site publishes marketing pages, a journal, recipes, an events list, and legal pages. Visitors can send a contact enquiry, join the newsletter, and sign up for an event. Authors publish by merging a pull request. Behaviour and scope are in [`product/product.md`](product/product.md).
+The site publishes marketing pages, a journal, recipes, an events list, and legal pages. Visitors can send a contact enquiry, join the newsletter, and sign up for an event. Authors publish by merging a pull request. Behaviour and scope are in [`PRODUCT.md`](PRODUCT.md).
 
 ## Quality Goals
 
@@ -48,7 +47,7 @@ The first goal wins when they conflict.
 | Reviewer | —       | The preview is the draft. Merging to `main` publishes.                              |
 | Operator | —       | Environment variables and third-party keys live on the host, not in the repository. |
 
-**Source files:** `docs/product/product.md`, `docs/PRINCIPLES.md`
+**Source files:** `docs/PRODUCT.md`, `docs/PRINCIPLES.md`
 
 ---
 
@@ -242,12 +241,13 @@ Newsletter subscribe is the same pipeline without the event lookup: one submissi
 
 1. The page HTML contains no analytics scripts.
 2. The consent island reads `cp_consent`. With no cookie, the banner is shown.
-3. Accept writes the cookie for one year (`Path=/`, `SameSite=Lax`, `Secure` on https) and loads Google Tag Manager, when a container id is set, plus Vercel Analytics and Speed Insights.
-4. Reject loads nothing.
+3. Accept writes the cookie for one year (`Path=/`, `SameSite=Lax`, `Secure` on https).
+4. A script on every page loads Google Tag Manager, when a container id is set, plus Vercel Analytics and Speed Insights. It loads them when the cookie is already accepted, and on the same page when the visitor accepts.
+5. Reject loads nothing.
 
 The cookie is readable by client script on purpose. Consent is not a secret, and no server reads it.
 
-**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
+**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/lib/analytics/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
 
 ---
 

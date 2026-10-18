@@ -1,5 +1,6 @@
 export const SITE_TITLE = 'Carinya Parc';
-export const SITE_DESCRIPTION = 'Carinya Parc - Regenerative farming and sustainable living';
+export const SITE_DESCRIPTION =
+  'Carinya Parc is a regenerative farm at The Branch, near Stroud, on the NSW mid-north coast. Visit for a planting day or a small-group tour.';
 
 function resolveBaseUrl(): string {
   const fromImportMeta =
@@ -33,6 +34,7 @@ export const DEFAULT_KEYWORDS = [
   'Australia',
   'NSW',
   'The Branch',
+  'Stroud',
 ];
 
 export const PLACEHOLDER_IMAGE = '/images/placeholder.svg';
@@ -87,9 +89,10 @@ export const LOCAL_BUSINESS = {
     postalCode: '2425',
     addressCountry: 'AU',
   },
+  // Centroid of lot 7 DP718145 (315 Warraba Road). Not a surveyed gate.
   geo: {
-    latitude: -32.0,
-    longitude: 152.0,
+    latitude: -32.53684,
+    longitude: 152.0023,
   },
   openingHours: ['By appointment'],
   priceRange: '$$',

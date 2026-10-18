@@ -92,15 +92,21 @@ describe('upsertMailerLiteSubscriber', () => {
     }
   });
 
-  it('returns a configuration error when the API key is missing', async () => {
+  it('logs a missing API key and keeps that detail out of the returned error', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     delete process.env.MAILERLITE_API_KEY;
     const result = await upsertMailerLiteSubscriber({ email: 'a@carinyaparc.com.au' });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.status).toBe(500);
-      expect(result.error).toMatch(/MAILERLITE_API_KEY/);
+      expect(result.error).toBe('Newsletter service not configured');
+      expect(result.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
     }
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Newsletter service not configured: MAILERLITE_API_KEY is not set',
+    );
     expect(global.fetch).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   it('posts the subscriber payload to MailerLite', async () => {
@@ -137,6 +143,25 @@ describe('resolveGroupId', () => {
     } else {
       process.env.MAILERLITE_API_KEY = originalApiKey;
     }
+  });
+
+  it('logs a missing API key and does not call MailerLite', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    delete process.env.MAILERLITE_API_KEY;
+    global.fetch = vi.fn() as unknown as typeof fetch;
+
+    const result = await resolveGroupId('volunteers');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe('Newsletter service not configured');
+      expect(result.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
+    }
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Newsletter service not configured: MAILERLITE_API_KEY is not set',
+    );
+    expect(global.fetch).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 
   it('reuses an existing group whose name matches exactly', async () => {

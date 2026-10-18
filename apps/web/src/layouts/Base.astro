@@ -82,5 +82,9 @@ const googleBotParts = [
   <body class="flex min-h-screen flex-col bg-background font-sans text-foreground">
     <slot />
     <ConsentGate client:idle gtmId={gtmId} />
+    <script>
+      import { initAnalytics } from '@/lib/analytics/client';
+      initAnalytics();
+    </script>
   </body>
 </html>

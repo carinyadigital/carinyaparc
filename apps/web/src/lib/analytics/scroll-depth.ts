@@ -48,6 +48,7 @@ export function bindPageArticleScrollDepth(): void {
   const article = document.querySelector('article');
   if (article instanceof HTMLElement) {
     bindArticleScrollDepth(article, (percentScrolled) => {
+      // Each threshold is recorded once, as percent_scrolled.
       trackArticleScrolled({ percent_scrolled: percentScrolled });
     });
   }

@@ -1,7 +1,8 @@
 import { getConsent, onConsentChange } from '@/lib/consent/client';
 
-import { loadGtm } from './gtm';
-import { loadVercel } from './vercel';
+import { loadGtm, pushToDataLayer } from './gtm';
+import type { AnalyticsEventName } from './types';
+import { loadVercel, trackVercel } from './vercel';
 
 let analyticsLoaded = false;
 
@@ -29,6 +30,16 @@ export function initAnalytics(): void {
   });
 }
 
+/** Send one event to each analytics vendor. Does nothing unless the visitor has accepted. */
+export function track(event: AnalyticsEventName, params: Record<string, unknown> = {}): void {
+  if (getConsent() !== 'accepted') {
+    return;
+  }
+
+  pushToDataLayer(event, params);
+  trackVercel(event, params);
+}
+
 export {
   trackArticleScrollDepth,
   trackEventCtaClick,
@@ -36,7 +47,6 @@ export {
   trackSubscribeComplete,
   trackSubscribeStart,
 } from './events';
-export { trackEvent, trackEventAsync } from './track';
 export {
   ANALYTICS_EVENTS,
   EVENTS_LISTING_SOURCE,

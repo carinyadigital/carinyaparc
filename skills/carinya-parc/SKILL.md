@@ -2,7 +2,7 @@
 name: carinya-parc
 description: >-
   Applies Carinya Parc brand voice, positioning, and visual tokens when writing
-  copy or building UI for the farm website (Upper Hunter NSW). Use when drafting
+  copy or building UI for the farm website (The Branch, near Stroud, NSW). Use when drafting
   site copy, MDX content, or branded interfaces; when choosing colours, type, or
   radius; or when the user mentions Carinya brand, voice, or design tokens.
 user-invocable: true

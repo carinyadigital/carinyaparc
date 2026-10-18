@@ -764,7 +764,6 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 - **Events freshness is tied to deploys.** An event flips from upcoming to past only when the site rebuilds. `isFull` is set by hand.
 - **Posts render the full MDX body.** There is no automatic midpoint subscribe form. The `InlineSubscribe` island exists (used on the blog index band and the regenerate page) and could become an MDX component authors place explicitly (roadmap Phase 4).
 - **Placeholder `imageAlt` values.** `content/recipes/winter-root-vegetable-stew.mdx` still reads `imageAlt: "Hero home"`. `imageAlt` is optional in the schema, so nothing enforces quality.
-- **`LOCAL_BUSINESS.geo` is a placeholder** (`-32.0, 152.0` in `src/lib/constants.ts`); the LocalBusiness JSON-LD publishes it.
 - **No browser end-to-end tests**; islands are unit-tested with jsdom and forms verified on previews by hand.
 - **TypeScript** stays at `~6.0.3` in `apps/web` (root declares `~7.0.2`); typescript-eslint does not yet support 7.
 

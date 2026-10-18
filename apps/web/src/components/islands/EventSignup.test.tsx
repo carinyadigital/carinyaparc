@@ -6,11 +6,11 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const track = vi.fn();
+const trackEventSignupCompleted = vi.fn();
 
 vi.mock('@/lib/analytics/client', () => ({
   EVENTS_LISTING_SOURCE: 'events-listing',
-  track: (...args: unknown[]) => track(...args),
+  trackEventSignupCompleted: (...args: unknown[]) => trackEventSignupCompleted(...args),
 }));
 
 function reactProps<T extends Record<string, unknown>>(el: Element): T {
@@ -32,7 +32,7 @@ describe('EventSignup', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    track.mockReset();
+    trackEventSignupCompleted.mockReset();
     vi.stubGlobal('fetch', vi.fn());
     ({ EventSignup } = await import('@/components/islands/EventSignup'));
 
@@ -100,8 +100,8 @@ describe('EventSignup', () => {
       expect(container.textContent).toContain("You're signed up");
     });
 
-    expect(track).toHaveBeenCalledTimes(1);
-    expect(track).toHaveBeenCalledWith('Event Signup Completed', {
+    expect(trackEventSignupCompleted).toHaveBeenCalledTimes(1);
+    expect(trackEventSignupCompleted).toHaveBeenCalledWith({
       event_id: 'winter-planting-day',
       source: 'events-listing',
     });
@@ -137,7 +137,7 @@ describe('EventSignup', () => {
     });
 
     expect(fetch).not.toHaveBeenCalled();
-    expect(track).not.toHaveBeenCalled();
+    expect(trackEventSignupCompleted).not.toHaveBeenCalled();
   });
 
   it('does not record Event Signup Completed when the signup request fails', async () => {
@@ -170,6 +170,6 @@ describe('EventSignup', () => {
       expect(container.textContent).toContain('Failed to sign up. Please try again.');
     });
 
-    expect(track).not.toHaveBeenCalled();
+    expect(trackEventSignupCompleted).not.toHaveBeenCalled();
   });
 });

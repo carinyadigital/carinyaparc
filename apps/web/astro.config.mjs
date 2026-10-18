@@ -69,8 +69,10 @@ export default defineConfig({
     ...(sentryDsn
       ? [
           sentry({
-            sourceMapsUploadOptions: {
-              enabled: Boolean(process.env.SENTRY_AUTH_TOKEN),
+            // v11 dropped sourceMapsUploadOptions.enabled. Uploads stay on only
+            // when a token is configured; otherwise the build skips them.
+            sourcemaps: {
+              disable: !process.env.SENTRY_AUTH_TOKEN,
             },
           }),
         ]

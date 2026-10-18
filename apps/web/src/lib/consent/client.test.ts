@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CONSENT_COOKIE_NAME } from '@/lib/constants';
 
-import { readConsentCookie, writeConsentCookie } from './cookie';
+import { readConsentCookie, writeConsentCookie } from './client';
 
 describe('consent cookie', () => {
   beforeEach(() => {

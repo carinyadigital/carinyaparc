@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import { ConsentBanner } from '@/components/consent/ConsentBanner';
-import { markAnalyticsConsentAccepted } from '@/lib/analytics/consent';
-import { readConsentCookie, writeConsentCookie } from '@/lib/consent/cookie';
+import { markAnalyticsConsentAccepted } from '@/lib/analytics/client';
+import { readConsentCookie, writeConsentCookie } from '@/lib/consent/client';
 import type { ConsentChoice, ConsentChoiceValue } from '@/lib/consent/types';
 
 type ConsentState = ConsentChoiceValue | 'loading';

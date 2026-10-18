@@ -82,6 +82,23 @@ describe('handleContactPost', () => {
     const response = await handleContactPost(jsonRequest(valid));
     expect(response.status).toBe(500);
   });
+
+  it('does not spend the allowance when the notification fails', async () => {
+    vi.mocked(sendContactNotification).mockResolvedValue({
+      success: false,
+      error: 'Email service is not configured',
+    });
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const failed = await handleContactPost(jsonRequest(valid));
+      expect(failed.status).toBe(500);
+    }
+
+    vi.mocked(sendContactNotification).mockResolvedValue({ success: true, messageId: 'msg_2' });
+    const retried = await handleContactPost(jsonRequest(valid));
+    expect(retried.status).toBe(200);
+    expect(sendContactNotification).toHaveBeenCalledTimes(4);
+  });
 });
 
 describe('form-encoded submissions', () => {

@@ -5,12 +5,18 @@ import Site from '@/layouts/Site.astro';
 import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
 import JournalIntro from '@/components/blog/JournalIntro.astro';
 import PaginatedPosts from '@/components/blog/PaginatedPosts.astro';
-import { getCategoriesWithPosts, getPublishedPosts, toPostSummaries } from '@/lib/content/posts';
+import {
+  getCategoriesWithPosts,
+  getPublishedPosts,
+  JOURNAL_FEATURED_COUNT,
+  postsForJournalGrid,
+  toPostSummaries,
+} from '@/lib/content/posts';
 
-/** Pages 2..n of the non-featured grid, 6 per page; page 1 lives at /blog/. */
+/** Pages 2..n of the dated grid, 6 per page; page 1 lives at /blog/. */
 export const getStaticPaths = (async ({ paginate }) => {
   const published = await getPublishedPosts();
-  const gridEntries = published.filter((post) => !post.data.featured);
+  const gridEntries = postsForJournalGrid(published, JOURNAL_FEATURED_COUNT);
   return paginate(gridEntries, { pageSize: 6 }).filter(
     (path) => path.params.page !== '1' && path.params.page !== undefined,
   );

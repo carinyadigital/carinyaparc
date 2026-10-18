@@ -104,6 +104,14 @@ describe('POST /api/subscribe', () => {
     expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
   });
 
+  it('records a long ordinary address instead of pretending it subscribed', async () => {
+    const email = 'regenerativeagriculture@gmail.com';
+    const response = await handleSubscribePost(jsonRequest({ email, submissionTime: 5000 }));
+
+    expect(response.status).toBe(200);
+    expect(upsertMailerLiteSubscriber).toHaveBeenCalledWith({ email });
+  });
+
   it('upserts to MailerLite with interest and source fields', async () => {
     const response = await handleSubscribePost(
       jsonRequest({
@@ -167,6 +175,40 @@ describe('upstream failures', () => {
     expect(response.status).toBe(503);
     const body = (await response.json()) as { error: string };
     expect(body.error).not.toMatch(/MAILERLITE_API_KEY|\.env/);
+  });
+
+  it('lets the same address retry after the newsletter service fails', async () => {
+    vi.mocked(upsertMailerLiteSubscriber)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        error: 'Network error. Please try again later.',
+      })
+      .mockResolvedValueOnce({ ok: true, status: 200 });
+
+    const body = { email: 'Retry@fastmail.com', submissionTime: 5000 };
+    const failed = await handleSubscribePost(jsonRequest(body));
+    expect(failed.status).toBe(503);
+
+    const retried = await handleSubscribePost(
+      jsonRequest({ email: 'retry@fastmail.com', submissionTime: 5000 }),
+    );
+    expect(retried.status).toBe(200);
+    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(2);
+  });
+
+  it('still blocks a second subscribe after one succeeds, ignoring email case', async () => {
+    vi.mocked(upsertMailerLiteSubscriber).mockResolvedValue({ ok: true, status: 200 });
+    const first = await handleSubscribePost(
+      jsonRequest({ email: 'Once@fastmail.com', submissionTime: 5000 }),
+    );
+    expect(first.status).toBe(200);
+
+    const again = await handleSubscribePost(
+      jsonRequest({ email: 'once@fastmail.com', submissionTime: 5000 }),
+    );
+    expect(again.status).toBe(429);
+    expect(upsertMailerLiteSubscriber).toHaveBeenCalledTimes(1);
   });
 
   it('passes validation-style upstream errors through', async () => {

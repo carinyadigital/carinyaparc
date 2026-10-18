@@ -2,7 +2,6 @@
 /** Featured post band at the top of the journal index: image left, copy right, whole card a link. */
 import { Image } from 'astro:assets';
 
-import { estimateReadTimeMinutes } from '@/lib/content/dates';
 import {
   getFeaturedPosts,
   JOURNAL_FEATURED_COUNT,
@@ -81,8 +80,7 @@ const featuredPosts = await toPostSummaries(await getFeaturedPosts(limit));
                   {authorInitials(featuredPost.authorName)}
                 </span>
                 <span>
-                  {featuredPost.authorName} · {estimateReadTimeMinutes(featuredPost.excerpt)} min
-                  read
+                  {featuredPost.authorName} · {featuredPost.readMinutes} min read
                 </span>
               </div>
             </div>

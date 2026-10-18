@@ -56,6 +56,30 @@ export async function getFeaturedPosts(limit?: number): Promise<PostEntry[]> {
   return typeof limit === 'number' ? posts.slice(0, limit) : posts;
 }
 
+/**
+ * Featured posts the journal hero shows. Older featured posts are not in this
+ * set: the hero is one card, and anything past it stays in the dated grid.
+ */
+export const JOURNAL_FEATURED_COUNT = 1;
+
+/**
+ * Dated journal grid. `posts` must be newest first, as from `getPublishedPosts`.
+ * Only the featured posts actually shown in the hero are left out. Excluding
+ * every `featured: true` post hides the rest from `/blog/` and its pagination.
+ */
+export function postsForJournalGrid<T extends { id: string; data: { featured: boolean } }>(
+  posts: readonly T[],
+  featuredCount = JOURNAL_FEATURED_COUNT,
+): T[] {
+  const inHero = new Set(
+    posts
+      .filter((post) => post.data.featured)
+      .slice(0, featuredCount)
+      .map((post) => post.id),
+  );
+  return posts.filter((post) => !inHero.has(post.id));
+}
+
 export async function toPostSummary(entry: PostEntry): Promise<PostSummary> {
   const [author, category] = await Promise.all([
     getEntry(entry.data.author),

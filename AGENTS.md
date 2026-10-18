@@ -23,7 +23,7 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 │       ├── vercel.json       # generated: security headers, CSP, favicon redirect
 │       ├── integrations/     # vercel-redirect-trailing-slash.mjs
 │       ├── scripts/          # generate-vercel-json.ts
-│       ├── public/           # favicon/, images/ (fallbacks), motifs/, robots.txt, site.webmanifest
+│       ├── public/           # favicon/, images/ (fallbacks), motifs/, site.webmanifest
 │       ├── src/
 │       │   ├── pages/        # routes (.astro pages, .ts endpoints)
 │       │   ├── layouts/      # Base.astro, Site.astro

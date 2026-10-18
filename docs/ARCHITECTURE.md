@@ -227,7 +227,6 @@ apps/web/
 │   ├── favicon/              # favicon.ico and PNG sizes
 │   ├── images/               # fallback and placeholder images used by plain <img>
 │   ├── motifs/               # brand line icons
-│   ├── robots.txt
 │   └── site.webmanifest
 ├── src/
 │   ├── content.config.ts     # the six collections and their Zod schemas
@@ -306,7 +305,7 @@ Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with
 - `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers and the 410 routes into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
 - `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
 - `scripts/generate-vercel-json.ts` writes `vercel.json` from `src/lib/security/vercel-config.ts`. Run it (`pnpm --filter web generate:vercel-json`) after changing anything in `lib/security` and commit the result.
-- `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `@sentry/astro` is added only when a DSN is present.
+- `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `src/pages/robots.txt.ts` builds `/robots.txt` from the configured `site`. `@sentry/astro` is added only when a DSN is present.
 
 ### 4.5 Routes
 
@@ -331,6 +330,7 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/recipes/[slug]/`       | `pages/recipes/[slug].astro`       | One `recipes` entry, Recipe JSON-LD                                 |
 | `/legal/[slug]/`         | `pages/legal/[slug].astro`         | `legal` collection                                                  |
 | `/feed.xml`              | `pages/feed.xml.ts`                | RSS 2.0, newest 20 posts                                            |
+| `/robots.txt`            | `pages/robots.txt.ts`              | Crawl rules; sitemap URL from the configured `site`                 |
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
 

@@ -40,6 +40,7 @@ export function track(event: AnalyticsEventName, params: Record<string, unknown>
   trackVercel(event, params);
 }
 
+export { bindPageArticleScrollDepth } from './scroll-depth';
 export {
   trackArticleScrollDepth,
   trackEventCtaClick,

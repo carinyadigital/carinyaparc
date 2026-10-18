@@ -17,7 +17,8 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write --log-level=warn .",
     "format:check": "prettier --check --log-level=warn .",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "reset": "rm -rf node_modules apps/*/node_modules packages/*/node_modules .turbo apps/*/.turbo packages/*/.turbo apps/*/dist apps/*/.astro apps/*/.vercel coverage"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -25,7 +26,7 @@
     "eslint": "^10.12.0",
     "prettier": "^3.9.9",
     "prettier-plugin-astro": "^1.1.1",
-    "turbo": "^2.11.7",
+    "turbo": "^2.11.9",
     "typescript": "~7.0.2"
   },
   "pnpm": {

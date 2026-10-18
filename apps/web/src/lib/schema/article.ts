@@ -7,13 +7,13 @@ import {
   DEFAULT_ARTICLE_SECTION,
   DEFAULT_ARTICLE_WORD_COUNT,
   DEFAULT_ARTICLE_KEYWORDS,
-  DEFAULT_ARTICLE_IMAGE,
   DEFAULT_AUTHOR_NAME,
   DEFAULT_AUTHOR_URL_PATH,
   ARTICLE_ABOUT_TOPIC,
   BLOG_NAME,
   BLOG_URL_PATH,
 } from '../constants';
+import { defaultShareImage } from '../metadata/share-image';
 import { postUrl } from '../urls';
 
 export interface ArticleSchema {
@@ -113,7 +113,7 @@ export function generateArticleSchema(data: {
       ? data.imageUrl.startsWith('http')
         ? data.imageUrl
         : `${BASE_URL}${data.imageUrl}`
-      : `${BASE_URL}${DEFAULT_ARTICLE_IMAGE}`,
+      : `${BASE_URL}${defaultShareImage.src}`,
     articleSection: data.articleSection || DEFAULT_ARTICLE_SECTION,
     wordCount:
       data.wordCount ||

@@ -7,14 +7,21 @@ import Button from '@/components/ui/Button.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import Icon from '@/components/marketing/Icon.astro';
 
+import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import { buildShareImage } from '@/lib/metadata/share-image';
+
+const share = await buildShareImage(farmTrackGate);
 ---
 
 <Site
   title="The Property - Carinya Parc"
   description="Explore our 42-hectare property in The Branch, NSW - home to native woodland, river frontage, and the beginning of our ecological restoration journey."
   path="/about/the-property"
-  image="/images/farm-track-gate.jpg"
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt="A gate onto the farm track"
 >
   <JsonLd />
 

@@ -22,8 +22,8 @@ if (sentryDsn) {
 }
 
 /**
- * Copy security headers and Gone routes from the generated vercel.json into
- * the adapter's Build Output config so they apply on Vercel.
+ * Copy security headers from the generated vercel.json into the adapter's
+ * Build Output config so they apply on Vercel.
  *
  * @returns {import('astro').AstroIntegration}
  */
@@ -82,22 +82,6 @@ export default defineConfig({
     '/favicon.ico': '/favicon/favicon.ico',
     // @astrojs/sitemap writes sitemap-index.xml; keep the URL robots.txt and Search Console know.
     '/sitemap.xml': '/sitemap-index.xml',
-    // Former post URLs. Send them to the nearest current piece so existing links still land.
-    '/blog/masterchef-to-mud-boots/': '/blog/a-kitchen-before-a-farm/',
-    '/blog/restoring-42-ha-land/': '/blog/two-summers-of-rest/',
-    '/blog/lessons-from-failure/': '/blog/the-shed-in-winter/',
-    '/blog/designing-polyculture-systems/': '/blog/first-syntropic-lines/',
-    '/blog/creating-food-forest-complete-guide/': '/blog/first-syntropic-lines/',
-    '/blog/seven-layer-forest-design-guide/': '/blog/first-syntropic-lines/',
-    '/blog/seasonal-soil-care-winter-composting-cover-crops/': '/blog/midwinter-pasture/',
-    '/blog/hugelkulture-benefits-complete-guide/': '/blog/',
-    '/blog/midwinter-pasture-recovery/': '/blog/midwinter-pasture/',
-    '/blog/winter-fencing-progress/': '/blog/old-fences-new-lines/',
-    // Misspelled slug. Keep the old address so existing links still land.
-    '/recipes/herbed-omlette-with-native-greens/': '/recipes/herbed-omelette-with-native-greens/',
-    // Retired slug. The live address named a breed; this one does not.
-    '/recipes/slow-roasted-dexter-beef-with-root-vegetables/':
-      '/recipes/slow-roasted-beef-with-root-vegetables/',
   },
   vite: {
     plugins: [tailwindcss()],

@@ -1,6 +1,6 @@
 import { SOCIAL_IMAGE_HEIGHT, SOCIAL_IMAGE_WIDTH } from '../constants';
 
-/** Options spread into `getImage` for a post or recipe share preview. */
+/** Options spread into `getImage` for a centre-cropped share preview. */
 export const socialImageCrop = {
   width: SOCIAL_IMAGE_WIDTH,
   height: SOCIAL_IMAGE_HEIGHT,

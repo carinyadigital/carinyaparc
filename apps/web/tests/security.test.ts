@@ -8,8 +8,6 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { GONE_PATH_PATTERNS } from '../src/lib/security/vercel-config';
-
 const WEB_ROOT = path.resolve(__dirname, '..');
 const DIST_ROOT = path.join(WEB_ROOT, 'dist');
 const DIST = existsSync(path.join(DIST_ROOT, 'client', 'index.html'))
@@ -215,7 +213,7 @@ describeIfBuilt('hero image loading', () => {
 });
 
 describeIfBuilt('Vercel output security config', () => {
-  it('merges continue headers, Gone routes, and enforced CSP', () => {
+  it('merges continue headers and enforced CSP', () => {
     expect(existsSync(VERCEL_CONFIG)).toBe(true);
     const output = JSON.parse(readFileSync(VERCEL_CONFIG, 'utf8')) as VercelOutput;
     const headerRoute = output.routes?.find((route) => route.continue && route.headers);
@@ -226,9 +224,5 @@ describeIfBuilt('Vercel output security config', () => {
       'report-uri /api/csp-report/',
     );
     expect(headerRoute?.headers?.['Content-Security-Policy-Report-Only']).toBeUndefined();
-
-    for (const src of GONE_PATH_PATTERNS) {
-      expect(output.routes?.some((route) => route.src === src && route.status === 410)).toBe(true);
-    }
   });
 });

@@ -31,7 +31,7 @@ The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`
 | `/api/csp-report/`    | Receives CSP violation reports                                 |
 | `/monitoring/`        | Forwards browser Sentry envelopes to the configured project    |
 
-`/admin`, `/api/graphql` and `/api/graphql-playground` return 410 Gone. Redirects are in `astro.config.mjs`; security headers and the CSP are generated into `vercel.json` and merged into the Vercel Build Output config at build time.
+Redirects are in `astro.config.mjs`. Security headers and the CSP are generated into `vercel.json` and merged into the Vercel Build Output config at build time.
 
 ## Tests
 

@@ -13,11 +13,9 @@ import {
   BASE_URL,
   DEFAULT_KEYWORDS,
   SITE_MANIFEST_PATH,
-  DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_ALT,
-  DEFAULT_OG_IMAGE_HEIGHT,
-  DEFAULT_OG_IMAGE_WIDTH,
 } from '../constants';
+import { defaultShareImage } from './share-image';
 
 export { viewport };
 export type { PageMetadata } from './types';
@@ -44,8 +42,8 @@ function absoluteImageUrl(image: string): string {
 }
 
 /**
- * A passed hero uses its own size and alt. Pages with no hero keep the site
- * photograph and that file's real dimensions.
+ * A passed photograph uses its own size and alt. Pages with no photograph use
+ * the site share crop.
  */
 function resolveShareImage({
   image,
@@ -62,9 +60,9 @@ function resolveShareImage({
 }): { imageUrl: string; imageWidth?: number; imageHeight?: number; imageAlt: string } {
   if (!image) {
     return {
-      imageUrl: `${BASE_URL}${DEFAULT_OG_IMAGE}`,
-      imageWidth: DEFAULT_OG_IMAGE_WIDTH,
-      imageHeight: DEFAULT_OG_IMAGE_HEIGHT,
+      imageUrl: `${BASE_URL}${defaultShareImage.src}`,
+      imageWidth: defaultShareImage.width,
+      imageHeight: defaultShareImage.height,
       imageAlt: DEFAULT_OG_IMAGE_ALT,
     };
   }

@@ -33,7 +33,7 @@ describe('ConsentGate', () => {
 
   it('does not load GTM before consent is accepted', async () => {
     await act(async () => {
-      root.render(<ConsentGate gtmId="GTM-TEST123" />);
+      root.render(<ConsentGate />);
     });
 
     await vi.waitFor(() => {
@@ -47,7 +47,7 @@ describe('ConsentGate', () => {
     document.cookie = `${CONSENT_COOKIE_NAME}=accepted; Path=/`;
 
     await act(async () => {
-      root.render(<ConsentGate gtmId="GTM-TEST123" />);
+      root.render(<ConsentGate />);
     });
 
     await vi.waitFor(() => {
@@ -55,11 +55,13 @@ describe('ConsentGate', () => {
     });
 
     expect(document.getElementById('gtm-script')).toBeNull();
+    expect(container.querySelector('noscript')).toBeNull();
+    expect(container.querySelector('iframe')).toBeNull();
   });
 
   it('shows the banner when no cookie is set', async () => {
     await act(async () => {
-      root.render(<ConsentGate gtmId="GTM-TEST123" />);
+      root.render(<ConsentGate />);
     });
 
     await vi.waitFor(() => {
@@ -69,7 +71,7 @@ describe('ConsentGate', () => {
 
   it('stores the visitor choice in the cookie', async () => {
     await act(async () => {
-      root.render(<ConsentGate gtmId="GTM-TEST123" />);
+      root.render(<ConsentGate />);
     });
 
     await vi.waitFor(() => {

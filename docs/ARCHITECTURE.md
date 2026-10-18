@@ -661,11 +661,11 @@ Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from 
 
 ### 7.7 Testing strategy
 
-| Layer         | What                                                                                                                                                                               | Command                                       |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                           | `pnpm --filter web test`                      |
-| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and enforced CSP | `pnpm --filter web test:dist` (after build)   |
-| Typecheck     | `astro check`                                                                                                                                                                      | `pnpm --filter web typecheck`                 |
+| Layer         | What                                                                                                                                                                               | Command                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                           | `pnpm --filter web test`                    |
+| Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and enforced CSP | `pnpm --filter web test:dist` (after build) |
+| Typecheck     | `astro check`                                                                                                                                                                      | `pnpm --filter web typecheck`               |
 
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The dist suite skips itself when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
 

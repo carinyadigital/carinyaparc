@@ -11,7 +11,6 @@ pnpm web:dev                    # http://localhost:4321, drafts visible
 pnpm web:build                  # dist/ and .vercel/output/
 pnpm --filter web test          # Vitest: src/**/*.test.ts(x) plus tests/ (dist suites skip without a build)
 pnpm --filter web test:dist     # links, images, CSP hosts, headers — run after a build
-pnpm --filter web test:parity   # built site vs tests/baseline/
 pnpm --filter web generate:vercel-json   # regenerate vercel.json from src/lib/security
 pnpm lint && pnpm typecheck && pnpm format:check   # from the root, across the monorepo
 ```
@@ -36,7 +35,7 @@ The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`
 
 ## Tests
 
-Unit tests are colocated under `src/` (`*.test.ts`, `*.test.tsx`) and cover the endpoint handlers, validation, sanitisation, security, metadata, JSON-LD and the stateful islands. `tests/security.test.ts` and `tests/parity.test.ts` read `dist/` and `.vercel/output/config.json`; CI builds first and then runs `test:dist`.
+Unit tests are colocated under `src/` (`*.test.ts`, `*.test.tsx`) and cover the endpoint handlers, validation, sanitisation, security, metadata, JSON-LD and the stateful islands. `tests/security.test.ts` reads `dist/` and `.vercel/output/config.json`; CI builds first and then runs `test:dist`.
 
 ## Environment
 

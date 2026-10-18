@@ -82,8 +82,7 @@ export default defineConfig({
     '/favicon.ico': '/favicon/favicon.ico',
     // @astrojs/sitemap writes sitemap-index.xml; keep the URL robots.txt and Search Console know.
     '/sitemap.xml': '/sitemap-index.xml',
-    // Posts retired when the journal was rewritten (Sept 2026): send old URLs to the nearest
-    // new piece so links and search results keep landing somewhere useful.
+    // Former post URLs. Send them to the nearest current piece so existing links still land.
     '/blog/masterchef-to-mud-boots/': '/blog/a-kitchen-before-a-farm/',
     '/blog/restoring-42-ha-land/': '/blog/two-summers-of-rest/',
     '/blog/lessons-from-failure/': '/blog/the-shed-in-winter/',

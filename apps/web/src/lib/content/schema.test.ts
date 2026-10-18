@@ -23,7 +23,7 @@ describe('SLUG_PATTERN', () => {
 });
 
 describe('RECIPE_DIFFICULTIES', () => {
-  it('lists the three Payload difficulty values', () => {
+  it('lists easy, medium and hard', () => {
     expect([...RECIPE_DIFFICULTIES]).toEqual(['easy', 'medium', 'hard']);
   });
 });

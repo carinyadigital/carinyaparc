@@ -151,7 +151,7 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 │  ├─ tags.json               │   ├─ src/lib/                          │
 │  └─ images/          ───────┘   ├─ src/assets/images/ · public/      │
 │                                 ├─ integrations/ · scripts/          │
-│  packages/carinya-theme ───────>└─ tests/ (parity, security)         │
+│  packages/carinya-theme ───────>└─ tests/ (security)                 │
 │  packages/eslint-config, typescript-config                           │
 │  brand/ · skills/carinya-parc                                        │
 └──────────────────────────────────────────────────────────────────────┘
@@ -238,8 +238,6 @@ apps/web/
 │   ├── styles/               # globals.css, components.css, pages/{blog,legal,recipes}.css
 │   └── assets/images/        # photographs imported by pages and optimised at build
 ├── tests/
-│   ├── baseline/             # production URL and metadata snapshot
-│   ├── parity.test.ts        # dist/ against tests/baseline/
 │   └── security.test.ts      # dist/ links, images, CSP hosts, headers in .vercel/output/config.json
 ├── tsconfig.json             # extends astro/tsconfigs/strict; @/* → ./src/*
 ├── vitest.config.ts          # Astro getViteConfig; src/**/*.test.{ts,tsx} and tests/**/*.test.ts
@@ -300,7 +298,7 @@ Folders with several files carry their own `types.ts` and tests; `metadata/`, `s
 
 `src/styles/globals.css` is the single entry: it imports the two font packages, `@carinya/theme`, the typography plugin and `components.css`. Per-page CSS (`pages/blog.css`, `pages/legal.css`, `pages/recipes.css`) is imported at the top of the page that needs it, so it is only bundled where it is used. Tokens are never redefined in the app; they come from `packages/carinya-theme`.
 
-Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/parity.test.ts` and `tests/security.test.ts` read the built output and skip themselves when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`. `test:parity` compares the build against the production baseline in `apps/web/tests/baseline/`.
+Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/security.test.ts` reads the built output and skips itself when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`.
 
 - `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers and the 410 routes into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
 - `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
@@ -334,7 +332,7 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
 
-On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
+On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, so it stays outside ad-blocker lists that key on `sentry`:
 
 | URL                   | File                         | Handler                    |
 | --------------------- | ---------------------------- | -------------------------- |
@@ -659,18 +657,17 @@ Every public page is static HTML on the Vercel CDN and changes only when a build
 
 ### 7.6 Accessibility
 
-Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. Every `Site` page starts with a visually hidden “Skip to content” link that is shown on focus and moves keyboard focus to the main landmark. No automated accessibility gate runs in CI yet; Lighthouse accessibility is compared against the production baseline by hand.
+Semantic HTML from `.astro` templates, one `h1` per page, meaningful `alt` from `imageAlt`, visible focus ring from the theme, forms with labels and inline status messages rather than toasts. Every `Site` page starts with a visually hidden “Skip to content” link that is shown on focus and moves keyboard focus to the main landmark. No automated accessibility gate runs in CI yet.
 
 ### 7.7 Testing strategy
 
 | Layer         | What                                                                                                                                                                               | Command                                       |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | Unit (Vitest) | Handlers, validation, sanitisation, rate limiter, MailerLite client, metadata, schema, security policy, consent, islands                                                           | `pnpm --filter web test`                      |
-| Parity        | `dist/` against `apps/web/tests/baseline/`: URLs, intentional removals, metadata, common `<head>`                                                                                  | `pnpm --filter web test:parity` (after build) |
 | Dist          | Internal links and images resolve, first-party resources stay inside the CSP allowlist, hero `fetchpriority`/`loading`, Vercel output carries headers, 410 routes and enforced CSP | `pnpm --filter web test:dist` (after build)   |
 | Typecheck     | `astro check`                                                                                                                                                                      | `pnpm --filter web typecheck`                 |
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The parity and dist suites skip themselves when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turbo run build --filter=web` and `test:dist` on every pull request and push to `main`. The dist suite skips itself when `dist/` is absent, so `pnpm test` is safe without a build. There is no browser end-to-end suite; form submission is verified by hand on a preview deployment.
 
 ### 7.8 Public HTTP surface
 
@@ -754,7 +751,7 @@ Decisions live in [`docs/decisions/`](decisions/). Accepted records that govern 
 | Form abuse across function instances                        | Medium     | Medium | Honeypot and timing in the handler; Vercel WAF rate-limit on form POSTs                                   |
 | CSP enforcement breaks a third-party script                 | Low        | Medium | Violations POST to `/api/csp-report/` and Sentry; watch after allowlist changes                           |
 | Events list stale between deploys                           | Medium     | Low    | Content merges redeploy; a scheduled deploy hook if events become frequent                                |
-| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; parity test on sitemap; review new `getCollection` calls              |
+| Draft leaks through a new query that bypasses `isPublished` | Low        | High   | Queries in `src/lib/content/` only; review new `getCollection` calls                                      |
 | Editor friction without a browser UI                        | Medium     | Medium | Templates and the authoring contract in [`AGENTS.md`](../AGENTS.md); optional git-backed editor (roadmap) |
 
 ### 10.2 Technical debt

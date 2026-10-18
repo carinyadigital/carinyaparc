@@ -1,6 +1,6 @@
 /**
- * Payload admin and GraphQL are retired. Returning
- * Gone tells crawlers these URLs are permanently retired rather than missing.
+ * `/admin` and `/api/graphql*` return Gone so crawlers treat those paths as
+ * permanently removed rather than missing.
  */
 export const GONE_STATUS = 410;
 export const GONE_BODY = 'Gone';

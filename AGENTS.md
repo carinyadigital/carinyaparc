@@ -33,7 +33,7 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 │       │   ├── config/       # navigation.ts
 │       │   ├── assets/       # images imported by pages (optimised at build)
 │       │   └── content.config.ts
-│       └── tests/            # parity.test.ts, security.test.ts (run against dist/)
+│       └── tests/            # security.test.ts (run against dist/)
 ├── content/                  # The CMS: posts/, recipes/, events/, legal/, authors/, categories/, images/, tags.json
 ├── packages/
 │   ├── carinya-theme/        # @carinya/theme — CSS-first Tailwind 4 tokens
@@ -90,7 +90,6 @@ App-scoped scripts:
 
 ```bash
 pnpm --filter web test          # unit tests plus tests/ (dist tests skip if dist/ is absent)
-pnpm --filter web test:parity   # built site against the production baseline (needs a build first)
 pnpm --filter web test:dist     # links, images, CSP hosts and headers in dist/ (needs a build first)
 pnpm --filter web generate:vercel-json   # regenerate vercel.json after changing lib/security
 ```
@@ -141,7 +140,7 @@ Content is the CMS. An agent writing content edits files under `content/` and no
 
 **Runner:** Vitest through `apps/web/vitest.config.ts` (`getViteConfig` from Astro, Node environment, `vitest.setup.ts` sets `PUBLIC_SITE_URL`).
 
-**Where tests live:** colocated as `*.test.ts` / `*.test.tsx` under `apps/web/src/`, plus two dist-level suites in `apps/web/tests/` that read `dist/` and `.vercel/output/config.json` after a build.
+**Where tests live:** colocated as `*.test.ts` / `*.test.tsx` under `apps/web/src/`, plus `apps/web/tests/security.test.ts`, which reads `dist/` and `.vercel/output/config.json` after a build.
 
 **What to test:**
 
@@ -150,7 +149,7 @@ Content is the CMS. An agent writing content edits files under `content/` and no
 - Metadata, JSON-LD, security header and CSP generators
 - Islands with meaningful state (`ConsentGate`, `EventSignup`, `InlineSubscribe`)
 
-**What not to test by default:** presentational `.astro` components and marketing pages. Route-level output is covered by `test:parity` and `test:dist`.
+**What not to test by default:** presentational `.astro` components and marketing pages. Route-level output is covered by `test:dist`.
 
 ```bash
 pnpm test                                        # Vitest unit tests for apps/web via Turbo

@@ -104,6 +104,14 @@ describe('POST /api/subscribe', () => {
     expect(upsertMailerLiteSubscriber).not.toHaveBeenCalled();
   });
 
+  it('records a long ordinary address instead of pretending it subscribed', async () => {
+    const email = 'regenerativeagriculture@gmail.com';
+    const response = await handleSubscribePost(jsonRequest({ email, submissionTime: 5000 }));
+
+    expect(response.status).toBe(200);
+    expect(upsertMailerLiteSubscriber).toHaveBeenCalledWith({ email });
+  });
+
   it('upserts to MailerLite with interest and source fields', async () => {
     const response = await handleSubscribePost(
       jsonRequest({

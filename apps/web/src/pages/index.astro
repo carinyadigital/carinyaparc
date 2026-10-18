@@ -9,7 +9,7 @@ import LatestPosts from '@/components/blog/LatestPosts.astro';
 import Button from '@/components/ui/Button.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import MotifTile from '@/components/ui/MotifTile.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '@/lib/constants';
+import { SITE_DESCRIPTION } from '@/lib/constants';
 
 import heroHome from '@/assets/images/hero-home.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
@@ -49,7 +49,12 @@ const EXPERIENCE_ITEMS = [
 ] as const;
 ---
 
-<Site title={SITE_TITLE} description={SITE_DESCRIPTION} path="/" overlay>
+<Site
+  title="Carinya Parc | Regenerative farm at The Branch, near Stroud"
+  description={SITE_DESCRIPTION}
+  path="/"
+  overlay
+>
   <JsonLd includeLocalBusiness />
 
   <div class="min-h-screen bg-paperbark">

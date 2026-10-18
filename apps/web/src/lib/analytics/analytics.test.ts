@@ -6,7 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CONSENT_COOKIE_NAME } from '@/lib/constants';
 
-import { hasAnalyticsConsent, resetAnalyticsConsentCache } from './consent';
 import {
   trackArticleScrollDepth,
   trackEventCtaClick,
@@ -26,32 +25,33 @@ function setConsentCookie(value: string | null): void {
 
 describe('analytics helpers', () => {
   beforeEach(() => {
-    resetAnalyticsConsentCache();
     setConsentCookie(null);
     window.dataLayer = [];
     delete (window as { va?: unknown }).va;
   });
 
   afterEach(() => {
-    resetAnalyticsConsentCache();
     setConsentCookie(null);
     delete (window as { dataLayer?: unknown }).dataLayer;
   });
 
-  it('hasAnalyticsConsent returns false when the cookie is missing', () => {
-    expect(hasAnalyticsConsent()).toBe(false);
-  });
-
-  it('hasAnalyticsConsent returns false when choice is rejected', () => {
-    setConsentCookie('rejected');
-    expect(hasAnalyticsConsent()).toBe(false);
-  });
-
-  it('hasAnalyticsConsent returns true and caches accepted', () => {
+  it('trackEventAsync follows a later change to the cookie', () => {
     setConsentCookie('accepted');
-    expect(hasAnalyticsConsent()).toBe(true);
+    expect(
+      trackEventAsync(ANALYTICS_EVENTS.subscribeStart, {
+        source: 'blog:test',
+      }),
+    ).toBe(true);
+
     setConsentCookie('rejected');
-    expect(hasAnalyticsConsent()).toBe(true);
+    window.dataLayer = [];
+
+    expect(
+      trackEventAsync(ANALYTICS_EVENTS.subscribeStart, {
+        source: 'blog:test',
+      }),
+    ).toBe(false);
+    expect(window.dataLayer).toEqual([]);
   });
 
   it('trackEventAsync no-ops without consent (no dataLayer push)', () => {

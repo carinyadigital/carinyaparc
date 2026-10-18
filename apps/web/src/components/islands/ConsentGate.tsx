@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { ConsentBanner } from '@/components/consent/ConsentBanner';
-import { markAnalyticsConsentAccepted } from '@/lib/analytics/client';
-import { readConsentCookie, writeConsentCookie } from '@/lib/consent/client';
+import { getConsent, setConsent } from '@/lib/consent/client';
 import type { ConsentChoice, ConsentChoiceValue } from '@/lib/consent/types';
 
 type ConsentState = ConsentChoiceValue | 'loading';
@@ -42,7 +41,7 @@ export function ConsentGate({ gtmId }: ConsentGateProps) {
   const [choice, setChoice] = useState<ConsentState>('loading');
 
   useEffect(() => {
-    setChoice(readConsentCookie());
+    setChoice(getConsent());
   }, []);
 
   useEffect(() => {
@@ -58,10 +57,7 @@ export function ConsentGate({ gtmId }: ConsentGateProps) {
   }, [choice, gtmId]);
 
   const handleConsent = (consent: ConsentChoice) => {
-    writeConsentCookie(consent);
-    if (consent === 'accepted') {
-      markAnalyticsConsentAccepted();
-    }
+    setConsent(consent);
     setChoice(consent);
   };
 

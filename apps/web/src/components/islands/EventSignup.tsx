@@ -4,7 +4,7 @@ import { CheckCircle } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
-import { EVENTS_LISTING_SOURCE, trackEventSignupComplete } from '@/lib/analytics/client';
+import { EVENTS_LISTING_SOURCE, trackEventSignupCompleted } from '@/lib/analytics/client';
 import { cn } from '@/lib/cn';
 import { API_EVENT_SIGNUP_PATH } from '@/lib/urls';
 import {
@@ -157,7 +157,7 @@ export function EventSignup({
     });
 
     if (result.ok) {
-      trackEventSignupComplete({ event_id: parsed.data.eventSlug, source });
+      trackEventSignupCompleted({ event_id: parsed.data.eventSlug, source });
       setStatus('success');
       setSuccessMessage(result.message);
       setName('');

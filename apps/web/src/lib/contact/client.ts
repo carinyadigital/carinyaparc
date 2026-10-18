@@ -22,6 +22,7 @@ export async function postContact(data: ContactFormData): Promise<ContactClientR
 
   if (!response.ok) {
     const error = new Error(result.error || 'Failed to submit form');
+    // Keep the status on the error so the form can map a short code.
     throw Object.assign(error, { status: response.status });
   }
 

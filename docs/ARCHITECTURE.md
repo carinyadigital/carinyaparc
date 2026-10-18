@@ -334,6 +334,8 @@ Every public URL ends in `/` (`trailingSlash: 'always'`, `build.format: 'directo
 | `/404`                   | `pages/404.astro`                  | Served by Vercel for unknown paths; `noindex, follow`; no canonical |
 | `/sitemap-index.xml`     | `@astrojs/sitemap`                 | `/sitemap.xml` 301s here                                            |
 
+`/contact/` accepts an `inquiry` query (`tours`, `volunteer`, `partnership`, `general`). The contact form selects that topic on load; any other value leaves the topic blank. The homepage tour and planting-day links, the regenerate planting-day asks, and the events empty state use it. There is no stay topic and no `/stay/` page.
+
 On-demand endpoints (`export const prerender = false`; `POST` only, `GET` returns 405). The Sentry tunnel lives at `/monitoring/` rather than under `/api/`, matching the previous tunnel path and staying outside ad-blocker lists that key on `sentry`:
 
 | URL                   | File                         | Handler                    |

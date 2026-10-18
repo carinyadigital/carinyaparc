@@ -1,6 +1,7 @@
 ---
 /** "Three ways to help" card grid on /regenerate/. */
 import MotifTile from '@/components/ui/MotifTile.astro';
+import { contactUrl } from '@/lib/urls';
 
 const WAYS = [
   {
@@ -8,9 +9,9 @@ const WAYS = [
     tileClass: 'bg-eucalypt-50',
     title: 'Join a planting day',
     description:
-      'Get your hands dirty at an upcoming event. No experience needed — bring gloves and good spirits.',
-    href: '#volunteer',
-    linkLabel: 'See the dates',
+      "Get your hands dirty on a planting day. No experience needed. There isn't a date on the board just now, so ask and we'll tell you when the next one is.",
+    href: contactUrl('volunteer'),
+    linkLabel: 'Ask to join',
   },
   {
     motif: '/motifs/motif-leaf.svg',

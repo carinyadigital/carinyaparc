@@ -1,8 +1,8 @@
-import { sendContactNotification } from '@/lib/email/send-contact-notification';
+import { jsonResponse, readJsonBody } from '@/lib/api/json';
+import { sendContactNotification } from '@/lib/email';
+import { contactFormSchema } from '@/lib/email/schema';
 import { countMetric, captureException } from '@/lib/observability/metrics';
 import { createRateLimiter } from '@/lib/rate-limit';
-import { jsonResponse, readJsonBody } from '@/lib/api/json';
-import { contactFormSchema } from '@/lib/validation/contact-schema';
 import { sanitizeContactFormData } from '@/lib/validation/sanitize';
 
 const RATE_LIMIT_MAX = parseInt(process.env.CONTACT_RATE_LIMIT_MAX || '3', 10);
@@ -24,7 +24,7 @@ export function resetContactRateLimit(): void {
   rateLimiter.reset();
 }
 
-export async function handleContactPost(request: Request): Promise<Response> {
+export async function handleContact(request: Request): Promise<Response> {
   let rateLimitKey: string | undefined;
 
   try {

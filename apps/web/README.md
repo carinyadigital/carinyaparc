@@ -21,7 +21,7 @@ Posts, recipes, events, legal pages, authors, categories and `tags.json` live at
 
 ## Endpoints
 
-The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`); each delegates to a handler in `src/lib/api/`:
+The form, report, and Sentry tunnel endpoints are on-demand (`prerender = false`). Contact and subscribe delegate to `src/lib/email/handler.ts` and `src/lib/newsletter/handler.ts`. The others delegate to `src/lib/api/`:
 
 | Path                  | Does                                                           |
 | --------------------- | -------------------------------------------------------------- |

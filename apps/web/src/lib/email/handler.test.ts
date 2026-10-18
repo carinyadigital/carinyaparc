@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/email/send-contact-notification', () => ({
+vi.mock('@/lib/email', () => ({
   sendContactNotification: vi.fn(),
 }));
 
@@ -10,9 +10,9 @@ vi.mock('@/lib/observability/metrics', () => ({
   captureMessage: vi.fn(),
 }));
 
-import { sendContactNotification } from '@/lib/email/send-contact-notification';
+import { sendContactNotification } from '@/lib/email';
 
-import { handleContactPost, resetContactRateLimit } from './contact';
+import { handleContact, resetContactRateLimit } from './handler';
 
 function jsonRequest(body: unknown): Request {
   return new Request('http://localhost/api/contact/', {
@@ -33,7 +33,7 @@ const valid = {
   submissionTime: 5000,
 };
 
-describe('handleContactPost', () => {
+describe('handleContact', () => {
   beforeEach(() => {
     resetContactRateLimit();
     vi.mocked(sendContactNotification).mockResolvedValue({ success: true, messageId: 'msg_1' });
@@ -49,26 +49,24 @@ describe('handleContactPost', () => {
       headers: { 'Content-Type': 'application/json' },
       body: '{',
     });
-    const response = await handleContactPost(req);
+    const response = await handleContact(req);
     expect(response.status).toBe(400);
   });
 
   it('returns 400 for an invalid payload', async () => {
-    const response = await handleContactPost(jsonRequest({ email: 'nope' }));
+    const response = await handleContact(jsonRequest({ email: 'nope' }));
     expect(response.status).toBe(400);
   });
 
   it('silently succeeds on honeypot fill without sending email', async () => {
-    const response = await handleContactPost(
-      jsonRequest({ ...valid, website: 'https://spam.test' }),
-    );
+    const response = await handleContact(jsonRequest({ ...valid, website: 'https://spam.test' }));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ success: true });
     expect(sendContactNotification).not.toHaveBeenCalled();
   });
 
   it('sends a notification and returns confirmation', async () => {
-    const response = await handleContactPost(jsonRequest(valid));
+    const response = await handleContact(jsonRequest(valid));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ success: true });
     expect(sendContactNotification).toHaveBeenCalledTimes(1);
@@ -79,7 +77,7 @@ describe('handleContactPost', () => {
       success: false,
       error: 'Email service is not configured',
     });
-    const response = await handleContactPost(jsonRequest(valid));
+    const response = await handleContact(jsonRequest(valid));
     expect(response.status).toBe(500);
   });
 
@@ -90,12 +88,12 @@ describe('handleContactPost', () => {
     });
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const failed = await handleContactPost(jsonRequest(valid));
+      const failed = await handleContact(jsonRequest(valid));
       expect(failed.status).toBe(500);
     }
 
     vi.mocked(sendContactNotification).mockResolvedValue({ success: true, messageId: 'msg_2' });
-    const retried = await handleContactPost(jsonRequest(valid));
+    const retried = await handleContact(jsonRequest(valid));
     expect(retried.status).toBe(200);
     expect(sendContactNotification).toHaveBeenCalledTimes(4);
   });
@@ -103,8 +101,8 @@ describe('handleContactPost', () => {
 
 describe('form-encoded submissions', () => {
   it('validates a form-encoded body the same way as JSON', async () => {
-    const { handleContactPost } = await import('./contact');
-    const response = await handleContactPost(
+    const { handleContact } = await import('./handler');
+    const response = await handleContact(
       new Request('http://localhost/api/contact/', {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },

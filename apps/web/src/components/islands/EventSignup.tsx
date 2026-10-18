@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { CheckCircle } from 'lucide-react';
 
-import { SubscribePrivacyNote } from '@/components/subscribe/SubscribePrivacyNote';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
-import { EVENTS_LISTING_SOURCE, trackEventSignupComplete } from '@/lib/analytics';
+import { EVENTS_LISTING_SOURCE, trackEventSignupComplete } from '@/lib/analytics/client';
 import { cn } from '@/lib/cn';
 import { API_EVENT_SIGNUP_PATH } from '@/lib/urls';
 import {
@@ -19,6 +18,7 @@ export type EventSignupProps = {
   source?: string;
   isFull?: boolean;
   className?: string;
+  privacy?: ReactNode;
 };
 
 type SubmitResult = { ok: true; message: string } | { ok: false; error: string; full?: boolean };
@@ -70,6 +70,7 @@ export function EventSignup({
   source = EVENTS_LISTING_SOURCE,
   isFull = false,
   className,
+  privacy,
 }: EventSignupProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -236,7 +237,7 @@ export function EventSignup({
             />
           </FormField>
 
-          <SubscribePrivacyNote className="mt-1" />
+          {privacy}
 
           <Button
             type="submit"

@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const trackEventSignupComplete = vi.fn();
 
-vi.mock('@/lib/analytics', () => ({
+vi.mock('@/lib/analytics/client', () => ({
   EVENTS_LISTING_SOURCE: 'events-listing',
   trackEventSignupComplete: (...args: unknown[]) => trackEventSignupComplete(...args),
 }));

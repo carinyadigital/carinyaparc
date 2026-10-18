@@ -122,7 +122,7 @@ The trade-off accepted is the loss of a browser editing UI. Vercel preview deplo
 | `output: 'static'`, endpoints opt out with `prerender` | Fast TTFB, CDN-served HTML                 | Anything dynamic must be an explicit endpoint or an island                                  |
 | React islands for forms and consent only               | Lean client JS                             | Two component flavours (`.astro` and `.tsx`) in one tree                                    |
 | Event signups as MailerLite groups                     | No database                                | No capacity counting; `isFull` is set by hand in frontmatter                                |
-| Security headers generated into `vercel.json`          | One source of truth, unit-tested policy    | CSP is host-allowlist + `'unsafe-inline'`; nonces are impossible on prerendered HTML        |
+| Security headers merged into the Vercel build output   | One source of truth, unit-tested policy    | CSP is host-allowlist + `'unsafe-inline'`; nonces are impossible on prerendered HTML        |
 | `@carinya/theme` workspace package                     | Tokens shared with future surfaces         | A second package to version alongside the app                                               |
 | Self-hosted fonts via fontsource                       | No third-party font hosts in CSP           | Fonts ship from our origin and count against page weight                                    |
 
@@ -142,14 +142,13 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 │                                                                      │
 │  content/                       apps/web (Astro 7)                   │
 │  ├─ posts/*.mdx      ───────┐   ├─ astro.config.mjs                  │
-│  ├─ recipes/*.mdx           │   ├─ vercel.json (generated)           │
-│  ├─ events/*.mdx            ├──>├─ src/content.config.ts             │
-│  ├─ legal/*.mdx             │   ├─ src/pages/  (routes + api/)       │
-│  ├─ authors/*.yaml          │   ├─ src/layouts/ (Base, Site)         │
-│  ├─ categories/*.yaml       │   ├─ src/components/                   │
-│  ├─ tags.json               │   ├─ src/lib/                          │
-│  └─ images/          ───────┘   ├─ src/assets/images/ · public/      │
-│                                 ├─ integrations/ · scripts/          │
+│  ├─ recipes/*.mdx           │   ├─ src/content.config.ts             │
+│  ├─ events/*.mdx            ├──>├─ src/pages/  (routes + api/)       │
+│  ├─ legal/*.mdx             │   ├─ src/layouts/ (Base, Site)         │
+│  ├─ authors/*.yaml          │   ├─ src/components/                   │
+│  ├─ categories/*.yaml       │   ├─ src/lib/                          │
+│  ├─ tags.json               │   ├─ src/assets/images/ · public/      │
+│  └─ images/          ───────┘   ├─ integrations/                     │
 │  packages/carinya-theme ───────>└─ tests/ (security)                 │
 │  packages/eslint-config, typescript-config                           │
 │  brand/ · skills/carinya-parc                                        │
@@ -174,7 +173,7 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 | **Validation**            | Shared sanitisation and spam-email list; feature schemas live with the feature                                                         | `src/lib/validation/`, `src/lib/newsletter/schema.ts`, `src/lib/email/schema.ts`   |
 | **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                                       | `src/lib/rate-limit.ts`                                                            |
 | **Integrations**          | Newsletter subscribe and event lists (MailerLite adapter), contact email (Resend adapter)                                              | `src/lib/newsletter/`, `src/lib/email/`                                            |
-| **Security policy**       | Header presets, CSP directives, `vercel.json` generator                                                                                | `src/lib/security/`, `scripts/generate-vercel-json.ts`                             |
+| **Security policy**       | Header presets, CSP directives, merge into the Vercel build output                                                                    | `src/lib/security/`                                                                 |
 | **Build integrations**    | Merge security headers into the Vercel output; make redirects accept a trailing slash                                                  | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs`              |
 | **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization                                    | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`                     |
 | **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                                                                 | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`                        |
@@ -217,11 +216,8 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 ```text
 apps/web/
 ├── astro.config.mjs          # site URL, static output, trailingSlash 'always', redirects, integrations
-├── vercel.json               # generated by scripts/generate-vercel-json.ts — headers, CSP, favicon redirect
 ├── integrations/
 │   └── vercel-redirect-trailing-slash.mjs
-├── scripts/
-│   └── generate-vercel-json.ts
 ├── public/                   # copied verbatim to the site root
 │   ├── favicon/              # favicon.ico and PNG sizes
 │   ├── images/               # placeholder SVG for entries with no photograph
@@ -298,9 +294,8 @@ Folders with several files carry their own `types.ts` and tests. `metadata/`, `s
 
 Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/security.test.ts` reads the built output and skips itself when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`.
 
-- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the generated headers into `.vercel/output/config.json` after every build, so they apply on Vercel without a separate `vercel.json` deploy step.
+- `vercel-security-config` (defined inline in `astro.config.mjs`) merges the headers from `src/lib/security/` into `.vercel/output/config.json` after every build.
 - `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
-- `scripts/generate-vercel-json.ts` writes `vercel.json` from `src/lib/security/vercel-config.ts`. Run it (`pnpm --filter web generate:vercel-json`) after changing anything in `lib/security` and commit the result.
 - `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `src/pages/robots.txt.ts` builds `/robots.txt` from the configured `site`. `@sentry/astro` is added only when a DSN is present.
 
 ### 4.5 Routes
@@ -362,9 +357,9 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico` 
 
 **An endpoint.** Add `src/pages/api/<name>.ts` with `export const prerender = false`, a `POST` that delegates to the feature `handler.ts` (or `lib/api/<name>.ts` when the route is not a feature module), and a `GET` that returns `methodNotAllowed()`. In the handler: `readJsonBody`, the feature Zod schema, honeypot and timing checks, `createRateLimiter`, sanitisation, then the server function from the feature `index.ts`. The provider lives in its own file and is imported only from that `index.ts`. Add the path constant to `lib/urls.ts`, any new env var to `.env.example`, `turbo.json` and `eslint.config.mjs`, and a handler test alongside.
 
-**A redirect.** Add it to `redirects` in `astro.config.mjs` with the trailing slash on the source. Do not edit `vercel.json` by hand for redirects; it is generated.
+**A redirect.** Add it to `redirects` in `astro.config.mjs` with the trailing slash on the source.
 
-**A security header or CSP host.** Change `lib/security/constants.ts`, run `pnpm --filter web generate:vercel-json`, and update `tests/security.test.ts` if the expected host list changes.
+**A security header or CSP host.** Change `lib/security/constants.ts`, and update `tests/security.test.ts` if the expected host list changes.
 
 Then run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm web:build` and `pnpm --filter web test:dist` from the root, and update this document.
 
@@ -622,7 +617,7 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 7.1 Security
 
-- **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. The obsolete `X-XSS-Protection` header is not sent. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
+- **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. The obsolete `X-XSS-Protection` header is not sent. The `vercelSecurityConfig` integration merges them into `.vercel/output/config.json` at build.
 - **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
 - **Rate limiting.** Each form endpoint keeps an in-memory map keyed by lowercased email, per function instance. It stops a single browser repeating a completed form; a failed Resend or MailerLite call releases that attempt so the visitor can retry. It does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
 - **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
@@ -774,7 +769,7 @@ Patterns that may lift to a shared package if a second product or surface adopts
 
 | Pattern                                                                              | Trigger for graduation                                   |
 | ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| **Security policy generator** (`src/lib/security` → `vercel.json` + output merge)    | A second Astro or static site on Vercel in the portfolio |
+| **Security policy generator** (`src/lib/security` → Vercel build-output merge)       | A second Astro or static site on Vercel in the portfolio |
 | **Content query layer** (`src/lib/content/` with draft filtering and card shapes)    | A second content site sharing the collection shapes      |
 | **Metadata + JSON-LD composer split**                                                | A third site requiring the same SEO structure            |
 | **Form endpoint pipeline** (Zod → honeypot → timing → limiter → sanitise → upstream) | Reused by another form-bearing site                      |

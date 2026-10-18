@@ -220,6 +220,7 @@ describeIfBuilt('Vercel output security config', () => {
     const output = JSON.parse(readFileSync(VERCEL_CONFIG, 'utf8')) as VercelOutput;
     const headerRoute = output.routes?.find((route) => route.continue && route.headers);
     expect(headerRoute?.headers?.['X-Frame-Options']).toBe('DENY');
+    expect(headerRoute?.headers?.['X-XSS-Protection']).toBeUndefined();
     expect(headerRoute?.headers?.['Strict-Transport-Security']).toContain('max-age=63072000');
     expect(headerRoute?.headers?.['Content-Security-Policy']).toContain(
       'report-uri /api/csp-report/',

@@ -36,7 +36,6 @@ export function generateSecurityHeaders(
     'Referrer-Policy': config.referrerPolicy,
     'X-Frame-Options': config.frameOptions,
     'X-Content-Type-Options': 'nosniff',
-    'X-XSS-Protection': '1; mode=block',
     'Permissions-Policy': buildPermissionsPolicyHeader(config.permissionsPolicy),
   };
 }

@@ -10,13 +10,19 @@ import SectionWithImage from '@/components/marketing/SectionWithImage.astro';
 import SubscribeSection from '@/components/marketing/SubscribeSection.astro';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import { buildShareImage } from '@/lib/metadata/share-image';
+
+const share = await buildShareImage(riverValleyAerial);
 ---
 
 <Site
   title="Subscribe - Carinya Parc"
   description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
   path="/subscribe"
-  image="/images/river-valley-aerial.jpg"
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt="Aerial view of the river valley at Carinya Parc"
 >
   <JsonLd />
 

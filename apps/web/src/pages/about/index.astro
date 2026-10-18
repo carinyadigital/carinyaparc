@@ -10,10 +10,11 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import MotifTile from '@/components/ui/MotifTile.astro';
 import Tag from '@/components/marketing/Tag.astro';
 
+import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
 import farmValleyLandscape from '@/assets/images/farm-valley-landscape.jpg';
 import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
-import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
+import { buildShareImage } from '@/lib/metadata/share-image';
 
 const VALUES = [
   {
@@ -45,13 +46,18 @@ const PROPERTY_STATS = [
   { value: '104 ac', label: 'of land' },
   { value: '1', label: 'river frontage revived' },
 ] as const;
+
+const share = await buildShareImage(farmValleyLandscape);
 ---
 
 <Site
   title="About - Carinya Parc"
   description="Discover the story of Carinya Parc, our peaceful home where we're regenerating land, building community, and demonstrating ecological stewardship in practice."
   path="/about"
-  image="/images/farm-valley-landscape.jpg"
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt="Carinya Parc valley landscape"
 >
   <JsonLd />
 

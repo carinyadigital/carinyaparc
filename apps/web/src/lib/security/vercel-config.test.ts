@@ -5,11 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { CSP_REPORT_ONLY, CSP_REPORT_URI } from './constants';
-import {
-  GONE_PATH_PATTERNS,
-  generateVercelJson,
-  mergeSecurityIntoVercelOutput,
-} from './vercel-config';
+import { generateVercelJson, mergeSecurityIntoVercelOutput } from './vercel-config';
 
 const WEB_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -60,7 +56,7 @@ describe('generateVercelJson', () => {
 });
 
 describe('mergeSecurityIntoVercelOutput', () => {
-  it('prepends a continue header route and Gone patterns', () => {
+  it('prepends a continue header route', () => {
     const merged = mergeSecurityIntoVercelOutput({
       version: 3,
       routes: [{ handle: 'filesystem' }],
@@ -70,9 +66,7 @@ describe('mergeSecurityIntoVercelOutput', () => {
     const first = merged.routes?.[0] as { headers: Record<string, string> };
     expect(first.headers['X-Frame-Options']).toBe('DENY');
     expect(first.headers['X-XSS-Protection']).toBeUndefined();
-    expect(merged.routes?.slice(1, 1 + GONE_PATH_PATTERNS.length)).toEqual(
-      GONE_PATH_PATTERNS.map((src) => ({ src, status: 410 })),
-    );
+    expect(merged.routes).toHaveLength(2);
     expect(merged.routes?.at(-1)).toEqual({ handle: 'filesystem' });
   });
 });

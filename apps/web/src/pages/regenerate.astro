@@ -12,13 +12,19 @@ import WaysToHelpSection from '@/components/marketing/WaysToHelpSection.astro';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
 import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
+import { buildShareImage } from '@/lib/metadata/share-image';
+
+const share = await buildShareImage(riverValleyAerial);
 ---
 
 <Site
   title="Regenerate - Carinya Parc"
   description="Join us as we transform 42 hectares of former grazing land into thriving, biodiverse ecosystems through strategic restoration, wildlife corridors, and regenerative agroforestry."
   path="/regenerate"
-  image="/images/river-valley-aerial.jpg"
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt="Carinya Parc landscape being regenerated"
 >
   <JsonLd />
 
@@ -32,7 +38,7 @@ import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
       <HeroText part="title">Help restore diversity, for our native wildlife</HeroText>
       <HeroText part="text">
         We're planting 30,000+ native trees, reviving waterways and building wildlife corridors
-        along our Branch River frontage. Every partner, dollar and pair of hands moves it forward.
+        along our Branch River frontage. Every partner and pair of hands moves it forward.
       </HeroText>
       <HeroText part="actions">
         <Button href="#support" variant="bracken">

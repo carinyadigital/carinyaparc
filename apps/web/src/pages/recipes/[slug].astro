@@ -1,5 +1,4 @@
 ---
-import { getImage } from 'astro:assets';
 import { Image } from 'astro:assets';
 import { render } from 'astro:content';
 
@@ -12,7 +11,7 @@ import RecipeInstructions from '@/components/recipes/RecipeInstructions.astro';
 import RecipeTags from '@/components/recipes/RecipeTags.astro';
 import { imagePresets } from '@/lib/images';
 import { generatePageMetadata } from '@/lib/metadata';
-import { socialImageCrop, socialImageSize } from '@/lib/metadata/social-image';
+import { buildShareImage } from '@/lib/metadata/share-image';
 import { BASE_URL, PLACEHOLDER_IMAGE } from '@/lib/constants';
 import { getPublishedRecipes, toRecipeSummary, type RecipeEntry } from '@/lib/content/recipes';
 import type { RecipeData } from '@/lib/schema/recipe';
@@ -42,10 +41,10 @@ let imagePath: string | undefined;
 let imageWidth: number | undefined;
 let imageHeight: number | undefined;
 if (recipe.image) {
-  const built = await getImage({ src: recipe.image, ...socialImageCrop });
+  const built = await buildShareImage(recipe.image);
   imagePath = built.src;
-  imageWidth = socialImageSize(built.attributes.width, socialImageCrop.width);
-  imageHeight = socialImageSize(built.attributes.height, socialImageCrop.height);
+  imageWidth = built.width;
+  imageHeight = built.height;
 }
 const imageUrl = imagePath
   ? imagePath.startsWith('http')

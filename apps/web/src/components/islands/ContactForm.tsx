@@ -9,14 +9,13 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { API_CONTACT_PATH } from '@/lib/urls';
+import { postContact } from '@/lib/email/client';
 import {
   contactFormClientSchema,
   type ContactFormClientData,
   type ContactFormData,
   type InquiryType,
-} from '@/lib/validation/contact-schema';
-import { sanitizeContactFormData } from '@/lib/validation/sanitize';
+} from '@/lib/email/schema';
 
 const INQUIRY_OPTIONS: { value: InquiryType; label: string }[] = [
   { value: 'partnership', label: 'A grant or partnership' },
@@ -33,24 +32,6 @@ function trackContact(eventName: string, properties?: Record<string, unknown>) {
       }
     ).va?.('track', eventName, properties);
   }
-}
-
-async function submitContact(
-  data: ContactFormData,
-): Promise<{ success: boolean; message: string }> {
-  const response = await fetch(API_CONTACT_PATH, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-
-  const result = (await response.json()) as { error?: string; message?: string; success?: boolean };
-
-  if (!response.ok) {
-    throw new Error(result.error || 'Failed to submit form');
-  }
-
-  return { success: true, message: result.message || 'Message sent' };
 }
 
 interface ContactFormProps {
@@ -90,17 +71,15 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
     setSubmitError('');
 
     const submissionTime = formLoadTime.current > 0 ? Date.now() - formLoadTime.current : 0;
-    const sanitizedData = sanitizeContactFormData(data);
 
     const fullData: ContactFormData = {
-      ...sanitizedData,
-      inquiryType: sanitizedData.inquiryType as InquiryType,
+      ...data,
       website: '',
       submissionTime,
     };
 
     try {
-      await submitContact(fullData);
+      await postContact(fullData);
       trackContact('contact_form_success');
       reset();
       formLoadTime.current = Date.now();

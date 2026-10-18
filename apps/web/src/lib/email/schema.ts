@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 
-import { isSpamEmail } from './spam-email';
+import { isSpamEmail } from '@/lib/validation/spam-email';
 
 export const inquiryTypes = ['general', 'tours', 'volunteer', 'partnership'] as const;
 

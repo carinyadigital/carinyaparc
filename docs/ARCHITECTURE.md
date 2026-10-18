@@ -148,8 +148,8 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 │  ├─ authors/*.yaml          │   ├─ src/components/                   │
 │  ├─ categories/*.yaml       │   ├─ src/lib/                          │
 │  ├─ tags.json               │   ├─ src/assets/images/ · public/      │
-│  └─ images/          ───────┘   ├─ integrations/                     │
-│  packages/carinya-theme ───────>└─ tests/ (security)                 │
+│  └─ images/          ───────┘   └─ tests/ (security)                 │
+│  packages/carinya-theme ───────>                                     │
 │  packages/eslint-config, typescript-config                           │
 │  brand/ · skills/carinya-parc                                        │
 └──────────────────────────────────────────────────────────────────────┘
@@ -173,8 +173,8 @@ From [`PRINCIPLES.md`](PRINCIPLES.md): pages load data and sections render; cont
 | **Validation**            | Shared sanitisation and spam-email list; feature schemas live with the feature                                                         | `src/lib/validation/`, `src/lib/newsletter/schema.ts`, `src/lib/email/schema.ts`   |
 | **Rate limiting**         | In-memory per-key limiter shared by the handlers                                                                                       | `src/lib/rate-limit.ts`                                                            |
 | **Integrations**          | Newsletter subscribe and event lists (MailerLite adapter), contact email (Resend adapter)                                              | `src/lib/newsletter/`, `src/lib/email/`                                            |
-| **Security policy**       | Header presets, CSP directives, merge into the Vercel build output                                                                    | `src/lib/security/`                                                                 |
-| **Build integrations**    | Merge security headers into the Vercel output; make redirects accept a trailing slash                                                  | `astro.config.mjs`, `integrations/vercel-redirect-trailing-slash.mjs`              |
+| **Security policy**       | Header presets, CSP directives, merge into the Vercel build output                                                                     | `src/lib/security/`                                                                |
+| **Build integrations**    | Merge security headers into the Vercel output                                                                                          | `astro.config.mjs`                                                                 |
 | **Metadata and schema**   | Title, description, canonical, OG/Twitter; Article, Recipe, Breadcrumb, LocalBusiness, Organization                                    | `src/lib/metadata/`, `src/lib/schema/`, `src/lib/constants.ts`                     |
 | **Analytics and consent** | Cookie read/write, consent types, event tracking helpers, scroll depth                                                                 | `src/lib/consent/`, `src/lib/analytics/`, `src/lib/client/`                        |
 | **Observability**         | Sentry capture and metric counters used by the handlers                                                                                | `src/lib/observability/metrics.ts`                                                 |
@@ -216,8 +216,6 @@ Architectural rule: **pages load data through `src/lib/content/`; components ren
 ```text
 apps/web/
 ├── astro.config.mjs          # site URL, static output, trailingSlash 'always', redirects, integrations
-├── integrations/
-│   └── vercel-redirect-trailing-slash.mjs
 ├── public/                   # copied verbatim to the site root
 │   ├── favicon/              # favicon.ico and PNG sizes
 │   ├── images/               # placeholder SVG for entries with no photograph
@@ -295,7 +293,6 @@ Folders with several files carry their own `types.ts` and tests. `metadata/`, `s
 Unit tests are colocated as `*.test.ts` / `*.test.tsx` under `src/` and run with `pnpm --filter web test`. `tests/security.test.ts` reads the built output and skips itself when `dist/` is absent; CI runs `pnpm turbo run build --filter=web` and then `pnpm --filter web test:dist`.
 
 - `vercel-security-config` (defined inline in `astro.config.mjs`) merges the headers from `src/lib/security/` into `.vercel/output/config.json` after every build.
-- `integrations/vercel-redirect-trailing-slash.mjs` rewrites redirect sources from `^/path$` to `^/path/?$`. Without it, the adapter's redirect for `/blog/old/` only matches `/blog/old`, and the trailing-slash form falls through to the 404 page.
 - `@astrojs/sitemap` writes `sitemap-index.xml`; `/sitemap.xml` redirects to it so `robots.txt` and Search Console keep working. `src/pages/robots.txt.ts` builds `/robots.txt` from the configured `site`. `@sentry/astro` is added only when a DSN is present.
 
 ### 4.5 Routes
@@ -345,7 +342,6 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico` 
 
 - Internal links come from `lib/urls.ts` or are written with a trailing slash.
 - Endpoint paths (`API_*_PATH`) end in `/` so a `POST` is not 308-redirected and turned into a `GET`.
-- Redirect sources in `astro.config.mjs` are written with the trailing slash; the trailing-slash integration makes the compiled route accept both forms.
 
 **Metadata and JSON-LD.** Metadata is data, not markup. `lib/metadata/index.ts` composes the `PageMetadata` object from small functions (`generateTitle`, `generateCanonicalUrl`, `generateOpenGraph`, …) and `Base.astro` is the only place that turns it into `<meta>` tags. JSON-LD is layered: `Base.astro` always emits Organization; a page adds `<JsonLd />` for BreadcrumbList (derived from the path unless `breadcrumbs` is passed) and, where relevant, `article`, `recipe` or `includeLocalBusiness`. The generators in `lib/schema/` are pure functions with tests.
 
@@ -357,7 +353,7 @@ Redirects live in `astro.config.mjs`: `/favicon.ico` → `/favicon/favicon.ico` 
 
 **An endpoint.** Add `src/pages/api/<name>.ts` with `export const prerender = false`, a `POST` that delegates to the feature `handler.ts` (or `lib/api/<name>.ts` when the route is not a feature module), and a `GET` that returns `methodNotAllowed()`. In the handler: `readJsonBody`, the feature Zod schema, honeypot and timing checks, `createRateLimiter`, sanitisation, then the server function from the feature `index.ts`. The provider lives in its own file and is imported only from that `index.ts`. Add the path constant to `lib/urls.ts`, any new env var to `.env.example`, `turbo.json` and `eslint.config.mjs`, and a handler test alongside.
 
-**A redirect.** Add it to `redirects` in `astro.config.mjs` with the trailing slash on the source.
+**A redirect.** Add a file URL, without a trailing slash, to `redirects` in `astro.config.mjs`. The live ones are `/favicon.ico` and `/sitemap.xml`. A directory path is compiled to a pattern that does not match the public trailing-slash URL, so do not add one there.
 
 **A security header or CSP host.** Change `lib/security/constants.ts`, and update `tests/security.test.ts` if the expected host list changes.
 
@@ -378,8 +374,8 @@ astro build
       → getPublishedPosts()  (draft: true excluded unless import.meta.env.DEV)
   → render: Site layout → BlogPostArticle → MDX body, Article + Breadcrumb JSON-LD
   → sitemap-index.xml, feed.xml, 404.html
-  → vercel adapter writes .vercel/output; integrations merge security headers
-    and trailing-slash-tolerant redirects into config.json
+  → vercel adapter writes .vercel/output; the security integration merges
+    headers into config.json
 ```
 
 Archive pages (`/blog/category/[slug]/`, `/blog/tag/[tag]/`, `/blog/page/[page]/`) are generated only for categories, tags and pages that have at least one published post.
@@ -707,7 +703,7 @@ push / merge → Vercel build (root: apps/web)
   → turbo run build --filter=web → astro build
       → validate content, prerender pages, optimise images, write sitemap and feed
       → Vercel adapter: static output + five functions
-      → integrations patch .vercel/output/config.json (headers, redirects)
+      → the security integration patches headers into .vercel/output/config.json
   → deploy
 ```
 

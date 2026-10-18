@@ -20,7 +20,6 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 ├── apps/
 │   └── web/                  # Astro 7 + MDX public site (see apps/web/README.md)
 │       ├── astro.config.mjs  # static output, trailingSlash 'always', redirects, integrations
-│       ├── integrations/     # vercel-redirect-trailing-slash.mjs
 │       ├── public/           # favicon/, images/ (fallbacks), motifs/, site.webmanifest
 │       ├── src/
 │       │   ├── pages/        # routes (.astro pages, .ts endpoints)
@@ -118,7 +117,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `pnpm
 Content is the CMS. An agent writing content edits files under `content/` and nothing under `apps/`.
 
 - **Schemas** are in `apps/web/src/content.config.ts` and are enforced on every build; `astro check` and `pnpm web:build` fail on bad frontmatter. Field-by-field detail is in `docs/ARCHITECTURE.md` §6.4.
-- **Slug = filename.** `content/posts/first-planting-day.mdx` is `/blog/first-planting-day/`. Slugs are lowercase kebab-case. Renaming a file changes a public URL; add a redirect in `astro.config.mjs` if the old URL was ever live.
+- **Slug = filename.** `content/posts/first-planting-day.mdx` is `/blog/first-planting-day/`. Slugs are lowercase kebab-case. Renaming a file changes a public URL. Do not rename a slug that has been live: a directory redirect in `astro.config.mjs` does not match the trailing-slash URL.
 - **Images** referenced from frontmatter live in `content/images/` and are referenced relative to the entry, for example `image: "../images/river-valley-aerial.jpg"`. Astro optimises them at build time. Always set `imageAlt`.
 - **Drafts.** `draft: true` keeps posts, recipes and events out of the production build and the sitemap but shows them in `pnpm web:dev`. The events signup endpoint refuses drafts.
 - **Tags** are free-form slugs on posts and recipes. Add a display name to `content/tags.json` when the slug is not its own label (`"cover-crops": "cover crops"`). Category and tag archive pages are only generated for values that have at least one published entry.

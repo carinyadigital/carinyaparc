@@ -40,8 +40,10 @@ updates:
           - 'esbuild'
           - 'js-yaml'
           - 'nanoid'
+          - 'next'
           - 'path-to-regexp'
           - 'postcss'
+          - 'source-map-js'
           - 'toml'
       web:
         patterns:
@@ -65,8 +67,10 @@ updates:
           - 'esbuild'
           - 'js-yaml'
           - 'nanoid'
+          - 'next'
           - 'path-to-regexp'
           - 'postcss'
+          - 'source-map-js'
           - 'toml'
     commit-message:
       prefix: 'chore'

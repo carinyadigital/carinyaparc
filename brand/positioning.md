@@ -1,6 +1,6 @@
 # Carinya Parc — Positioning
 
-Canonical positioning for Carinya Parc. Humans edit this file. Agents read it; they do not change it without an explicit request.
+> Canonical positioning for Carinya Parc. Humans edit this file. Agents read it; they do not change it without an explicit request.
 
 ## Who we are
 

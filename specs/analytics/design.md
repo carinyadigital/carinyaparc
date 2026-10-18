@@ -31,12 +31,12 @@ One track catalog for the Astro site (`apps/web`), shaped like a [RudderStack tr
 
 **In scope**
 
-| Slice | Capability |
-| ----- | ---------- |
-| Catalog | Ten track events. Names are nouns plus a past-tense verb, with spaces and capitals. |
+| Slice   | Capability                                                                                                           |
+| ------- | -------------------------------------------------------------------------------------------------------------------- |
+| Catalog | Ten track events. Names are nouns plus a past-tense verb, with spaces and capitals.                                  |
 | Payload | `dataLayer` push is `{ event, properties }`. Vercel Analytics receives the same name and the same properties object. |
-| Contact | Contact-form events go through `track()`, so they reach GTM and respect consent. |
-| GTM | Container triggers match the human name. Each GA4 tag stores a snake_case event name. |
+| Contact | Contact-form events go through `track()`, so they reach GTM and respect consent.                                     |
+| GTM     | Container triggers match the human name. Each GA4 tag stores a snake_case event name.                                |
 
 **Out of scope**
 
@@ -62,27 +62,27 @@ GA4 cannot store an event name that contains a space. The site keeps the human n
 
 ### Evolve
 
-| Path | Change |
-| ---- | ------ |
-| `apps/web/src/lib/analytics/types.ts` | Replace `ANALYTICS_EVENTS` and param types with §4. `event_id` is `string` only. |
-| `apps/web/src/lib/analytics/events.ts` | One helper per event. Each passes a `properties` object to `track()`; omit keys whose value is `undefined`. |
-| `apps/web/src/lib/analytics/client.ts` | `track(event, properties)` keeps its consent check and stays synchronous, then calls `pushToDataLayer(event, properties)` and `trackVercel(event, properties)`. Export the renamed helpers. |
-| `apps/web/src/lib/analytics/gtm.ts` | `pushToDataLayer` pushes `{ properties: null }`, then `{ event, properties }`. |
-| `apps/web/src/lib/analytics/vercel.ts` | `trackVercel` calls `va('track', event, properties)` with the same object. |
-| `apps/web/src/lib/analytics/client.test.ts` | Assert the nested payload, the null reset, and the same object to Vercel. |
-| `apps/web/src/lib/analytics/scroll-depth.ts` | Call `trackArticleScrolled({ percent_scrolled })`. Thresholds stay 25 / 50 / 75 / 100, once each per page view. |
-| `apps/web/src/components/newsletter/SubscribeForm.tsx` | The in-flow variants call `trackNewsletterSubscriptionStarted` / `trackNewsletterSubscribed`: `InlineSubscribeForm` (`band`, `stay`, `compact`, `card`) and `EndSubscribeForm` (`end`). The `page` variant stays silent. |
-| `apps/web/src/components/islands/EventSignup.tsx` | `trackEventSignupCompleted`. Still not on the honeypot short-circuit. |
-| `apps/web/src/lib/contact/client.ts` | `postContact` throws `Error` today and drops `response.status`. Keep the status so Failed can map `error_code`. |
-| `apps/web/src/components/islands/ContactForm.tsx` | Delete the local `trackContact` (it calls `window.va` directly and sends `error: err.message`). Use the contact helpers. Carry `inquiry_type` on Submitted and Completed. |
-| Tests that mock the helpers (`SubscribeForm.test.tsx`, `EventSignup.test.tsx`, `scroll-depth.test.ts`) | New helper names and argument shapes. |
+| Path                                                                                                   | Change                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/web/src/lib/analytics/types.ts`                                                                  | Replace `ANALYTICS_EVENTS` and param types with §4. `event_id` is `string` only.                                                                                                                                         |
+| `apps/web/src/lib/analytics/events.ts`                                                                 | One helper per event. Each passes a `properties` object to `track()`; omit keys whose value is `undefined`.                                                                                                              |
+| `apps/web/src/lib/analytics/client.ts`                                                                 | `track(event, properties)` keeps its consent check and stays synchronous, then calls `pushToDataLayer(event, properties)` and `trackVercel(event, properties)`. Export the renamed helpers.                              |
+| `apps/web/src/lib/analytics/gtm.ts`                                                                    | `pushToDataLayer` pushes `{ properties: null }`, then `{ event, properties }`.                                                                                                                                           |
+| `apps/web/src/lib/analytics/vercel.ts`                                                                 | `trackVercel` calls `va('track', event, properties)` with the same object.                                                                                                                                               |
+| `apps/web/src/lib/analytics/client.test.ts`                                                            | Assert the nested payload, the null reset, and the same object to Vercel.                                                                                                                                                |
+| `apps/web/src/lib/analytics/scroll-depth.ts`                                                           | Call `trackArticleScrolled({ percent_scrolled })`. Thresholds stay 25 / 50 / 75 / 100, once each per page view.                                                                                                          |
+| `apps/web/src/components/newsletter/SubscribeForm.tsx`                                                 | The in-flow variants call `trackNewsletterSubscriptionStarted` / `trackNewsletterSubscribed`: `InlineSubscribeForm` (`band`, `stay`, `compact`, `card`) and `EndSubscribeForm` (`end`). The `page` variant stays silent. |
+| `apps/web/src/components/islands/EventSignup.tsx`                                                      | `trackEventSignupCompleted`. Still not on the honeypot short-circuit.                                                                                                                                                    |
+| `apps/web/src/lib/contact/client.ts`                                                                   | `postContact` throws `Error` today and drops `response.status`. Keep the status so Failed can map `error_code`.                                                                                                          |
+| `apps/web/src/components/islands/ContactForm.tsx`                                                      | Delete the local `trackContact` (it calls `window.va` directly and sends `error: err.message`). Use the contact helpers. Carry `inquiry_type` on Submitted and Completed.                                                |
+| Tests that mock the helpers (`SubscribeForm.test.tsx`, `EventSignup.test.tsx`, `scroll-depth.test.ts`) | New helper names and argument shapes.                                                                                                                                                                                    |
 
 ### Operator (no app files)
 
-| Surface | Change |
-| ------- | ------ |
-| GTM | Custom Event triggers for each human name. Data Layer variables at `properties.*`. GA4 tags use the snake_case names in §8. |
-| GA4 | New explorations on the new names. Do not alias the old event names. |
+| Surface | Change                                                                                                                      |
+| ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GTM     | Custom Event triggers for each human name. Data Layer variables at `properties.*`. GA4 tags use the snake_case names in §8. |
+| GA4     | New explorations on the new names. Do not alias the old event names.                                                        |
 
 ### Do not modify
 
@@ -110,11 +110,7 @@ type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENT
 type ScrollDepth = 25 | 50 | 75 | 100;
 
 type SubscribeInterest =
-  | 'restoration'
-  | 'regenerative-farming'
-  | 'community'
-  | 'produce'
-  | 'learning';
+  'restoration' | 'regenerative-farming' | 'community' | 'produce' | 'learning';
 
 type InquiryType = 'general' | 'tours' | 'volunteer' | 'partnership';
 
@@ -143,10 +139,7 @@ type ContactFormProperties = {
 type DataLayerTrack = {
   event: AnalyticsEventName;
   properties:
-    | NewsletterProperties
-    | EventProperties
-    | ArticleScrolledProperties
-    | ContactFormProperties;
+    NewsletterProperties | EventProperties | ArticleScrolledProperties | ContactFormProperties;
 };
 
 /** Consent-gated. No-ops when consent is missing or rejected. */
@@ -183,40 +176,40 @@ Page views stay on GTM’s container. This work does not push a `page` call.
 
 ## 6. Cross-squad coordination
 
-| Who | Notes |
-| --- | ----- |
-| Engineering | Astro catalog, payload, and contact path in `apps/web`. Land before WEB-69 DebugView. |
-| WEB-24 | Call `trackEventSelected({ event_id, source })` from the Astro call sites. Do not keep `event_cta_click`. |
-| Operator | Retire snake_case Custom Event triggers. Add the ten human-name triggers and the GA4 name map in §8. Rebuild explorations on WEB-69. WEB-28 is canceled. |
+| Who         | Notes                                                                                                                                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engineering | Astro catalog, payload, and contact path in `apps/web`. Land before WEB-69 DebugView.                                                                    |
+| WEB-24      | Call `trackEventSelected({ event_id, source })` from the Astro call sites. Do not keep `event_cta_click`.                                                |
+| Operator    | Retire snake_case Custom Event triggers. Add the ten human-name triggers and the GA4 name map in §8. Rebuild explorations on WEB-69. WEB-28 is canceled. |
 
 ## 7. Error paths
 
-| Failure | Behaviour |
-| ------- | --------- |
-| Consent missing or rejected | No dataLayer push and no `va` call ([`ARCHITECTURE.md` §6 Consent](../../docs/ARCHITECTURE.md#consent)) |
-| `window` / `dataLayer` / `va` absent | That sink is skipped. The other still runs when it exists. |
-| Subscribe or signup honeypot | Complete helper does not run |
-| Subscribe or signup API error | Started may already have fired. Subscribed / Signup Completed does not fire |
-| Contact API error | `Contact Form Failed` with `error_code` from `response.status` (a thrown `fetch` is `request_failed`). `inquiry_type` may be included. The message shown in the form is not a property |
-| Contact validation before submit | No Failed event. Failed means the request was sent and did not succeed |
-| Article shorter than a threshold, or no `<article>` | That depth does not fire. Binding stays a no-op without an article |
+| Failure                                             | Behaviour                                                                                                                                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consent missing or rejected                         | No dataLayer push and no `va` call ([`ARCHITECTURE.md` §6 Consent](../../docs/ARCHITECTURE.md#consent))                                                                                |
+| `window` / `dataLayer` / `va` absent                | That sink is skipped. The other still runs when it exists.                                                                                                                             |
+| Subscribe or signup honeypot                        | Complete helper does not run                                                                                                                                                           |
+| Subscribe or signup API error                       | Started may already have fired. Subscribed / Signup Completed does not fire                                                                                                            |
+| Contact API error                                   | `Contact Form Failed` with `error_code` from `response.status` (a thrown `fetch` is `request_failed`). `inquiry_type` may be included. The message shown in the form is not a property |
+| Contact validation before submit                    | No Failed event. Failed means the request was sent and did not succeed                                                                                                                 |
+| Article shorter than a threshold, or no `<article>` | That depth does not fire. Binding stays a no-op without an article                                                                                                                     |
 
 ## 8. Observability
 
 DebugView, with consent accepted: each event name below, properties only, no email. With consent rejected: none of them.
 
-| dataLayer `event` | GA4 event name | Properties |
-| ----------------- | -------------- | ---------- |
-| `Newsletter Subscription Started` | `newsletter_subscription_started` | `source`, `interest` |
-| `Newsletter Subscribed` | `newsletter_subscribed` | `source`, `interest` |
-| `Event Selected` | `event_selected` | `event_id`, `source` |
-| `Event Signup Completed` | `event_signup_completed` | `event_id`, `source` |
-| `Article Scrolled` | `article_scrolled` | `percent_scrolled` |
-| `Contact Form Viewed` | `contact_form_viewed` | `form_id` |
-| `Contact Form Started` | `contact_form_started` | `form_id` |
-| `Contact Form Submitted` | `contact_form_submitted` | `form_id`, `inquiry_type` |
-| `Contact Form Completed` | `contact_form_completed` | `form_id`, `inquiry_type` |
-| `Contact Form Failed` | `contact_form_failed` | `form_id`, `inquiry_type`, `error_code` |
+| dataLayer `event`                 | GA4 event name                    | Properties                              |
+| --------------------------------- | --------------------------------- | --------------------------------------- |
+| `Newsletter Subscription Started` | `newsletter_subscription_started` | `source`, `interest`                    |
+| `Newsletter Subscribed`           | `newsletter_subscribed`           | `source`, `interest`                    |
+| `Event Selected`                  | `event_selected`                  | `event_id`, `source`                    |
+| `Event Signup Completed`          | `event_signup_completed`          | `event_id`, `source`                    |
+| `Article Scrolled`                | `article_scrolled`                | `percent_scrolled`                      |
+| `Contact Form Viewed`             | `contact_form_viewed`             | `form_id`                               |
+| `Contact Form Started`            | `contact_form_started`            | `form_id`                               |
+| `Contact Form Submitted`          | `contact_form_submitted`          | `form_id`, `inquiry_type`               |
+| `Contact Form Completed`          | `contact_form_completed`          | `form_id`, `inquiry_type`               |
+| `Contact Form Failed`             | `contact_form_failed`             | `form_id`, `inquiry_type`, `error_code` |
 
 `article_scrolled` must not be sent to GA4 as `scroll`. That name belongs to enhanced measurement.
 

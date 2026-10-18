@@ -23,6 +23,8 @@ export function resetSubscribeRateLimit(): void {
 }
 
 export async function handleSubscribePost(request: Request): Promise<Response> {
+  let rateLimitKey: string | undefined;
+
   try {
     const parsed = await readJsonBody(request);
     if (!parsed.ok) {
@@ -66,8 +68,10 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
       return jsonResponse({ success: true }, 200);
     }
 
-    const emailLimitResult = emailRateLimiter.check(email);
+    rateLimitKey = email.toLowerCase();
+    const emailLimitResult = emailRateLimiter.check(rateLimitKey);
     if (emailLimitResult.limited) {
+      rateLimitKey = undefined;
       countMetric('subscribe.submissions', 1, { status: 'rate_limited' });
       return jsonResponse(
         { error: 'This email address has already been submitted recently.' },
@@ -85,6 +89,8 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
 
     const result = await upsertMailerLiteSubscriber(subscriberData);
     if (!result.ok) {
+      emailRateLimiter.release(rateLimitKey);
+      rateLimitKey = undefined;
       countMetric('subscribe.submissions', 1, { status: 'failed' });
       // Upstream configuration and server errors are logged by the client; visitors get a
       // generic message rather than MailerLite's wording or our environment details.
@@ -99,9 +105,11 @@ export async function handleSubscribePost(request: Request): Promise<Response> {
       );
     }
 
+    rateLimitKey = undefined;
     countMetric('subscribe.submissions', 1, { status: 'success' });
     return jsonResponse({ success: true }, 200);
   } catch (error) {
+    if (rateLimitKey) emailRateLimiter.release(rateLimitKey);
     console.error('Request parsing error:', error);
     return jsonResponse({ error: 'Failed to process request' }, 400);
   }

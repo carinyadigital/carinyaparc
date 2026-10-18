@@ -523,19 +523,19 @@ Rules common to every collection:
 
 #### 6.4.1 `posts`
 
-| Field         | Type                      | Required | Notes                                             |
-| ------------- | ------------------------- | -------- | ------------------------------------------------- |
-| `title`       | string, ≤ 200             | yes      |                                                   |
-| `date`        | date                      | yes      | Sort key, newest first                            |
-| `author`      | reference to `authors`    | yes      | `"jonno"`                                         |
-| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts |
-| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`           |
-| `featured`    | boolean                   | no       | Default `false`; surfaces on the home and journal |
-| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                |
-| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`         |
-| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise |
-| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway             |
-| `draft`       | boolean                   | no       | Default `false`                                   |
+| Field         | Type                      | Required | Notes                                                                                                      |
+| ------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `title`       | string, ≤ 200             | yes      |                                                                                                            |
+| `date`        | date                      | yes      | Sort key, newest first                                                                                     |
+| `author`      | reference to `authors`    | yes      | `"jonno"`                                                                                                  |
+| `category`    | reference to `categories` | no       | Drives `/blog/category/[slug]/` and related posts                                                          |
+| `tags`        | string[]                  | no       | Default `[]`; drives `/blog/tag/[tag]/`                                                                    |
+| `featured`    | boolean                   | no       | Default `false`. The newest featured post is the journal hero; older featured posts stay in the dated grid |
+| `excerpt`     | string, ≤ 500             | yes      | Card and feed copy                                                                                         |
+| `description` | string, ≤ 300             | no       | Meta description; falls back to `excerpt`                                                                  |
+| `image`       | image                     | no       | Hero and `og:image`; default site image otherwise                                                          |
+| `imageAlt`    | string                    | no       | Falls back to `title` — set it anyway                                                                      |
+| `draft`       | boolean                   | no       | Default `false`                                                                                            |
 
 ```mdx
 ---
@@ -613,14 +613,14 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 
 ### 6.5 Glossary
 
-| Term                   | Definition                                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| **Entry**              | One file in a collection; its id is the filename stem and the public slug                       |
-| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                    |
-| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`) |
-| **Featured post**      | `featured: true`; drives home-page highlights                                                   |
-| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                        |
-| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers            |
+| Term                   | Definition                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| **Entry**              | One file in a collection; its id is the filename stem and the public slug                         |
+| **Island**             | A React component hydrated in the browser (`client:visible` / `client:idle`)                      |
+| **On-demand endpoint** | A `prerender = false` route deployed as a Vercel function (`src/pages/api/*` or `/monitoring/`)   |
+| **Featured post**      | `featured: true`. The newest one is the journal hero; older featured posts stay in the dated grid |
+| **ISO duration**       | Recipe times such as `PT20M`, formatted for display by `format-duration`                          |
+| **Preview**            | The Vercel deployment of a pull request; the draft preview for authors and reviewers              |
 
 ---
 
@@ -631,7 +631,7 @@ A flat object mapping tag slug to display name. `tagName(slug)` in `lib/content/
 - **Headers.** `src/lib/security/` defines HSTS (two years, preload), `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera, microphone, geolocation off) and the CSP. `pnpm --filter web generate:vercel-json` writes them to `vercel.json`; the `vercelSecurityConfig` integration also merges them into `.vercel/output/config.json` at build so they apply even where the platform ignores `vercel.json`.
 - **CSP.** Host allowlist plus `'unsafe-inline'` for scripts and styles, because prerendered HTML cannot carry per-request nonces and Astro inlines small scripts. Fonts are self-hosted so no font hosts are allowlisted. `connect-src` includes `'self'`, which covers the browser Sentry tunnel at `/monitoring/`; `https://*.sentry.io` stays for server-side ingest. The header is `Content-Security-Policy` (`CSP_REPORT_ONLY` is `false` in `src/lib/security/constants.ts`). Violations still POST to `/api/csp-report/`.
 - **Retired surfaces.** `/admin`, `/api/graphql` and `/api/graphql-playground` (and anything below them) return **410 Gone** from a CDN route; matching on-demand endpoints exist so local preview behaves the same.
-- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by email, per function instance. It stops a single browser repeating a form; it does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
+- **Rate limiting.** Each form endpoint keeps an in-memory map keyed by lowercased email, per function instance. It stops a single browser repeating a completed form; a failed Resend or MailerLite call releases that attempt so the visitor can retry. It does not stop a distributed attempt and resets whenever an instance is recycled. Honeypot and timing checks run first. The Sentry tunnel uses a separate fixed one-minute window keyed by client IP, because envelopes have no email. Durable abuse control is a Vercel WAF rate-limit rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`; include `/monitoring/` if tunnel abuse needs the same control.
 - **Cookies.** `cp_consent` only, set by the browser, not httpOnly. No session cookie exists.
 - **Validation.** Zod schemas in `src/lib/validation/`; `sanitize.ts` strips control characters and HTML-significant characters before anything reaches email or MailerLite. Validation errors return field details; upstream failures return a generic message and 503.
 - **Secrets.** `MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN` are server-only. Only `PUBLIC_*` variables reach the browser.

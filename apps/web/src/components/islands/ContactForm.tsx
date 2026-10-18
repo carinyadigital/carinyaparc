@@ -25,16 +25,6 @@ const INQUIRY_OPTIONS: { value: InquiryType; label: string }[] = [
   { value: 'general', label: 'Media, press, or something else' },
 ];
 
-function trackContact(eventName: string, properties?: Record<string, unknown>) {
-  if (typeof window !== 'undefined' && 'va' in window) {
-    (
-      window as Window & {
-        va?: (command: 'track', name: string, props?: Record<string, unknown>) => void;
-      }
-    ).va?.('track', eventName, properties);
-  }
-}
-
 interface ContactFormProps {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
@@ -60,7 +50,6 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
   useEffect(() => {
     formLoadTime.current = Date.now();
     setIsFormReady(true);
-    trackContact('contact_form_viewed');
 
     const inquiry = inquiryTypeFromSearch(window.location.search);
     if (inquiry) {
@@ -68,12 +57,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
     }
   }, [setValue]);
 
-  const handleFormInteraction = () => {
-    trackContact('contact_form_started');
-  };
-
   const onSubmit = async (data: ContactFormClientData) => {
-    trackContact('contact_form_submitted', { inquiry_type: data.inquiryType });
     setStatus('loading');
     setSubmitError('');
 
@@ -87,14 +71,12 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
 
     try {
       await postContact(fullData);
-      trackContact('contact_form_success');
       reset();
       formLoadTime.current = Date.now();
       setStatus('success');
       onSuccess?.();
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to submit form');
-      trackContact('contact_form_error', { error: err.message });
       setStatus('error');
       setSubmitError(err.message);
       onError?.(err);
@@ -168,7 +150,6 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
               type="text"
               autoComplete="given-name"
               {...register('firstName')}
-              onFocus={handleFormInteraction}
               disabled={isPending}
             />
           </FormField>

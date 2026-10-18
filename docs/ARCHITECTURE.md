@@ -418,14 +418,14 @@ A schema error, a broken reference, or a missing image fails the build. Nothing 
 
 # 12. Glossary
 
-| Term               | Definition                                                                                         |
-| ------------------ | -------------------------------------------------------------------------------------------------- |
-| Entry              | One file in a collection. Its id is the filename stem and the public slug.                         |
-| Draft              | `draft: true`. Excluded from production, the sitemap, and the feed. Still rendered in local dev.   |
-| Island             | A React component hydrated in the browser for interaction. Mounted from a server-rendered wrapper. |
-| On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5.                 |
-| Preview            | The Vercel deployment of a pull request. The draft a reviewer reads.                               |
-| Featured post      | `featured: true`. The newest one is the journal hero.                                              |
+| Term               | Definition                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Entry              | One file in a collection. Its id is the filename stem and the public slug.                                                                  |
+| Draft              | `draft: true`. Excluded from production, the sitemap, and the feed. Still rendered in local dev.                                            |
+| Island             | A React component hydrated in the browser for interaction. Mounted from a server-rendered wrapper.                                          |
+| On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5.                                                          |
+| Preview            | The Vercel deployment of a pull request. The draft a reviewer reads.                                                                        |
+| Featured post      | `featured: true`. The newest one is the journal hero.                                                                                       |
 | Provider           | The third-party adapter inside a feature folder. Imported only by the folder's entry (`index.ts`, or `client.ts` for browser-only folders). |
 
 **Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/content/`, `apps/web/src/lib/email/resend.ts`, `apps/web/src/lib/newsletter/mailerlite.ts`

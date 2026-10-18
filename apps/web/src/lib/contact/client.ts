@@ -1,4 +1,4 @@
-import type { ContactFormData } from '@/lib/email/schema';
+import type { ContactFormData } from '@/lib/contact/schema';
 import { sanitizeContactFormData } from '@/lib/validation/sanitize';
 import { API_CONTACT_PATH } from '@/lib/urls';
 

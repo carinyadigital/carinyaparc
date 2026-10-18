@@ -9,13 +9,13 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { postContact } from '@/lib/email/client';
+import { postContact } from '@/lib/contact/client';
 import {
   contactFormClientSchema,
   type ContactFormClientData,
   type ContactFormData,
   type InquiryType,
-} from '@/lib/email/schema';
+} from '@/lib/contact/schema';
 
 const INQUIRY_OPTIONS: { value: InquiryType; label: string }[] = [
   { value: 'partnership', label: 'A grant or partnership' },

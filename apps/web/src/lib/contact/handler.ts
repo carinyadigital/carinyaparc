@@ -1,6 +1,6 @@
 import { jsonResponse, readJsonBody } from '@/lib/api/json';
-import { sendContactNotification } from '@/lib/email';
-import { contactFormSchema } from '@/lib/email/schema';
+import { sendContactNotification } from '@/lib/contact/notification';
+import { contactFormSchema } from '@/lib/contact/schema';
 import { countMetric, captureException } from '@/lib/observability/metrics';
 import { createRateLimiter } from '@/lib/rate-limit';
 import { sanitizeContactFormData } from '@/lib/validation/sanitize';

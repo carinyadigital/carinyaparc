@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
-import { handleContact } from '@/lib/email/handler';
 import { methodNotAllowed } from '@/lib/api/json';
+import { handleContact } from '@/lib/contact/handler';
 
 export const prerender = false;
 

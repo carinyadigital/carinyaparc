@@ -6,11 +6,11 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const trackEventSignupComplete = vi.fn();
+const track = vi.fn();
 
 vi.mock('@/lib/analytics/client', () => ({
   EVENTS_LISTING_SOURCE: 'events-listing',
-  trackEventSignupComplete: (...args: unknown[]) => trackEventSignupComplete(...args),
+  track: (...args: unknown[]) => track(...args),
 }));
 
 function reactProps<T extends Record<string, unknown>>(el: Element): T {
@@ -32,7 +32,7 @@ describe('EventSignup', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    trackEventSignupComplete.mockReset();
+    track.mockReset();
     vi.stubGlobal('fetch', vi.fn());
     ({ EventSignup } = await import('@/components/islands/EventSignup'));
 
@@ -100,9 +100,76 @@ describe('EventSignup', () => {
       expect(container.textContent).toContain("You're signed up");
     });
 
-    expect(trackEventSignupComplete).toHaveBeenCalledWith({
+    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledWith('Event Signup Completed', {
       event_id: 'winter-planting-day',
       source: 'events-listing',
     });
+  });
+
+  it('does not record Event Signup Completed when the honeypot is filled', async () => {
+    await act(async () => {
+      root.render(<EventSignup eventSlug="winter-planting-day" eventTitle="Winter planting day" />);
+    });
+
+    const name = container.querySelector('input[name="name"]') as HTMLInputElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+    const website = container.querySelector('input[name="website"]') as HTMLInputElement;
+    const nameProps = reactProps<{ onChange?: (e: { target: { value: string } }) => void }>(name);
+    const emailProps = reactProps<{ onChange?: (e: { target: { value: string } }) => void }>(email);
+    const websiteProps = reactProps<{ onChange?: (e: { target: { value: string } }) => void }>(
+      website,
+    );
+
+    await act(async () => {
+      nameProps.onChange?.({ target: { value: 'Alex Farmer' } });
+      emailProps.onChange?.({ target: { value: 'alex@fastmail.com' } });
+      websiteProps.onChange?.({ target: { value: 'https://spam.example' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("You're signed up");
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('does not record Event Signup Completed when the signup request fails', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ error: 'Failed to sign up. Please try again.' }),
+    } as Response);
+
+    await act(async () => {
+      root.render(<EventSignup eventSlug="winter-planting-day" eventTitle="Winter planting day" />);
+    });
+
+    const name = container.querySelector('input[name="name"]') as HTMLInputElement;
+    const email = container.querySelector('input[name="email"]') as HTMLInputElement;
+    const nameProps = reactProps<{ onChange?: (e: { target: { value: string } }) => void }>(name);
+    const emailProps = reactProps<{ onChange?: (e: { target: { value: string } }) => void }>(email);
+
+    await act(async () => {
+      nameProps.onChange?.({ target: { value: 'Alex Farmer' } });
+      emailProps.onChange?.({ target: { value: 'alex@fastmail.com' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Failed to sign up. Please try again.');
+    });
+
+    expect(track).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,7 @@ import { CheckCircle } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/Button';
 import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
-import { EVENTS_LISTING_SOURCE, trackEventSignupComplete } from '@/lib/analytics/client';
+import { EVENTS_LISTING_SOURCE, track, type AnalyticsEventName } from '@/lib/analytics/client';
 import { cn } from '@/lib/cn';
 import { API_EVENT_SIGNUP_PATH } from '@/lib/urls';
 import {
@@ -157,7 +157,11 @@ export function EventSignup({
     });
 
     if (result.ok) {
-      trackEventSignupComplete({ event_id: parsed.data.eventSlug, source });
+      // Human-readable name. The track parameter type still lists the previous event names.
+      track('Event Signup Completed' as AnalyticsEventName, {
+        event_id: parsed.data.eventSlug,
+        source,
+      });
       setStatus('success');
       setSuccessMessage(result.message);
       setName('');

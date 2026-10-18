@@ -167,7 +167,7 @@ The system will not do: a browser editing UI, payments or booking, authenticated
 
 Static routes cover the home, about, regenerate, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it.
 
-An island may import a feature's schema and browser client only. The provider file is imported by that folder's server entry and nothing else.
+An island may import a feature's schema and browser client only. The provider file is imported by the folder's entry (`index.ts`, or `client.ts` for browser-only folders) and nothing else.
 
 ### Repository layout
 
@@ -426,6 +426,6 @@ A schema error, a broken reference, or a missing image fails the build. Nothing 
 | On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5.                 |
 | Preview            | The Vercel deployment of a pull request. The draft a reviewer reads.                               |
 | Featured post      | `featured: true`. The newest one is the journal hero.                                              |
-| Provider           | The third-party adapter inside a feature folder. Imported only by that folder's server entry.      |
+| Provider           | The third-party adapter inside a feature folder. Imported only by the folder's entry (`index.ts`, or `client.ts` for browser-only folders). |
 
 **Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/content/`, `apps/web/src/lib/email/resend.ts`, `apps/web/src/lib/newsletter/mailerlite.ts`

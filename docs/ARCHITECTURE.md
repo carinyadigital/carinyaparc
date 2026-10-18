@@ -241,12 +241,13 @@ Newsletter subscribe is the same pipeline without the event lookup: one submissi
 
 1. The page HTML contains no analytics scripts.
 2. The consent island reads `cp_consent`. With no cookie, the banner is shown.
-3. Accept writes the cookie for one year (`Path=/`, `SameSite=Lax`, `Secure` on https) and loads Google Tag Manager, when a container id is set, plus Vercel Analytics and Speed Insights.
-4. Reject loads nothing.
+3. Accept writes the cookie for one year (`Path=/`, `SameSite=Lax`, `Secure` on https).
+4. A script on every page loads Google Tag Manager, when a container id is set, plus Vercel Analytics and Speed Insights. It loads them when the cookie is already accepted, and on the same page when the visitor accepts.
+5. Reject loads nothing.
 
 The cookie is readable by client script on purpose. Consent is not a secret, and no server reads it.
 
-**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
+**Source files:** `apps/web/src/lib/contact/handler.ts`, `apps/web/src/lib/api/events-signup.ts`, `apps/web/src/lib/newsletter/handler.ts`, `apps/web/src/lib/consent/client.ts`, `apps/web/src/lib/analytics/client.ts`, `apps/web/src/components/islands/ConsentGate.tsx`
 
 ---
 

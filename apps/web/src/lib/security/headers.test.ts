@@ -16,6 +16,7 @@ describe('generateSecurityHeaders', () => {
     expect(headers['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
     expect(headers['X-Frame-Options']).toBe('DENY');
     expect(headers['X-Content-Type-Options']).toBe('nosniff');
+    expect(headers['X-XSS-Protection']).toBeUndefined();
     expect(headers['Permissions-Policy']).toBe('camera=(), microphone=(), geolocation=()');
   });
 });

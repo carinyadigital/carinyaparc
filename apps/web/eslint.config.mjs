@@ -2,6 +2,57 @@ import { config as baseConfig } from '@repo/eslint-config/base';
 import eslintPluginAstro from 'eslint-plugin-astro';
 import prettier from 'eslint-plugin-prettier';
 
+/**
+ * Provider adapters are private to the folder that owns them.
+ * Patterns match an alias, a parent-relative path, and a same-folder relative path.
+ * The owning entry is excluded, and every test file is excluded, so a test may import the adapter it exercises.
+ */
+const providerImportPatterns = [
+  {
+    group: ['**/newsletter/mailerlite', './mailerlite'],
+    message:
+      'Only lib/newsletter/index.ts may import the MailerLite adapter. Call subscribe() or addToList() from @/lib/newsletter.',
+  },
+  {
+    group: ['**/email/resend', './resend'],
+    message: 'Only lib/email/index.ts may import the Resend adapter. Call send() from @/lib/email.',
+  },
+  {
+    group: ['**/analytics/gtm', './gtm'],
+    message: 'Only lib/analytics/client.ts may import the Google Tag Manager adapter.',
+  },
+  {
+    group: ['**/analytics/vercel', './vercel'],
+    message: 'Only lib/analytics/client.ts may import the Vercel analytics adapter.',
+  },
+  {
+    group: ['**/consent/cookie', './cookie'],
+    message: 'Only lib/consent/client.ts may import the consent cookie adapter.',
+  },
+];
+
+/**
+ * Islands, layouts and pages may import a feature's schema and browser client.
+ * These expressions match the folder entry and its index only, so schema and client stay allowed.
+ * A parent-relative path to that same entry is included.
+ */
+const featureEntryPatterns = [
+  {
+    regex: '^(?:@/lib|(?:\\.\\./)+lib)/(newsletter|contact)(/index)?$',
+    message:
+      'Components, layouts and pages may import @/lib/newsletter or @/lib/contact schema and client only.',
+  },
+  {
+    regex: '^(?:@/lib|(?:\\.\\./)+lib)/email(/index)?$',
+    message: 'Components, layouts and pages do not import the email service.',
+  },
+  {
+    group: ['**/handler'],
+    message:
+      'Components, layouts and pages may import a feature schema and client only, not the request handler.',
+  },
+];
+
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [
   ...baseConfig,
@@ -51,126 +102,38 @@ const eslintConfig = [
     },
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/lib/newsletter/**', 'src/lib/email/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: '@/lib/newsletter/mailerlite',
-              message:
-                'Only lib/newsletter may import mailerlite.ts. Call subscribe() or addToList() from @/lib/newsletter.',
-            },
-            {
-              name: '@/lib/email/resend',
-              message: 'Only lib/email may import resend.ts. Call send() from @/lib/email.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/components/**/*.{ts,tsx}', 'src/layouts/**/*.{ts,tsx}', 'src/pages/**/*.{ts,tsx}'],
-    ignores: ['src/pages/api/**', 'src/pages/monitoring.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: '@/lib/newsletter',
-              message:
-                'Components may import @/lib/newsletter/schema and @/lib/newsletter/client only.',
-            },
-            {
-              name: '@/lib/newsletter/index',
-              message:
-                'Components may import @/lib/newsletter/schema and @/lib/newsletter/client only.',
-            },
-            {
-              name: '@/lib/newsletter/handler',
-              message:
-                'Components may import @/lib/newsletter/schema and @/lib/newsletter/client only.',
-            },
-            {
-              name: '@/lib/newsletter/mailerlite',
-              message:
-                'Components may import @/lib/newsletter/schema and @/lib/newsletter/client only.',
-            },
-            {
-              name: '@/lib/contact',
-              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
-            },
-            {
-              name: '@/lib/contact/handler',
-              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
-            },
-            {
-              name: '@/lib/contact/notification',
-              message: 'Components may import @/lib/contact/schema and @/lib/contact/client only.',
-            },
-            {
-              name: '@/lib/email',
-              message: 'Components do not import the email service.',
-            },
-            {
-              name: '@/lib/email/index',
-              message: 'Components do not import the email service.',
-            },
-            {
-              name: '@/lib/email/resend',
-              message: 'Components do not import the email service.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/lib/email/**/*.ts'],
-    ignores: ['src/lib/email/index.ts', 'src/lib/email/resend.ts'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: './resend',
-              message: 'Only index.ts imports the Resend adapter.',
-            },
-            {
-              name: '@/lib/email/resend',
-              message: 'Only index.ts imports the Resend adapter.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/lib/newsletter/**/*.ts'],
+    files: ['src/**/*.{ts,tsx,astro}'],
     ignores: [
       'src/lib/newsletter/index.ts',
-      'src/lib/newsletter/mailerlite.ts',
-      'src/lib/newsletter/**/*.test.ts',
+      'src/lib/email/index.ts',
+      'src/lib/analytics/client.ts',
+      'src/lib/consent/client.ts',
+      '**/*.test.ts',
+      '**/*.test.tsx',
     ],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: './mailerlite',
-              message: 'Only index.ts imports the MailerLite adapter.',
-            },
-            {
-              name: '@/lib/newsletter/mailerlite',
-              message: 'Only index.ts imports the MailerLite adapter.',
-            },
-          ],
+          patterns: providerImportPatterns,
+        },
+      ],
+    },
+  },
+  {
+    // A later entry replaces no-restricted-imports for the same files, so this
+    // one lists the feature limits and the provider patterns together.
+    files: [
+      'src/components/**/*.{ts,tsx,astro}',
+      'src/layouts/**/*.{ts,tsx,astro}',
+      'src/pages/**/*.{ts,tsx,astro}',
+    ],
+    ignores: ['src/pages/api/**', '**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [...featureEntryPatterns, ...providerImportPatterns],
         },
       ],
     },

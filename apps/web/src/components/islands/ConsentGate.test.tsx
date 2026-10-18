@@ -8,14 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { CONSENT_COOKIE_NAME } from '@/lib/constants';
 
-vi.mock('@vercel/analytics', () => ({
-  inject: vi.fn(),
-}));
-
-vi.mock('@vercel/speed-insights', () => ({
-  injectSpeedInsights: vi.fn(),
-}));
-
 describe('ConsentGate', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -51,7 +43,7 @@ describe('ConsentGate', () => {
     expect(document.getElementById('gtm-script')).toBeNull();
   });
 
-  it('loads GTM after accepted consent', async () => {
+  it('does not load analytics after consent is accepted', async () => {
     document.cookie = `${CONSENT_COOKIE_NAME}=accepted; Path=/`;
 
     await act(async () => {
@@ -59,11 +51,10 @@ describe('ConsentGate', () => {
     });
 
     await vi.waitFor(() => {
-      expect(document.getElementById('gtm-script')).not.toBeNull();
+      expect(container.textContent).not.toContain('Accept all');
     });
 
-    expect(document.getElementById('gtm-script')?.getAttribute('src')).toContain('GTM-TEST123');
-    expect(container.textContent).not.toContain('Accept all');
+    expect(document.getElementById('gtm-script')).toBeNull();
   });
 
   it('shows the banner when no cookie is set', async () => {

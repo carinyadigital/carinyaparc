@@ -50,8 +50,8 @@ For product context read `docs/product/product.md` (what and why). For delivery 
 
 - Pages and most components are `.astro` files. Route files under `src/pages/` are kebab-case (`the-property.astro`) and dynamic segments use brackets (`[slug].astro`, `[page].astro`). Public URLs are kebab-case and always end in `/`.
 - Components are PascalCase files with one main export (`PostCard.astro`, `ContactForm.tsx`).
-- React islands live only under `src/components/islands/` and are mounted from `.astro` files with a `client:*` directive (`client:visible` for forms, `client:idle` for the consent gate and subscribe modal host). Nothing else ships client JavaScript by default.
-- `lib/` modules are kebab-case files (`rate-limit.ts`, `send-contact-notification.ts`); read helpers are `getX`, formatters are `formatX`.
+- React islands are mounted from `.astro` files with a `client:*` directive (`client:visible` for forms, `client:idle` for the consent gate and subscribe modal host). A feature island lives with that feature (`src/components/newsletter/`); the others live under `src/components/islands/`. Nothing else ships client JavaScript by default.
+- `lib/` modules are kebab-case files (`rate-limit.ts`, `mailerlite.ts`); read helpers are `getX`, formatters are `formatX`. Newsletter and email keep browser code (`schema.ts`, `client.ts`) separate from the server entry (`index.ts`, `handler.ts`) and the provider file.
 - Tests are colocated as `*.test.ts` / `*.test.tsx` next to the module they cover.
 
 ## Build and test commands
@@ -107,7 +107,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `pnpm
 - Pages are thin: `getStaticPaths`, a few collection calls through `src/lib/content/*`, metadata, then components. Rendering belongs in components; side effects belong in `lib/`.
 - Read content through the helpers in `src/lib/content/` (`getPublishedPosts`, `getPublishedRecipes`, `getUpcomingEvents`, …) rather than calling `getCollection` in a page, so draft filtering and sorting stay in one place.
 - Build URLs with `src/lib/urls.ts` so every internal link keeps its trailing slash.
-- Use `.astro` components for anything without interaction. Add a React island only for state, browser APIs or event handlers, and keep it under `src/components/islands/`. Islands must not import server-only modules (`lib/api`, `lib/email`, `lib/mailerlite`, anything that reads a secret).
+- Use `.astro` components for anything without interaction. Add a React island only for state, browser APIs or event handlers. Islands must not import server modules. From `lib/newsletter` and `lib/email` they may import only `schema.ts` and `client.ts`.
 - Use `cn()` from `@/lib/cn` for conditional Tailwind classes and reuse `src/components/ui/` before adding a new primitive.
 
 **Styling:** Tailwind CSS 4 via `@tailwindcss/vite`. Tokens and the theme live in `packages/carinya-theme` and are imported once in `src/styles/globals.css`. Site-wide component CSS is `src/styles/components.css`; per-page CSS lives in `src/styles/pages/` and is imported by the page that needs it.
@@ -144,10 +144,10 @@ Content is the CMS. An agent writing content edits files under `content/` and no
 
 **What to test:**
 
-- Endpoint handlers in `src/lib/api/` (validation, honeypot, timing, rate limit, error responses)
-- Zod schemas and sanitisation in `src/lib/validation/`
+- Endpoint handlers in `src/lib/newsletter/handler.ts`, `src/lib/email/handler.ts` and `src/lib/api/` (validation, honeypot, timing, rate limit, error responses)
+- Zod schemas and sanitisation in `src/lib/newsletter/schema.ts`, `src/lib/email/schema.ts` and `src/lib/validation/`
 - Metadata, JSON-LD, security header and CSP generators
-- Islands with meaningful state (`ConsentGate`, `EventSignup`, `InlineSubscribe`)
+- Islands with meaningful state (`ConsentGate`, `EventSignup`, `SubscribeForm`)
 
 **What not to test by default:** presentational `.astro` components and marketing pages. Route-level output is covered by `test:dist`.
 
@@ -165,7 +165,7 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 **Secrets and environment:**
 
 - Never commit `.env` or real API keys. `apps/web/.env.example` lists every variable.
-- Secrets (`MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN`) are read only in server code: endpoint handlers under `src/lib/api/` and the service clients in `src/lib/mailerlite/`, `src/lib/email/`. Endpoints under `src/pages/api/` are the only files that may call those handlers.
+- Secrets (`MAILERLITE_API_KEY`, `RESEND_API_KEY`, `SENTRY_AUTH_TOKEN`) are read only in server code: `src/lib/newsletter/mailerlite.ts`, `src/lib/email/resend.ts`, and the handlers those modules serve. Nothing outside `lib/newsletter` imports `mailerlite.ts`. Endpoints under `src/pages/api/` are the only files that may call those handlers.
 - Only `PUBLIC_*` variables reach the browser (`PUBLIC_SITE_URL`, `PUBLIC_GTM_ID`, `PUBLIC_SENTRY_DSN`). Never put a secret behind a `PUBLIC_` name. New variables must also be added to the `turbo.json` env lists and the `turbo/no-undeclared-env-vars` allow list in `apps/web/eslint.config.mjs`.
 
 **HTTP security:**
@@ -176,14 +176,14 @@ Add or update tests when changing validation, endpoint behaviour, or security-se
 
 **Endpoints and input handling:**
 
-- The five on-demand endpoints are `/api/contact/`, `/api/subscribe/`, `/api/events/signup/`, `/api/csp-report/` and `/monitoring/` (the browser Sentry tunnel), each `export const prerender = false` with the handler in `src/lib/api/`. Every other route is static.
-- Validate all external input with the Zod schemas in `src/lib/validation/` and sanitise text with `src/lib/validation/sanitize.ts` before it reaches an email or a third party.
+- The five on-demand endpoints are `/api/contact/`, `/api/subscribe/`, `/api/events/signup/`, `/api/csp-report/` and `/monitoring/` (the browser Sentry tunnel), each `export const prerender = false`. Contact and subscribe delegate to `lib/email/handler.ts` and `lib/newsletter/handler.ts`; the other three stay in `src/lib/api/`. Every other route is static.
+- Validate subscribe and contact input with `lib/newsletter/schema.ts` and `lib/email/schema.ts`. Other external input uses the Zod schemas in `src/lib/validation/`. Sanitise text with `src/lib/validation/sanitize.ts` before it reaches an email or a third party.
 - A new form endpoint follows the existing pattern: `readJsonBody` (JSON or form-encoded), Zod parse, honeypot field (`website`) that returns a fake success, minimum `submissionTime` of 2000 ms, `createRateLimiter` keyed by lowercased email, `jsonResponse` with `Cache-Control: no-store`, and a `GET` that returns 405.
 - Rate limiting is in-memory per serverless instance. It is a nuisance filter, not a guarantee; durable abuse control is a Vercel WAF rule on `POST` to `/api/contact`, `/api/subscribe` and `/api/events`.
 
 **Consent and analytics:**
 
-- Analytics consent is the client-set `cp_consent` cookie (not httpOnly) written by `src/lib/consent/cookie.ts`. `ConsentGate` injects GTM and the Vercel Analytics and Speed Insights beacons only after acceptance. Do not load tracking scripts anywhere else.
+- Analytics consent is the client-set `cp_consent` cookie (not httpOnly) written by `src/lib/consent/client.ts`. `ConsentGate` injects GTM and the Vercel Analytics and Speed Insights beacons only after acceptance. Do not load tracking scripts anywhere else. `lib/analytics` and `lib/consent` are browser-only: import `client.ts`, and do not add a server `index.ts`.
 
 **General rules for agents:**
 

@@ -31,22 +31,22 @@ The site publishes marketing pages, a journal, recipes, an events list, and lega
 
 The first goal wins when they conflict.
 
-| Priority | Quality goal | Scenario (one line) |
-| -------- | ------------ | ------------------- |
-| 1 | Trust and security | Every response carries the security policy, form input is validated, and secrets never reach the browser. |
-| 2 | Hermetic builds | A build needs only the repository. Missing or invalid content fails the build. |
-| 3 | Performance on regional mobile | Public pages are static HTML. Client JavaScript is limited to interaction. |
-| 4 | Editorial reliability | One content pipeline. A draft stays out of production until it is deliberately published. |
-| 5 | Maintainability for a small team | Pages stay thin. A schema, a query, or an integration has one home. |
+| Priority | Quality goal                     | Scenario (one line)                                                                                       |
+| -------- | -------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1        | Trust and security               | Every response carries the security policy, form input is validated, and secrets never reach the browser. |
+| 2        | Hermetic builds                  | A build needs only the repository. Missing or invalid content fails the build.                            |
+| 3        | Performance on regional mobile   | Public pages are static HTML. Client JavaScript is limited to interaction.                                |
+| 4        | Editorial reliability            | One content pipeline. A draft stays out of production until it is deliberately published.                 |
+| 5        | Maintainability for a small team | Pages stay thin. A schema, a query, or an integration has one home.                                       |
 
 ## Stakeholders
 
-| Role | Contact | Expectations of this architecture |
-| ---- | ------- | --------------------------------- |
-| Visitor | — | Pages load as HTML. Forms accept or fail clearly. Analytics waits for consent. |
-| Author | — | Content is files. Drafts are visible locally and on a preview deployment. |
-| Reviewer | — | The preview is the draft. Merging to `main` publishes. |
-| Operator | — | Environment variables and third-party keys live on the host, not in the repository. |
+| Role     | Contact | Expectations of this architecture                                                   |
+| -------- | ------- | ----------------------------------------------------------------------------------- |
+| Visitor  | —       | Pages load as HTML. Forms accept or fail clearly. Analytics waits for consent.      |
+| Author   | —       | Content is files. Drafts are visible locally and on a preview deployment.           |
+| Reviewer | —       | The preview is the draft. Merging to `main` publishes.                              |
+| Operator | —       | Environment variables and third-party keys live on the host, not in the repository. |
 
 **Source files:** `docs/product/product.md`, `docs/PRINCIPLES.md`
 
@@ -84,15 +84,15 @@ GitHub  --build-->  Vercel
 
 ## Technical Context
 
-| Neighbour | Direction | Interface | Notes |
-| --------- | --------- | --------- | ----- |
-| Visitor browser | down | HTTPS | Static HTML, CSS, and images. Form posts are JSON or form-encoded. |
-| GitHub | up | Git | System of record for code and content. |
-| Vercel | down | HTTPS, build | CDN for prerendered pages. Functions for the five on-demand routes. Preview per pull request. |
-| MailerLite | down | HTTPS | Newsletter subscribers, and one group per event signup. |
-| Resend | down | HTTPS | Contact-form notification email. |
-| Sentry | down | HTTPS | Server errors, and browser envelopes via the same-origin tunnel. |
-| Google Tag Manager, Vercel Analytics | down | HTTPS from the browser | Loaded only after consent. |
+| Neighbour                            | Direction | Interface              | Notes                                                                                         |
+| ------------------------------------ | --------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| Visitor browser                      | down      | HTTPS                  | Static HTML, CSS, and images. Form posts are JSON or form-encoded.                            |
+| GitHub                               | up        | Git                    | System of record for code and content.                                                        |
+| Vercel                               | down      | HTTPS, build           | CDN for prerendered pages. Functions for the five on-demand routes. Preview per pull request. |
+| MailerLite                           | down      | HTTPS                  | Newsletter subscribers, and one group per event signup.                                       |
+| Resend                               | down      | HTTPS                  | Contact-form notification email.                                                              |
+| Sentry                               | down      | HTTPS                  | Server errors, and browser envelopes via the same-origin tunnel.                              |
+| Google Tag Manager, Vercel Analytics | down      | HTTPS from the browser | Loaded only after consent.                                                                    |
 
 **Source files:** `apps/web/astro.config.mjs`, `apps/web/src/pages/api/`, `apps/web/src/pages/monitoring.ts`
 
@@ -102,15 +102,15 @@ GitHub  --build-->  Vercel
 
 Governed by [ADR-0001](decisions/ADR-0001-astro-mdx.md).
 
-| Principle | Consequence | Quality goal |
-| --------- | ----------- | ------------ |
-| Static site, islands only for interaction | Astro prerenders every public route. React hydrates the contact, subscribe, event-signup, and consent islands. | Performance, trust |
-| Git is the CMS | Content is MDX and YAML under `content/`, validated on every build. Merging to `main` publishes. There is no browser editor. | Editorial reliability, hermetic builds |
-| Content stays outside the app | Authors do not open `apps/`. The app reads `content/` through a relative root. | Maintainability |
-| On-demand is explicit | Five routes set prerender off and run as functions. Everything else is static HTML. | Performance, trust |
-| Providers stay behind a folder entry | MailerLite is called from the newsletter folder. Resend is called from the email folder. Features call `subscribe`, `addToList`, or `send`. | Maintainability, trust |
-| Security policy is generated | Headers and the content security policy are defined once and merged into the build output. The policy is a host allowlist with inline scripts, because prerendered HTML cannot carry a per-request nonce. | Trust |
-| No database | Event signups are a MailerLite group named for the event. Capacity is a hand-set flag. | Hermetic builds |
+| Principle                                 | Consequence                                                                                                                                                                                               | Quality goal                           |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Static site, islands only for interaction | Astro prerenders every public route. React hydrates the contact, subscribe, event-signup, and consent islands.                                                                                            | Performance, trust                     |
+| Git is the CMS                            | Content is MDX and YAML under `content/`, validated on every build. Merging to `main` publishes. There is no browser editor.                                                                              | Editorial reliability, hermetic builds |
+| Content stays outside the app             | Authors do not open `apps/`. The app reads `content/` through a relative root.                                                                                                                            | Maintainability                        |
+| On-demand is explicit                     | Five routes set prerender off and run as functions. Everything else is static HTML.                                                                                                                       | Performance, trust                     |
+| Providers stay behind a folder entry      | MailerLite is called from the newsletter folder. Resend is called from the email folder. Features call `subscribe`, `addToList`, or `send`.                                                               | Maintainability, trust                 |
+| Security policy is generated              | Headers and the content security policy are defined once and merged into the build output. The policy is a host allowlist with inline scripts, because prerendered HTML cannot carry a per-request nonce. | Trust                                  |
+| No database                               | Event signups are a MailerLite group named for the event. Capacity is a hand-set flag.                                                                                                                    | Hermetic builds                        |
 
 The system will not do: a browser editing UI, payments or booking, authenticated accounts, incremental revalidation, or a second image pipeline.
 
@@ -142,29 +142,29 @@ The system will not do: a browser editing UI, payments or booking, authenticated
 
 **Contained building blocks.**
 
-| Block | Responsibility |
-| ----- | -------------- |
-| Content | The six collections, tag names, and hero images. |
-| Site | Routes, layouts, and components. Reads content through the query helpers. |
-| Contact | Validates and sends the enquiry notification. |
-| Newsletter | Subscribes an address and adds an address to a named list. |
-| Email | Sends one outbound message. Does not know which feature asked. |
-| Security policy | Header and content-security-policy definitions, merged into the build output. |
-| Consent and analytics | Browser-only. The consent cookie gates analytics. |
-| Theme | Design tokens consumed by the site stylesheet. |
+| Block                 | Responsibility                                                                |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Content               | The six collections, tag names, and hero images.                              |
+| Site                  | Routes, layouts, and components. Reads content through the query helpers.     |
+| Contact               | Validates and sends the enquiry notification.                                 |
+| Newsletter            | Subscribes an address and adds an address to a named list.                    |
+| Email                 | Sends one outbound message. Does not know which feature asked.                |
+| Security policy       | Header and content-security-policy definitions, merged into the build output. |
+| Consent and analytics | Browser-only. The consent cookie gates analytics.                             |
+| Theme                 | Design tokens consumed by the site stylesheet.                                |
 
 **Important interfaces.**
 
 - Public URLs end in `/`. Internal links are built in one place so a form post is not redirected and turned into a GET.
 - On-demand routes accept POST and answer GET with 405. The Sentry tunnel is `/monitoring/`, outside `/api/`, so it stays off common blocker lists.
 
-| URL | Handler |
-| --- | ------- |
-| `/api/contact/` | `lib/contact/handler.ts` |
-| `/api/subscribe/` | `lib/newsletter/handler.ts` |
-| `/api/events/signup/` | `lib/api/events-signup.ts` |
-| `/api/csp-report/` | `lib/api/csp-report.ts` |
-| `/monitoring/` | `lib/api/sentry-tunnel.ts` |
+| URL                   | Handler                     |
+| --------------------- | --------------------------- |
+| `/api/contact/`       | `lib/contact/handler.ts`    |
+| `/api/subscribe/`     | `lib/newsletter/handler.ts` |
+| `/api/events/signup/` | `lib/api/events-signup.ts`  |
+| `/api/csp-report/`    | `lib/api/csp-report.ts`     |
+| `/monitoring/`        | `lib/api/sentry-tunnel.ts`  |
 
 Static routes cover the home, about, regenerate, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it.
 
@@ -255,15 +255,15 @@ The cookie is readable by client script on purpose. Consent is not a secret, and
 
 ## Infrastructure Level 1
 
-| Service | Platform | Role |
-| ------- | -------- | ---- |
-| Public pages and assets | Vercel CDN | Prerendered HTML, images, sitemap, feed |
-| Form and report routes | Vercel Functions | Contact, subscribe, event signup, CSP reports, Sentry tunnel |
-| Source | GitHub | Code and content. Merge to `main` is the production release. |
-| Newsletter | MailerLite | Subscribers and per-event groups |
-| Contact mail | Resend | Enquiry notification |
-| Errors | Sentry | Server capture, and browser envelopes through `/monitoring/` |
-| Analytics | Google Tag Manager, Vercel | After consent only |
+| Service                 | Platform                   | Role                                                         |
+| ----------------------- | -------------------------- | ------------------------------------------------------------ |
+| Public pages and assets | Vercel CDN                 | Prerendered HTML, images, sitemap, feed                      |
+| Form and report routes  | Vercel Functions           | Contact, subscribe, event signup, CSP reports, Sentry tunnel |
+| Source                  | GitHub                     | Code and content. Merge to `main` is the production release. |
+| Newsletter              | MailerLite                 | Subscribers and per-event groups                             |
+| Contact mail            | Resend                     | Enquiry notification                                         |
+| Errors                  | Sentry                     | Server capture, and browser envelopes through `/monitoring/` |
+| Analytics               | Google Tag Manager, Vercel | After consent only                                           |
 
 **Motivation.** The pages do not need a server. The five routes do, because they accept a request and call a third party.
 
@@ -275,11 +275,11 @@ The cookie is readable by client script on purpose. Consent is not a secret, and
 
 The Vercel project root is `apps/web`.
 
-| Environment | What it runs | Content |
-| ----------- | ------------ | ------- |
-| Local | `astro dev` | Working tree. Drafts visible. |
-| Preview | Vercel deployment of the pull request | The branch. Same content security policy as production. |
-| Production | Vercel deployment of `main` | `main`. Secrets in the host's environment. |
+| Environment | What it runs                          | Content                                                 |
+| ----------- | ------------------------------------- | ------------------------------------------------------- |
+| Local       | `astro dev`                           | Working tree. Drafts visible.                           |
+| Preview     | Vercel deployment of the pull request | The branch. Same content security policy as production. |
+| Production  | Vercel deployment of `main`           | `main`. Secrets in the host's environment.              |
 
 No variable is required to build. `PUBLIC_SITE_URL` is the canonical origin. `PUBLIC_GTM_ID` and `PUBLIC_SENTRY_DSN` are the browser-visible ids. `MAILERLITE_API_KEY`, `RESEND_API_KEY`, the contact recipient and from address, and the form rate-limit switches are server-only. The task runner lists build-relevant variables so its cache key includes them.
 
@@ -301,14 +301,14 @@ merge → Vercel build (root apps/web)
 
 State lives in git. There is no database. An entry's id is its filename without the extension, so the public slug is the filename. Slugs are lowercase kebab-case.
 
-| Collection | Files | Required fields |
-| ---------- | ----- | --------------- |
-| posts | `content/posts/*.mdx` | title, date, author, excerpt |
-| recipes | `content/recipes/*.mdx` | title, date, author, excerpt, at least one ingredient and one instruction |
-| events | `content/events/*.mdx` | title, startsAt, location |
-| legal | `content/legal/*.mdx` | title, description |
-| authors | `content/authors/*.yaml` | name |
-| categories | `content/categories/*.yaml` | name |
+| Collection | Files                       | Required fields                                                           |
+| ---------- | --------------------------- | ------------------------------------------------------------------------- |
+| posts      | `content/posts/*.mdx`       | title, date, author, excerpt                                              |
+| recipes    | `content/recipes/*.mdx`     | title, date, author, excerpt, at least one ingredient and one instruction |
+| events     | `content/events/*.mdx`      | title, startsAt, location                                                 |
+| legal      | `content/legal/*.mdx`       | title, description                                                        |
+| authors    | `content/authors/*.yaml`    | name                                                                      |
+| categories | `content/categories/*.yaml` | name                                                                      |
 
 `content/tags.json` maps a slug to a display name when the slug is not the label. `content/images/` holds hero files referenced from frontmatter.
 
@@ -347,20 +347,20 @@ Sentry is initialised for the browser and the server when a DSN is set. The brow
 
 ## Testing
 
-| Tier | Where | What |
-| ---- | ----- | ---- |
-| Unit | Colocated `*.test.ts` under `apps/web/src/` | Handlers, validation, sanitisation, rate limit, adapters, metadata, structured data, security policy, consent, stateful islands |
-| Dist | `apps/web/tests/security.test.ts` | Built links, images, content-security-policy hosts, and headers. Skips itself when `dist/` is absent. |
-| Typecheck | `astro check` | Types and content frontmatter |
+| Tier      | Where                                       | What                                                                                                                            |
+| --------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Unit      | Colocated `*.test.ts` under `apps/web/src/` | Handlers, validation, sanitisation, rate limit, adapters, metadata, structured data, security policy, consent, stateful islands |
+| Dist      | `apps/web/tests/security.test.ts`           | Built links, images, content-security-policy hosts, and headers. Skips itself when `dist/` is absent.                           |
+| Typecheck | `astro check`                               | Types and content frontmatter                                                                                                   |
 
 Presentational components are not unit-tested. There is no browser end-to-end suite. Form submission is checked on a preview.
 
 ## Build and release
 
-| Workflow | Trigger | Checks |
-| -------- | ------- | ------ |
-| CI | Pull request and push to `main` | Lint, typecheck, format, unit tests, web build, dist tests |
-| Vercel | Pull request and `main` | Production build of `apps/web`, then deploy |
+| Workflow | Trigger                         | Checks                                                     |
+| -------- | ------------------------------- | ---------------------------------------------------------- |
+| CI       | Pull request and push to `main` | Lint, typecheck, format, unit tests, web build, dist tests |
+| Vercel   | Pull request and `main`         | Production build of `apps/web`, then deploy                |
 
 A schema error, a broken reference, or a missing image fails the build. Nothing partial ships.
 
@@ -372,13 +372,13 @@ A schema error, a broken reference, or a missing image fails the build. Nothing 
 
 ## Quality Scenarios
 
-| Quality goal | Scenario | Measure |
-| ------------ | -------- | ------- |
-| Trust and security | An invalid contact body is rejected and no notification is sent. Built HTML carries the enforced content security policy. | Handler tests return 400 without sending. The dist suite finds the policy header and no unexpected hosts. |
-| Hermetic builds | CI builds the site with no third-party keys set. | The web build succeeds. A missing key fails the request at runtime with a clear error, not the build. |
-| Performance | A journal or recipe page is static HTML. Analytics scripts are absent until consent. | View source of a content page has no tag-manager or Vercel analytics script. |
-| Editorial reliability | A post with `draft: true` is absent from the production HTML, the sitemap, and the feed. | Production build output does not contain that slug. `astro dev` still renders it. |
-| Maintainability | Published entries are read through `lib/content/`. A provider module is imported only by its folder entry. | A new page does not call the collection loader itself. The import boundary fails lint. |
+| Quality goal          | Scenario                                                                                                                  | Measure                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Trust and security    | An invalid contact body is rejected and no notification is sent. Built HTML carries the enforced content security policy. | Handler tests return 400 without sending. The dist suite finds the policy header and no unexpected hosts. |
+| Hermetic builds       | CI builds the site with no third-party keys set.                                                                          | The web build succeeds. A missing key fails the request at runtime with a clear error, not the build.     |
+| Performance           | A journal or recipe page is static HTML. Analytics scripts are absent until consent.                                      | View source of a content page has no tag-manager or Vercel analytics script.                              |
+| Editorial reliability | A post with `draft: true` is absent from the production HTML, the sitemap, and the feed.                                  | Production build output does not contain that slug. `astro dev` still renders it.                         |
+| Maintainability       | Published entries are read through `lib/content/`. A provider module is imported only by its folder entry.                | A new page does not call the collection loader itself. The import boundary fails lint.                    |
 
 **Source files:** `apps/web/src/lib/contact/handler.test.ts`, `apps/web/tests/security.test.ts`, `.github/workflows/ci.yml`
 
@@ -388,13 +388,13 @@ A schema error, a broken reference, or a missing image fails the build. Nothing 
 
 ## Risks
 
-| ID | Risk | Likelihood | Impact | Mitigation |
-| -- | ---- | ---------- | ------ | ---------- |
-| R1 | Form abuse across function instances | Medium | Medium | Honeypot and timing in the handler. WAF rate limit on form POSTs. |
-| R2 | The content security policy blocks a third-party script | Low | Medium | Violations are reported to Sentry. Watch them after an allowlist change. |
-| R3 | The events list stays stale between deploys | Medium | Low | A content merge redeploys. A past event drops off only on the next build. |
-| R4 | A new query bypasses the published-only filter and leaks a draft | Low | High | Pages read through `lib/content/`. Review any new collection read. |
-| R5 | Editing through pull requests is too much friction | Medium | Medium | The preview deployment is the draft review. A git-backed editor is an open question, not a second content store. |
+| ID  | Risk                                                             | Likelihood | Impact | Mitigation                                                                                                       |
+| --- | ---------------------------------------------------------------- | ---------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| R1  | Form abuse across function instances                             | Medium     | Medium | Honeypot and timing in the handler. WAF rate limit on form POSTs.                                                |
+| R2  | The content security policy blocks a third-party script          | Low        | Medium | Violations are reported to Sentry. Watch them after an allowlist change.                                         |
+| R3  | The events list stays stale between deploys                      | Medium     | Low    | A content merge redeploys. A past event drops off only on the next build.                                        |
+| R4  | A new query bypasses the published-only filter and leaks a draft | Low        | High   | Pages read through `lib/content/`. Review any new collection read.                                               |
+| R5  | Editing through pull requests is too much friction               | Medium     | Medium | The preview deployment is the draft review. A git-backed editor is an open question, not a second content store. |
 
 ## Technical debt
 
@@ -418,14 +418,14 @@ A schema error, a broken reference, or a missing image fails the build. Nothing 
 
 # 12. Glossary
 
-| Term | Definition |
-| ---- | ---------- |
-| Entry | One file in a collection. Its id is the filename stem and the public slug. |
-| Draft | `draft: true`. Excluded from production, the sitemap, and the feed. Still rendered in local dev. |
-| Island | A React component hydrated in the browser for interaction. Mounted from a server-rendered wrapper. |
-| On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5. |
-| Preview | The Vercel deployment of a pull request. The draft a reviewer reads. |
-| Featured post | `featured: true`. The newest one is the journal hero. |
-| Provider | The third-party adapter inside a feature folder. Imported only by that folder's server entry. |
+| Term               | Definition                                                                                         |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| Entry              | One file in a collection. Its id is the filename stem and the public slug.                         |
+| Draft              | `draft: true`. Excluded from production, the sitemap, and the feed. Still rendered in local dev.   |
+| Island             | A React component hydrated in the browser for interaction. Mounted from a server-rendered wrapper. |
+| On-demand endpoint | A route that renders per request and deploys as a function. The five routes in §5.                 |
+| Preview            | The Vercel deployment of a pull request. The draft a reviewer reads.                               |
+| Featured post      | `featured: true`. The newest one is the journal hero.                                              |
+| Provider           | The third-party adapter inside a feature folder. Imported only by that folder's server entry.      |
 
 **Source files:** `apps/web/src/content.config.ts`, `apps/web/src/lib/content/`, `apps/web/src/lib/email/resend.ts`, `apps/web/src/lib/newsletter/mailerlite.ts`

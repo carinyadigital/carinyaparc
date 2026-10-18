@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/email', () => ({
+vi.mock('@/lib/contact/notification', () => ({
   sendContactNotification: vi.fn(),
 }));
 
@@ -10,7 +10,7 @@ vi.mock('@/lib/observability/metrics', () => ({
   captureMessage: vi.fn(),
 }));
 
-import { sendContactNotification } from '@/lib/email';
+import { sendContactNotification } from '@/lib/contact/notification';
 
 import { handleContact, resetContactRateLimit } from './handler';
 

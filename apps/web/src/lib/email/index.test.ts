@@ -10,32 +10,90 @@ vi.mock('resend', () => ({
   },
 }));
 
-import { sendContactNotification } from './index';
+import { send, verifyEmailServiceConfig } from './index';
+import type { OutboundEmail } from './types';
 
-const payload = {
-  firstName: 'Alex',
-  lastName: 'Farmer',
-  email: 'alex@fastmail.com',
-  phone: '',
-  inquiryType: 'general' as const,
-  message: 'I would like to visit the farm and learn about the restoration work you are doing.',
-  website: '',
-  submissionTime: 5000,
+const message: OutboundEmail = {
+  from: 'Carinya Parc <noreply@carinyaparc.com.au>',
+  to: 'hello@carinyaparc.com.au',
+  replyTo: 'alex@fastmail.com',
+  subject: 'Hello from the farm',
+  html: '<p>Hello</p>',
+  text: 'Hello',
+  tags: [{ name: 'source', value: 'contact_form' }],
 };
 
-describe('sendContactNotification', () => {
+describe('send', () => {
   const originalApiKey = process.env.RESEND_API_KEY;
   const originalRecipient = process.env.CONTACT_EMAIL_RECIPIENT;
+  const originalFrom = process.env.CONTACT_EMAIL_FROM;
 
   beforeEach(() => {
     process.env.RESEND_API_KEY = 're_test_key';
-    process.env.CONTACT_EMAIL_RECIPIENT = 'hello@carinyaparc.com.au';
+    delete process.env.CONTACT_EMAIL_RECIPIENT;
+    delete process.env.CONTACT_EMAIL_FROM;
     sendMock.mockReset();
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
+    if (originalApiKey === undefined) {
+      delete process.env.RESEND_API_KEY;
+    } else {
+      process.env.RESEND_API_KEY = originalApiKey;
+    }
+    if (originalRecipient === undefined) {
+      delete process.env.CONTACT_EMAIL_RECIPIENT;
+    } else {
+      process.env.CONTACT_EMAIL_RECIPIENT = originalRecipient;
+    }
+    if (originalFrom === undefined) {
+      delete process.env.CONTACT_EMAIL_FROM;
+    } else {
+      process.env.CONTACT_EMAIL_FROM = originalFrom;
+    }
+  });
+
+  it('returns a failure when the provider key is missing', async () => {
+    delete process.env.RESEND_API_KEY;
+
+    await expect(send(message)).resolves.toEqual({
+      success: false,
+      error: 'Email service is not configured',
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a failure when the provider rejects the message', async () => {
+    sendMock.mockResolvedValue({
+      data: null,
+      error: { name: 'application_error', statusCode: 500, message: 'rejected' },
+    });
+
+    await expect(send(message)).resolves.toEqual({
+      success: false,
+      error: 'Failed to send email notification',
+    });
+    expect(sendMock).toHaveBeenCalledWith(
+      expect.objectContaining({ to: message.to, subject: message.subject }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it('returns a failure when the provider throws', async () => {
+    sendMock.mockRejectedValue(new Error('network unreachable'));
+
+    await expect(send(message)).resolves.toEqual({
+      success: false,
+      error: 'Email service is temporarily unavailable',
+    });
+  });
+});
+
+describe('verifyEmailServiceConfig', () => {
+  const originalApiKey = process.env.RESEND_API_KEY;
+  const originalRecipient = process.env.CONTACT_EMAIL_RECIPIENT;
+
+  afterEach(() => {
     if (originalApiKey === undefined) {
       delete process.env.RESEND_API_KEY;
     } else {
@@ -48,44 +106,23 @@ describe('sendContactNotification', () => {
     }
   });
 
-  it('returns a timeout failure when the provider does not respond', async () => {
-    sendMock.mockImplementation((_payload: unknown, options?: { signal?: AbortSignal }) => {
-      return new Promise((resolve) => {
-        const signal = options?.signal;
-        const finish = () => {
-          resolve({
-            data: null,
-            error: {
-              name: 'application_error',
-              statusCode: null,
-              message: 'Unable to fetch data. The request could not be resolved.',
-            },
-          });
-        };
+  it('reports the service configured from the provider key alone', async () => {
+    process.env.RESEND_API_KEY = 're_test_key';
+    delete process.env.CONTACT_EMAIL_RECIPIENT;
 
-        if (!signal) {
-          return;
-        }
-
-        if (signal.aborted) {
-          finish();
-          return;
-        }
-
-        signal.addEventListener('abort', finish, { once: true });
-      });
+    await expect(verifyEmailServiceConfig()).resolves.toEqual({
+      configured: true,
+      errors: [],
     });
+  });
 
-    const pending = sendContactNotification(payload);
-    await vi.advanceTimersByTimeAsync(10_000);
+  it('reports the provider key as missing without mentioning contact settings', async () => {
+    delete process.env.RESEND_API_KEY;
+    delete process.env.CONTACT_EMAIL_RECIPIENT;
 
-    await expect(pending).resolves.toEqual({
-      success: false,
-      error: 'Email service timeout',
-    });
-    expect(sendMock).toHaveBeenCalledWith(
-      expect.objectContaining({ to: 'hello@carinyaparc.com.au' }),
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
-    );
+    const result = await verifyEmailServiceConfig();
+
+    expect(result.configured).toBe(false);
+    expect(result.errors).toEqual(['RESEND_API_KEY is not configured']);
   });
 });

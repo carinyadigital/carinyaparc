@@ -684,7 +684,7 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, tests, `turb
 | `/admin/**`, `/api/graphql*`                     | any    | Retired admin and GraphQL paths                 | 410 Gone                                           |
 | `/feed.xml`, `/sitemap-index.xml`, `/robots.txt` | GET    | Syndication and crawling                        | Static; `/sitemap.xml` and `/favicon.ico` redirect |
 
-Request and response shapes are the Zod schemas in `src/lib/validation/` and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash; ten retired blog slugs and the misspelled native-greens recipe slug redirect (301) to their replacements per `astro.config.mjs`.
+Request and response shapes are the Zod schemas in `src/lib/validation/` and the JSON helpers in `src/lib/api/json.ts`. All other paths are static HTML with a trailing slash; ten retired blog slugs redirect (301) to their replacements per `astro.config.mjs`.
 
 ---
 

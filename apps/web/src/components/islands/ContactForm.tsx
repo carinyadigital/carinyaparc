@@ -9,7 +9,14 @@ import { FormField } from '@/components/ui/FormField';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { track, type AnalyticsEventName } from '@/lib/analytics/client';
+import {
+  trackContactFormCompleted,
+  trackContactFormFailed,
+  trackContactFormStarted,
+  trackContactFormSubmitted,
+  trackContactFormViewed,
+  type ContactErrorCode,
+} from '@/lib/analytics/client';
 import { postContact } from '@/lib/contact/client';
 import {
   contactFormClientSchema,
@@ -18,31 +25,6 @@ import {
   type ContactFormData,
   type InquiryType,
 } from '@/lib/contact/schema';
-
-type ContactFormEvent =
-  | 'Contact Form Viewed'
-  | 'Contact Form Started'
-  | 'Contact Form Submitted'
-  | 'Contact Form Completed'
-  | 'Contact Form Failed';
-
-type ContactErrorCode = 'invalid' | 'rate_limited' | 'unavailable' | 'request_failed';
-
-type ContactFormTrackProperties = {
-  form_id: 'contact';
-  inquiry_type?: InquiryType;
-  error_code?: ContactErrorCode;
-};
-
-/**
- * Send one contact-form step through the shared analytics track call.
- * Properties are the form id, the chosen topic, and a short error code.
- * The visitor's name, email, message, and the text shown on screen are left out.
- */
-function trackContactForm(event: ContactFormEvent, properties: ContactFormTrackProperties): void {
-  // The shared track call takes its own event-name union. These labels are passed through as that name.
-  track(event as string as AnalyticsEventName, properties);
-}
 
 function httpStatus(error: unknown): number | undefined {
   if (typeof error !== 'object' || error === null || !('status' in error)) {
@@ -100,7 +82,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
   useEffect(() => {
     formLoadTime.current = Date.now();
     setIsFormReady(true);
-    trackContactForm('Contact Form Viewed', { form_id: 'contact' });
+    trackContactFormViewed({ form_id: 'contact' });
 
     const inquiry = inquiryTypeFromSearch(window.location.search);
     if (inquiry) {
@@ -114,13 +96,13 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
     }
 
     hasStarted.current = true;
-    trackContactForm('Contact Form Started', { form_id: 'contact' });
+    trackContactFormStarted({ form_id: 'contact' });
   };
 
   const onSubmit = async (data: ContactFormClientData) => {
     setStatus('loading');
     setSubmitError('');
-    trackContactForm('Contact Form Submitted', {
+    trackContactFormSubmitted({
       form_id: 'contact',
       inquiry_type: data.inquiryType,
     });
@@ -135,7 +117,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
 
     try {
       await postContact(fullData);
-      trackContactForm('Contact Form Completed', {
+      trackContactFormCompleted({
         form_id: 'contact',
         inquiry_type: data.inquiryType,
       });
@@ -145,7 +127,7 @@ export function ContactForm({ onSuccess, onError }: ContactFormProps = {}) {
       onSuccess?.();
     } catch (error) {
       const err = error instanceof Error ? error : new Error('Failed to submit form');
-      trackContactForm('Contact Form Failed', {
+      trackContactFormFailed({
         form_id: 'contact',
         inquiry_type: data.inquiryType,
         error_code: contactErrorCode(error),

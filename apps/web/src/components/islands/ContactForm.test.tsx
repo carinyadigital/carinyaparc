@@ -6,10 +6,18 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const track = vi.fn();
+const trackContactFormViewed = vi.fn();
+const trackContactFormStarted = vi.fn();
+const trackContactFormSubmitted = vi.fn();
+const trackContactFormCompleted = vi.fn();
+const trackContactFormFailed = vi.fn();
 
 vi.mock('@/lib/analytics/client', () => ({
-  track: (...args: unknown[]) => track(...args),
+  trackContactFormViewed: (...args: unknown[]) => trackContactFormViewed(...args),
+  trackContactFormStarted: (...args: unknown[]) => trackContactFormStarted(...args),
+  trackContactFormSubmitted: (...args: unknown[]) => trackContactFormSubmitted(...args),
+  trackContactFormCompleted: (...args: unknown[]) => trackContactFormCompleted(...args),
+  trackContactFormFailed: (...args: unknown[]) => trackContactFormFailed(...args),
 }));
 
 function reactProps<T extends Record<string, unknown>>(el: Element): T {
@@ -46,7 +54,11 @@ describe('ContactForm inquiry query', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    track.mockReset();
+    trackContactFormViewed.mockReset();
+    trackContactFormStarted.mockReset();
+    trackContactFormSubmitted.mockReset();
+    trackContactFormCompleted.mockReset();
+    trackContactFormFailed.mockReset();
     ({ ContactForm } = await import('@/components/islands/ContactForm'));
 
     container = document.createElement('div');
@@ -89,7 +101,11 @@ describe('ContactForm analytics', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    track.mockReset();
+    trackContactFormViewed.mockReset();
+    trackContactFormStarted.mockReset();
+    trackContactFormSubmitted.mockReset();
+    trackContactFormCompleted.mockReset();
+    trackContactFormFailed.mockReset();
     va = vi.fn();
     Object.defineProperty(window, 'va', { configurable: true, value: va });
     vi.stubGlobal('fetch', vi.fn());
@@ -141,14 +157,20 @@ describe('ContactForm analytics', () => {
     });
   }
 
-  function callsFor(eventName: string) {
-    return track.mock.calls.filter((call) => call[0] === eventName);
+  function recordedProperties(): string {
+    return JSON.stringify([
+      ...trackContactFormViewed.mock.calls,
+      ...trackContactFormStarted.mock.calls,
+      ...trackContactFormSubmitted.mock.calls,
+      ...trackContactFormCompleted.mock.calls,
+      ...trackContactFormFailed.mock.calls,
+    ]);
   }
 
   it('records Contact Form Viewed when the form is shown', async () => {
     await renderForm();
 
-    expect(track).toHaveBeenCalledWith('Contact Form Viewed', { form_id: 'contact' });
+    expect(trackContactFormViewed).toHaveBeenCalledWith({ form_id: 'contact' });
   });
 
   it('records Contact Form Started once on the first focus', async () => {
@@ -161,9 +183,8 @@ describe('ContactForm analytics', () => {
       props.onFocus?.();
     });
 
-    expect(callsFor('Contact Form Started')).toEqual([
-      ['Contact Form Started', { form_id: 'contact' }],
-    ]);
+    expect(trackContactFormStarted).toHaveBeenCalledTimes(1);
+    expect(trackContactFormStarted).toHaveBeenCalledWith({ form_id: 'contact' });
   });
 
   it('records Contact Form Completed with the topic when the contact API succeeds', async () => {
@@ -178,13 +199,15 @@ describe('ContactForm analytics', () => {
       expect(container.textContent).toContain('Message sent — thank you');
     });
 
-    expect(callsFor('Contact Form Submitted')).toEqual([
-      ['Contact Form Submitted', { form_id: 'contact', inquiry_type: 'volunteer' }],
-    ]);
-    expect(callsFor('Contact Form Completed')).toEqual([
-      ['Contact Form Completed', { form_id: 'contact', inquiry_type: 'volunteer' }],
-    ]);
-    expect(callsFor('Contact Form Failed')).toEqual([]);
+    expect(trackContactFormSubmitted).toHaveBeenCalledWith({
+      form_id: 'contact',
+      inquiry_type: 'volunteer',
+    });
+    expect(trackContactFormCompleted).toHaveBeenCalledWith({
+      form_id: 'contact',
+      inquiry_type: 'volunteer',
+    });
+    expect(trackContactFormFailed).not.toHaveBeenCalled();
     expect(va).not.toHaveBeenCalled();
   });
 
@@ -198,16 +221,15 @@ describe('ContactForm analytics', () => {
       expect(container.textContent).toContain(RATE_LIMIT_MESSAGE);
     });
 
-    expect(callsFor('Contact Form Failed')).toEqual([
-      [
-        'Contact Form Failed',
-        { form_id: 'contact', inquiry_type: 'volunteer', error_code: 'rate_limited' },
-      ],
-    ]);
-    expect(callsFor('Contact Form Completed')).toEqual([]);
-    expect(JSON.stringify(track.mock.calls)).not.toContain(RATE_LIMIT_MESSAGE);
-    expect(JSON.stringify(track.mock.calls)).not.toContain('reader@carinyaparc.com.au');
-    expect(JSON.stringify(track.mock.calls)).not.toContain(VOLUNTEER_MESSAGE);
+    expect(trackContactFormFailed).toHaveBeenCalledWith({
+      form_id: 'contact',
+      inquiry_type: 'volunteer',
+      error_code: 'rate_limited',
+    });
+    expect(trackContactFormCompleted).not.toHaveBeenCalled();
+    expect(recordedProperties()).not.toContain(RATE_LIMIT_MESSAGE);
+    expect(recordedProperties()).not.toContain('reader@carinyaparc.com.au');
+    expect(recordedProperties()).not.toContain(VOLUNTEER_MESSAGE);
     expect(va).not.toHaveBeenCalled();
   });
 
@@ -224,16 +246,13 @@ describe('ContactForm analytics', () => {
     await submitForm();
 
     await vi.waitFor(() => {
-      expect(callsFor('Contact Form Failed')).toEqual([
-        [
-          'Contact Form Failed',
-          { form_id: 'contact', inquiry_type: 'volunteer', error_code: errorCode },
-        ],
-      ]);
+      expect(trackContactFormFailed).toHaveBeenCalledWith({
+        form_id: 'contact',
+        inquiry_type: 'volunteer',
+        error_code: errorCode,
+      });
     });
-    expect(JSON.stringify(track.mock.calls)).not.toContain(
-      'Please try again or write to us directly.',
-    );
+    expect(recordedProperties()).not.toContain('Please try again or write to us directly.');
   });
 
   it('maps a thrown network error to request_failed', async () => {
@@ -243,14 +262,13 @@ describe('ContactForm analytics', () => {
     await submitForm();
 
     await vi.waitFor(() => {
-      expect(callsFor('Contact Form Failed')).toEqual([
-        [
-          'Contact Form Failed',
-          { form_id: 'contact', inquiry_type: 'volunteer', error_code: 'request_failed' },
-        ],
-      ]);
+      expect(trackContactFormFailed).toHaveBeenCalledWith({
+        form_id: 'contact',
+        inquiry_type: 'volunteer',
+        error_code: 'request_failed',
+      });
     });
-    expect(JSON.stringify(track.mock.calls)).not.toContain('Failed to fetch');
+    expect(recordedProperties()).not.toContain('Failed to fetch');
   });
 
   it('does not record Contact Form Failed when validation stops the submit', async () => {
@@ -261,8 +279,8 @@ describe('ContactForm analytics', () => {
       expect(container.textContent).toContain('First name is required');
     });
 
-    expect(callsFor('Contact Form Submitted')).toEqual([]);
-    expect(callsFor('Contact Form Failed')).toEqual([]);
+    expect(trackContactFormSubmitted).not.toHaveBeenCalled();
+    expect(trackContactFormFailed).not.toHaveBeenCalled();
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 });

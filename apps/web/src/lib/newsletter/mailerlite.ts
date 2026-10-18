@@ -70,10 +70,11 @@ function mailerLiteHeaders(): HeadersInit {
 }
 
 function missingApiKeyResult(): MailerLiteResult {
+  console.error('Newsletter service not configured: MAILERLITE_API_KEY is not set');
   return {
     ok: false,
     status: 500,
-    error: 'Newsletter service not configured. Please add MAILERLITE_API_KEY to .env.local',
+    error: 'Newsletter service not configured',
   };
 }
 
@@ -105,7 +106,6 @@ export async function upsertMailerLiteSubscriber(
   payload: MailerLiteSubscriberPayload,
 ): Promise<MailerLiteResult> {
   if (!process.env.MAILERLITE_API_KEY) {
-    console.error('MAILERLITE_API_KEY is not defined in environment variables');
     return missingApiKeyResult();
   }
 

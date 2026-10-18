@@ -7,7 +7,6 @@ last_updated: 2026-10-18
 related:
   - docs/product/product.md
   - docs/PRINCIPLES.md
-  - docs/product/roadmap.md
   - docs/decisions/ADR-0001-astro-mdx.md
 ---
 

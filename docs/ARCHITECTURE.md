@@ -416,7 +416,7 @@ Function: handleEventSignupPost
   → getPublicEventBySlug (drafts count as missing → 404)
   → event in the past → 400; event has signupTarget → 400 (external signup)
   → event.isFull → 409 with a waitlist hint
-  → resolveEventGroupId(slug): find or create the MailerLite group named for the event
+  → addToList({ list: `event:{slug}` }): find or create the MailerLite group of that name
   → upsert subscriber with source `event:{slug}` and that group → 200
 ```
 

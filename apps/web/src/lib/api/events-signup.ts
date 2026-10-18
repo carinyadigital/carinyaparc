@@ -123,7 +123,7 @@ export async function handleEventSignupPost(request: Request): Promise<Response>
       email,
       name,
       source: `event:${event.slug}`,
-      list: event.slug,
+      list: `event:${event.slug}`,
     });
 
     if (!result.ok) {

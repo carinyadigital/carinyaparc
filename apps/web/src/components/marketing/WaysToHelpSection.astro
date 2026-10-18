@@ -1,7 +1,10 @@
 ---
 /** "Three ways to help" card grid on /regenerate/. */
 import MotifTile from '@/components/ui/MotifTile.astro';
-import { contactUrl } from '@/lib/urls';
+import { contactUrl, postUrl } from '@/lib/urls';
+
+/** Published baseline in content/posts/two-summers-of-rest.mdx. */
+const SOIL_BASELINE_URL = postUrl('two-summers-of-rest');
 
 const WAYS = [
   {
@@ -27,9 +30,9 @@ const WAYS = [
     tileClass: 'bg-bracken-50',
     title: 'Follow our progress',
     description:
-      'Access open reports tracking soil health, water quality and biodiversity — evidence you can cite.',
-    href: '/blog/',
-    linkLabel: 'Read the reports',
+      'Our first soil cores: organic carbon from 1.6% on the valley flat to 3.1% on the north ridge. A baseline you can cite.',
+    href: SOIL_BASELINE_URL,
+    linkLabel: 'Read the baseline',
   },
 ] as const;
 ---

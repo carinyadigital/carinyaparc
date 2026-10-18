@@ -94,6 +94,11 @@ export default defineConfig({
     '/blog/hugelkulture-benefits-complete-guide/': '/blog/',
     '/blog/midwinter-pasture-recovery/': '/blog/midwinter-pasture/',
     '/blog/winter-fencing-progress/': '/blog/old-fences-new-lines/',
+    // Misspelled slug. Keep the old address so existing links still land.
+    '/recipes/herbed-omlette-with-native-greens/': '/recipes/herbed-omelette-with-native-greens/',
+    // Retired slug. The live address named a breed; this one does not.
+    '/recipes/slow-roasted-dexter-beef-with-root-vegetables/':
+      '/recipes/slow-roasted-beef-with-root-vegetables/',
   },
   vite: {
     plugins: [tailwindcss()],

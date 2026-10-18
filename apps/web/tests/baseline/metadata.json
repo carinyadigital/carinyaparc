@@ -33,15 +33,16 @@
       "jsonLdTypes": ["Organization", "BreadcrumbList"],
       "mainWords": 280
     },
-    "/recipes/slow-roasted-dexter-beef-with-root-vegetables/": {
+    "/recipes/slow-roasted-beef-with-root-vegetables/": {
       "status": 200,
-      "title": "Slow-Roasted Dexter Beef with Root Vegetables - Recipe - Carinya Parc | Carinya Parc",
-      "titleNormalised": "Slow-Roasted Dexter Beef with Root Vegetables - Recipe - Carinya Parc",
-      "description": "Classic comfort food showcasing future Dexter beef\u2014dry-aged, grass-fed and paired with seasonal root veg.",
-      "canonical": "https://carinyaparc.com.au/recipes/slow-roasted-dexter-beef-with-root-vegetables/",
+      "title": "Slow-Roasted Beef with Root Vegetables - Recipe - Carinya Parc | Carinya Parc",
+      "titleNormalised": "Slow-Roasted Beef with Root Vegetables - Recipe - Carinya Parc",
+      "description": "Classic comfort food: dry-aged, grass-fed beef paired with seasonal root veg.",
+      "canonical": "https://carinyaparc.com.au/recipes/slow-roasted-beef-with-root-vegetables/",
       "ogType": "article",
       "ogImage": null,
-      "h1": "Slow-Roasted Dexter Beef with Root Vegetables",
+      "h1": "Slow-Roasted Beef with Root Vegetables",
+      "note": "The live Dexter address 301s here. The recipe does not name a breed.",
       "jsonLdTypes": ["Organization", "BreadcrumbList", "Recipe"],
       "recipeJsonLd": {
         "prepTime": "PT20M",

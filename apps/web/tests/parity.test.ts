@@ -269,7 +269,7 @@ describeIfBuilt('metadata parity', () => {
     expect(decode(meta(recipe, 'og:image:alt'))).toBe(recipeAlt);
     expect(decode(meta(recipe, 'twitter:image:alt'))).toBe(recipeAlt);
 
-    const plain = readHtml('/recipes/slow-roasted-dexter-beef-with-root-vegetables/');
+    const plain = readHtml('/recipes/slow-roasted-beef-with-root-vegetables/');
     expect(meta(plain, 'og:image')).toMatch(/\/images\/hero-home\.jpg$/);
     expect(meta(plain, 'og:image:width')).toBe('1920');
     expect(meta(plain, 'og:image:height')).toBe('1280');

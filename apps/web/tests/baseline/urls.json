@@ -129,7 +129,7 @@
     "/blog/page/2/"
   ],
   "redirected": {
-    "note": "Journal rewritten in September 2026; the original ten posts were retired and their URLs 301 to the nearest new piece (configured in apps/web/astro.config.mjs).",
+    "note": "Journal rewritten in September 2026; the original ten posts were retired and their URLs 301 to the nearest new piece (configured in apps/web/astro.config.mjs). The native greens recipe slug was corrected from omlette to omelette. The beef recipe slug no longer names a breed; the old address 301s to /recipes/slow-roasted-beef-with-root-vegetables/.",
     "paths": {
       "/blog/masterchef-to-mud-boots/": "/blog/a-kitchen-before-a-farm/",
       "/blog/restoring-42-ha-land/": "/blog/two-summers-of-rest/",
@@ -140,7 +140,9 @@
       "/blog/seasonal-soil-care-winter-composting-cover-crops/": "/blog/midwinter-pasture/",
       "/blog/hugelkulture-benefits-complete-guide/": "/blog/",
       "/blog/midwinter-pasture-recovery/": "/blog/midwinter-pasture/",
-      "/blog/winter-fencing-progress/": "/blog/old-fences-new-lines/"
+      "/blog/winter-fencing-progress/": "/blog/old-fences-new-lines/",
+      "/recipes/herbed-omlette-with-native-greens/": "/recipes/herbed-omelette-with-native-greens/",
+      "/recipes/slow-roasted-dexter-beef-with-root-vegetables/": "/recipes/slow-roasted-beef-with-root-vegetables/"
     }
   }
 }

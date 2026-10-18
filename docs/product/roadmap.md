@@ -140,7 +140,7 @@ What shipped, and how:
 **In scope:**
 
 - Dynamic social preview images per post and recipe, generated at build, or a documented fallback policy.
-- Verified local-business coordinates in `LOCAL_BUSINESS` (parcel centroid of 315 Warraba Road).
+- Verified local-business coordinates in `LOCAL_BUSINESS` (the current values are placeholders).
 - Recipe tag archives if recipe tags are worth surfacing; otherwise leave them as labels.
 - Targeted accessibility items: skip-navigation link, an automated accessibility check in CI.
 
@@ -154,7 +154,7 @@ What shipped, and how:
 **Exit criteria:**
 
 - [x] Post and recipe pages expose a 1200×630 centre crop of the page photograph (pages with no hero keep the default image).
-- [x] LocalBusiness structured data uses verified coordinates.
+- [ ] LocalBusiness structured data uses verified coordinates.
 - [ ] Accessibility check runs in CI.
 
 **Out of scope:** Booking engine, e-commerce, scheduled publishing, multi-property support.

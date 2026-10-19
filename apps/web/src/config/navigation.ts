@@ -1,3 +1,5 @@
+import { regenerateUrl } from '@/lib/urls';
+
 export type NavItem = {
   label?: string;
   verb?: string;
@@ -47,7 +49,7 @@ export const navigation: NavItem[] = [
   {
     verb: 'Join',
     rest: 'Our Community',
-    href: '/get-involved/events/',
+    href: regenerateUrl(),
     visible: true,
   },
 ];

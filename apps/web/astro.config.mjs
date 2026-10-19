@@ -1,6 +1,7 @@
 // @ts-check
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
@@ -11,6 +12,11 @@ import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 
 import { mergeSecurityIntoVercelOutput } from './src/lib/security/vercel-config';
+import { includeInSitemap } from './src/lib/sitemap/journal-archives';
+
+const appRoot = fileURLToPath(new URL('.', import.meta.url));
+/** The Vercel adapter writes prerendered HTML under `dist/client`. A plain static build uses `dist`. */
+const sitemapDistRoots = [resolve(appRoot, 'dist/client'), resolve(appRoot, 'dist')];
 
 const sentryDsn = (process.env.SENTRY_DSN || process.env.PUBLIC_SENTRY_DSN || '').trim();
 
@@ -62,7 +68,9 @@ export default defineConfig({
     mdx(),
     react(),
     sitemap({
-      filter: (page) => !page.includes('/monitoring/'),
+      // One-story archives render `noindex`. Drop those URLs once their HTML
+      // is on disk so the sitemap matches the page.
+      filter: (page) => includeInSitemap(page, sitemapDistRoots),
     }),
     ...(sentryDsn
       ? [

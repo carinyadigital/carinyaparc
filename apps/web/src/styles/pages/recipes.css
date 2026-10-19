@@ -38,6 +38,18 @@
   @apply list-none pl-0;
 }
 
+.recipe-ingredients-note {
+  @apply mb-4 text-sm leading-6 text-stone;
+}
+
+.recipe-ingredient-line {
+  @apply flex flex-wrap items-baseline gap-x-2 gap-y-1;
+}
+
+.recipe-from-farm {
+  @apply inline-flex shrink-0 items-center rounded-pill bg-paperbark px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-eucalypt-700;
+}
+
 .recipe-tags {
   @apply flex flex-wrap gap-2;
 }

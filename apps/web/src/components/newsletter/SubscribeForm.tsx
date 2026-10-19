@@ -489,8 +489,8 @@ function InlineSubscribeForm({
         Stay on the journey
       </p>
       <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-charcoal">
-        Get seasonal updates from Carinya Parc — progress from the paddock, planting days, and
-        stories from the land.
+        We write about once a month: progress from the paddock, planting days, and stories from the
+        land.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6" noValidate>
@@ -611,8 +611,7 @@ function EndSubscribeForm({ source = '', className, privacy }: SubscribeFormProp
           Keep reading from the paddock
         </h2>
         <p className="mt-3 max-w-lg text-[15px] leading-relaxed text-charcoal">
-          Subscribe for seasonal updates from Carinya Parc. Tell us what interests you most so we
-          can send a more relevant welcome.
+          We write about once a month. Tell us what interests you most so the welcome fits.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8" noValidate>

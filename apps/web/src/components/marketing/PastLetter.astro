@@ -1,0 +1,40 @@
+---
+/**
+ * One published journal note on the subscribe page, so a visitor can read a
+ * letter before they join. The page loads the post; this component only renders it.
+ */
+import PostCard from '@/components/blog/PostCard.astro';
+import type { PostSummary } from '@/lib/content/posts';
+
+interface Props {
+  post: PostSummary;
+}
+
+const { post } = Astro.props;
+---
+
+<section id="latest-letter" class="scroll-mt-24 pb-4" aria-labelledby="past-letter-heading">
+  <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="text-[13px] font-semibold uppercase tracking-[0.24em] text-bracken-500">
+        The latest letter
+      </p>
+      <h2
+        id="past-letter-heading"
+        class="mt-3.5 font-heading text-3xl font-normal tracking-tight text-eucalypt-600 sm:text-4xl"
+      >
+        Read one before you join
+      </h2>
+      <p class="mt-6 text-lg leading-8 text-charcoal">
+        This is the newest note from the paddock. The email is the same writing, about once a month.
+        Earlier notes are in the{' '}
+        <a href="/blog/" class="font-semibold text-eucalypt-600 hover:opacity-70">
+          journal.
+        </a>
+      </p>
+    </div>
+    <div class="mx-auto mt-10 max-w-md">
+      <PostCard post={post} variant="journal" eager />
+    </div>
+  </div>
+</section>

@@ -59,7 +59,14 @@ export function SubscribeModal({ open, onOpenChange, privacy }: SubscribeModalPr
           Stay Connected to The Land
         </h2>
         <p className="mt-6 px-6 text-left text-base/7 text-charcoal">
-          Join our mailing list to be the first to receive:
+          Join our mailing list. We write about once a month.{' '}
+          <a
+            href="/subscribe/#latest-letter"
+            className="font-semibold text-eucalypt-600 hover:opacity-70"
+          >
+            Read the latest letter
+          </a>{' '}
+          before you join.
         </p>
         <div className="px-6 text-left">
           <ul role="list" className="mt-6 space-y-4">

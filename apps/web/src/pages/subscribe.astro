@@ -6,18 +6,24 @@ import PageIntro from '@/components/sections/PageIntro.astro';
 import Breadcrumb from '@/components/ui/Breadcrumb.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import Icon from '@/components/marketing/Icon.astro';
+import PastLetter from '@/components/marketing/PastLetter.astro';
 import SectionWithImage from '@/components/marketing/SectionWithImage.astro';
 import SubscribeSection from '@/components/marketing/SubscribeSection.astro';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import { getPublishedPosts, toPostSummary } from '@/lib/content/posts';
 import { buildShareImage } from '@/lib/metadata/share-image';
 
 const share = await buildShareImage(riverValleyAerial);
+const latestEntry = (await getPublishedPosts())[0];
+const latestLetter = latestEntry ? await toPostSummary(latestEntry) : undefined;
+const description =
+  'We write about once a month: planting days, a recipe when the garden has one, and what the land is doing.';
 ---
 
 <Site
   title="Subscribe - Carinya Parc"
-  description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+  description={description}
   path="/subscribe"
   image={share.src}
   imageWidth={share.width}
@@ -36,9 +42,11 @@ const share = await buildShareImage(riverValleyAerial);
       eyebrow="Subscribe"
       title="Stay connected to the land"
       titleAs="h1"
-      description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+      description={description}
       class="pb-4 pt-4 sm:pt-8"
     />
+
+    {latestLetter && <PastLetter post={latestLetter} />}
 
     <SectionWithImage
       variant="light"
@@ -102,11 +110,11 @@ const share = await buildShareImage(riverValleyAerial);
         <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
           <dl class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
             <div class="flex flex-col">
-              <dt class="font-heading text-xl font-normal text-eucalypt-600">Seasonal Rhythm</dt>
+              <dt class="font-heading text-xl font-normal text-eucalypt-600">Once a month</dt>
               <dd class="mt-2 flex flex-auto flex-col text-base leading-7 text-charcoal">
                 <p class="flex-auto">
-                  Nature moves in cycles, and so do our updates. Expect content that reflects what's
-                  happening on the farm right now—from winter planning to summer abundance.
+                  About once a month, when the farm has something to tell. Invitations go out when a
+                  planting day or visit is on, not on a separate timer.
                 </p>
               </dd>
             </div>

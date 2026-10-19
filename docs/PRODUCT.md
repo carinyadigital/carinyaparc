@@ -144,6 +144,7 @@ The website brings this value to life by:
 - **Subscribe / newsletter**
   - Simple email subscription form.
   - Positioning of the newsletter as the primary ongoing relationship channel.
+  - The subscribe page shows the latest journal note as a past letter. The farm writes about once a month; the regenerate signup band says the same.
 
 - **Contact**
   - Contact form for enquiries and collaborations.

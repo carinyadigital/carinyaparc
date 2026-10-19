@@ -228,6 +228,8 @@ There is no revalidation. A draft that remains on `main` stays unpublished. Arch
 3. An in-memory limit of 3 submissions per email per 24 hours returns 429. A failed send releases that attempt.
 4. The notification is sanitised and sent with `send()` to the configured recipient. Failure is a generic 500.
 
+An enquiry may use the phone spacing shown in the field (`+61 412 345 678`), a name written with letters from any language, and a short note. An empty message is still refused. Spam is still the honeypot, the two-second floor, and the email limit — not a long message.
+
 ## Event signup
 
 1. The event island posts to `/api/events/signup/`.

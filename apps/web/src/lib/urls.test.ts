@@ -10,5 +10,6 @@ describe('contactUrl', () => {
   it('adds the inquiry the form pre-selects', () => {
     expect(contactUrl('tours')).toBe('/contact/?inquiry=tours');
     expect(contactUrl('volunteer')).toBe('/contact/?inquiry=volunteer');
+    expect(contactUrl('partnership')).toBe('/contact/?inquiry=partnership');
   });
 });

@@ -29,6 +29,11 @@ export function eventsListingUrl(): string {
   return '/get-involved/events/';
 }
 
+/** Regeneration project page, including how to join a planting day. */
+export function regenerateUrl(): string {
+  return '/regenerate/';
+}
+
 /**
  * On-demand API paths always include a trailing slash so POST is not 308'd
  * (and converted to GET) under `trailingSlash: 'always'`.

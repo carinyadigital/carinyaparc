@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { regenerateUrl } from '@/lib/urls';
+
 import { navigation, type NavItem } from './navigation';
 
 /** Static public pages the header may link to. Dynamic segments stay out of the primary nav. */
@@ -39,6 +41,13 @@ describe('header navigation', () => {
 
     expect(cook).toMatchObject({ href: '/recipes/', visible: true });
     expect(visible).toContainEqual(expect.objectContaining({ verb: 'Cook', href: '/recipes/' }));
+  });
+
+  it('points Join at the regenerate page, with Get involved', () => {
+    expect(navigation.find((item) => item.verb === 'Join')).toMatchObject({
+      href: regenerateUrl(),
+      visible: true,
+    });
   });
 
   it('keeps Experience and Learn hidden', () => {

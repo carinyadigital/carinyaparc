@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { contactUrl } from './urls';
+import { contactUrl, regenerateUrl } from './urls';
+
+describe('regenerateUrl', () => {
+  it('returns the regenerate page with a trailing slash', () => {
+    expect(regenerateUrl()).toBe('/regenerate/');
+  });
+});
 
 describe('contactUrl', () => {
   it('returns the contact page with a trailing slash', () => {

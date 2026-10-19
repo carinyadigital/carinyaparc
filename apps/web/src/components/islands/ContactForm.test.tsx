@@ -87,6 +87,11 @@ describe('ContactForm inquiry query', () => {
     expect(select.value).toBe('tours');
   });
 
+  it('pre-selects a grant or partnership from the query', async () => {
+    const select = await renderAt('?inquiry=partnership');
+    expect(select.value).toBe('partnership');
+  });
+
   it('leaves the topic blank for an unknown inquiry', async () => {
     const select = await renderAt('?inquiry=stay');
     expect(select.value).toBe('');

@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import MotifTile from '@/components/ui/MotifTile.astro';
 import { SITE_DESCRIPTION } from '@/lib/constants';
+import { homeHeroPhone } from '@/lib/images';
 import { contactUrl } from '@/lib/urls';
 
 import heroHome from '@/assets/images/hero-home.jpg';
@@ -69,7 +70,7 @@ const EXPERIENCE_ITEMS = [
   <div class="min-h-screen bg-paperbark">
     {/* Hero */}
     <section>
-      <Hero image={heroHome} imageAlt="Carinya Parc Hero">
+      <Hero image={heroHome} imageAlt="Carinya Parc Hero" phone={homeHeroPhone}>
         <HeroText part="eyebrow">Upper Hunter, NSW</HeroText>
         <HeroText part="title">
           Restoring the land,

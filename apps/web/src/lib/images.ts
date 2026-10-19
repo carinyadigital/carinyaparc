@@ -39,3 +39,15 @@ export const imagePresets: Record<'card' | 'featured' | 'detail', ContentImagePr
     format: IMAGE_FORMAT,
   },
 };
+
+/**
+ * Candidates a phone may download for the homepage hero.
+ *
+ * The hero is full-bleed, so a 3× phone asks for roughly 1200 pixels and would
+ * otherwise skip 1080 and take the 1600-wide file. This set stops at 1080.
+ * Wider screens keep the full hero set.
+ */
+export const homeHeroPhone = {
+  media: '(max-width: 767px)',
+  widths: [640, 1080],
+} as const;

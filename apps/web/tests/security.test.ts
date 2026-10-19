@@ -212,6 +212,29 @@ describeIfBuilt('hero image loading', () => {
   });
 });
 
+describeIfBuilt('journal archive first image', () => {
+  const cases: Array<{ pathname: string; label: string }> = [
+    { pathname: '/blog/category/field-reports/', label: 'category' },
+    { pathname: '/blog/tag/winter/', label: 'tag' },
+  ];
+
+  it.each(cases)('$label page loads only the first photograph eagerly', ({ pathname }) => {
+    const html = readFileSync(path.join(DIST, pathname, 'index.html'), 'utf8');
+    const photos = [...html.matchAll(/<img\b[^>]*object-cover[^>]*>/gi)].map((match) => match[0]);
+
+    expect(photos.length).toBeGreaterThan(1);
+    expect(photos[0]).toMatch(/loading=["']eager["']/);
+    expect(photos[0]).toMatch(/fetchpriority=["']high["']/);
+    expect(photos[0]).toMatch(/decoding=["']sync["']/);
+    expect(photos[0]).toMatch(/\ssizes=["'][^"']+["']/);
+
+    for (const photo of photos.slice(1)) {
+      expect(photo).toMatch(/loading=["']lazy["']/);
+      expect(photo).not.toMatch(/fetchpriority=["']high["']/);
+    }
+  });
+});
+
 describeIfBuilt('Vercel output security config', () => {
   it('merges continue headers and enforced CSP', () => {
     expect(existsSync(VERCEL_CONFIG)).toBe(true);

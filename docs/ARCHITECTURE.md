@@ -319,6 +319,7 @@ Invariants:
 - `image` is a path relative to the entry, not a public URL. The file must exist and is optimised at build.
 - Post and recipe photographs use one of three presets (`card`, `featured`, `detail`) and are encoded as WebP. The share image is a separate 1200×630 JPEG crop. `public/images/` holds a placeholder SVG only.
 - Recipe durations match an ISO 8601 hours-minutes-seconds pattern.
+- A recipe ingredient may set `fromFarm: true` only when that food already comes from the property. The recipe page labels those lines and says when none of the ingredients do. Structured data keeps the ingredient text only.
 - `isFull` is set by hand. Nothing counts event capacity.
 - A category or tag with no published post has no archive page.
 

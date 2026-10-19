@@ -67,7 +67,15 @@ const recipes = defineCollection({
       image: image().optional(),
       imageAlt: z.string().optional(),
       tags: z.array(z.string()).default([]),
-      ingredients: z.array(z.object({ item: z.string().min(1) })).min(1),
+      ingredients: z
+        .array(
+          z.object({
+            item: z.string().min(1),
+            /** True only when this food already comes from the property. */
+            fromFarm: z.boolean().default(false),
+          }),
+        )
+        .min(1),
       instructions: z.array(z.object({ step: z.string().min(1) })).min(1),
       draft: z.boolean().default(false),
     }),

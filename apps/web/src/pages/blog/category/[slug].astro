@@ -6,6 +6,7 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
 import JournalIntro from '@/components/blog/JournalIntro.astro';
 import PostCard from '@/components/blog/PostCard.astro';
+import { JOURNAL_NAME, SITE_TITLE } from '@/lib/constants';
 import { getCategoriesWithPosts, toPostSummaries } from '@/lib/content/posts';
 import { categoryUrl } from '@/lib/urls';
 
@@ -27,7 +28,7 @@ const topics = categories.map((c) => ({ name: c.name, slug: c.id }));
 
 <Site
   showNewsletter={false}
-  title={`${category.name} - Blog | Carinya Parc`}
+  title={`${category.name} - ${JOURNAL_NAME} | ${SITE_TITLE}`}
   description={`Published stories in ${category.name} from Carinya Parc — regenerative farming, restoration, and life on the property.`}
   path={categoryUrl(category.id)}
 >
@@ -35,7 +36,7 @@ const topics = categories.map((c) => ({ name: c.name, slug: c.id }));
 
   <div class="min-h-screen bg-paperbark">
     <JournalIntro
-      eyebrow="Blog · Categories"
+      eyebrow={`${JOURNAL_NAME} · Categories`}
       title={category.name}
       description={`Published field notes filed under ${category.name}.`}
     />

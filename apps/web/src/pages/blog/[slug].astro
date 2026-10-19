@@ -15,7 +15,7 @@ import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
 import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, JOURNAL_NAME, SITE_TITLE } from '@/lib/constants';
 import { imagePresets } from '@/lib/images';
 import { buildShareImage, defaultShareImage } from '@/lib/metadata/share-image';
 import { getUpcomingEvents } from '@/lib/content/events';
@@ -72,14 +72,14 @@ const articleData = {
 
 const breadcrumbs = [
   { name: 'Home', url: BASE_URL, position: 1 },
-  { name: 'Blog', url: `${BASE_URL}/blog/`, position: 2 },
+  { name: JOURNAL_NAME, url: `${BASE_URL}/blog/`, position: 2 },
   { name: entry.data.title, url: canonicalUrl, position: 3 },
 ];
 ---
 
 <Site
   showNewsletter={false}
-  title={`${entry.data.title} - Blog - Carinya Parc`}
+  title={`${entry.data.title} - ${JOURNAL_NAME} - ${SITE_TITLE}`}
   description={description}
   path={path}
   image={share.src}

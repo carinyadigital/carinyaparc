@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import MotifTile from '@/components/ui/MotifTile.astro';
 import { SITE_DESCRIPTION } from '@/lib/constants';
-import { contactUrl } from '@/lib/urls';
+import { contactUrl, postUrl } from '@/lib/urls';
 
 import heroHome from '@/assets/images/hero-home.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
@@ -43,15 +43,17 @@ const STORY_TAGS = [
   { label: 'Wildlife corridors', class: 'bg-bracken-100 text-bracken-700' },
 ] as const;
 
+const HERD_POST = postUrl('why-highland-cattle');
+
 const EXPERIENCE_ITEMS = [
   {
     title: 'Join a planting day.',
-    description: 'Tell us you want a day on the land.',
+    description: 'Bring gloves. No experience needed.',
     href: contactUrl('volunteer'),
   },
   {
     title: 'Book a tour.',
-    description: 'Ask about a small-group visit with Jonno.',
+    description: 'A small group, hosted by Jonno.',
     href: contactUrl('tours'),
   },
   { title: 'Stay on the land.', description: 'Rustic accommodation, coming soon.' },
@@ -190,9 +192,13 @@ const EXPERIENCE_ITEMS = [
               Reconnect with nature, hands in the soil
             </h2>
             <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
-              Ask about a guided tour or a planting day, and we'll write back with what's actually
-              on. Wander the permaculture gardens, syntropic food forest and meet our herd. A place
-              to stay is still being built.
+              Jonno hosts a small-group tour of the permaculture gardens and the syntropic food
+              forest. We'll say how long it runs when we write back. A planting day asks for a pair
+              of gloves and a day of planting. No experience needed. The{' '}
+              <a href={HERD_POST} class="font-semibold text-eucalypt-600 hover:opacity-70">
+                Highland herd is not on the place yet.
+              </a>{' '}
+              A place to stay is still being built.
             </p>
             <ul role="list" class="mt-[26px] flex flex-col gap-3.5">
               {EXPERIENCE_ITEMS.map((item) => (
@@ -225,7 +231,7 @@ const EXPERIENCE_ITEMS = [
           <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
             <Image
               src={highlandCattlePaddock}
-              alt="Highland cattle grazing in a paddock at Carinya Parc"
+              alt="Highland cattle in a paddock, the breed we are bringing to Carinya Parc. None are on the place yet."
               widths={[640, 960, 1280]}
               sizes="(max-width: 1024px) 100vw, 50vw"
               quality={80}

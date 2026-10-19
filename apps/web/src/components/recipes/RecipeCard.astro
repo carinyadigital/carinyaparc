@@ -21,18 +21,20 @@ interface Props {
   index?: number;
 }
 
-/** Same rotation the Next site used for recipes without a photograph. */
-const FALLBACK_IMAGES: ImageMetadata[] = [
-  heroHome,
-  highlandCattleDam,
-  alpacasHillPasture,
-  riverValleyAerial,
-  highlandCattlePaddock,
-  farmTrackGate,
+/** Same rotation the Next site used for recipes without a photograph. Alt describes the picture. */
+const FALLBACKS: { image: ImageMetadata; alt: string }[] = [
+  { image: heroHome, alt: 'Golden-hour view across the paddocks at Carinya Parc' },
+  { image: highlandCattleDam, alt: 'The top dam at Carinya Parc' },
+  { image: alpacasHillPasture, alt: 'The alpaca pasture on the hill at Carinya Parc' },
+  { image: riverValleyAerial, alt: 'Aerial view of the river valley at Carinya Parc' },
+  { image: highlandCattlePaddock, alt: 'Highland cattle grazing in a paddock at Carinya Parc' },
+  { image: farmTrackGate, alt: 'The farm track and gate at Carinya Parc' },
 ];
 
 const { recipe, index = 0 } = Astro.props;
-const image = recipe.image ?? FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+const fallback = FALLBACKS[index % FALLBACKS.length];
+const image = recipe.image ?? fallback.image;
+const alt = recipe.image ? recipe.imageAlt : fallback.alt;
 const meta = [
   recipe.servings ? `Serves ${recipe.servings}` : null,
   recipe.totalTime ? formatIsoDuration(recipe.totalTime) : null,
@@ -41,7 +43,7 @@ const meta = [
 
 <article class="relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-eucalypt-600 px-8 pt-80 pb-8 sm:pt-48 lg:pt-80">
   <Image
-    alt={recipe.image ? recipe.imageAlt : ''}
+    alt={alt}
     src={image}
     widths={imagePresets.card.widths}
     sizes={imagePresets.card.sizes}

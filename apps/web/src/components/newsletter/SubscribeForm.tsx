@@ -28,6 +28,8 @@ export interface SubscribeFormProps {
   submitLabel?: string;
   showName?: boolean;
   showInterests?: boolean;
+  /** Canonical interest locked by the page. The compact form sends it and hides the general list. */
+  interest?: SubscribeInterest;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
   /** Static privacy line supplied by the Astro section. Hidden after a successful submit. */
@@ -257,6 +259,7 @@ function InlineSubscribeForm({
   variant = 'card',
   submitLabel = 'Subscribe',
   privacy,
+  interest,
 }: SubscribeFormProps) {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
@@ -277,7 +280,10 @@ function InlineSubscribeForm({
       return;
     }
     startedRef.current = true;
-    trackNewsletterSubscriptionStarted({ source });
+    trackNewsletterSubscriptionStarted({
+      source,
+      ...(interest ? { interest } : {}),
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -305,12 +311,16 @@ function InlineSubscribeForm({
     const result = await postSubscribe({
       email: email.trim(),
       source,
+      ...(interest ? { interest } : {}),
       website: '',
       submissionTime: Date.now() - formLoadTime,
     });
 
     if (result.ok) {
-      trackNewsletterSubscribed({ source });
+      trackNewsletterSubscribed({
+        source,
+        ...(interest ? { interest } : {}),
+      });
       setStatus('success');
       setEmail('');
       return;

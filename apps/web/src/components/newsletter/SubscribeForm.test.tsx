@@ -132,6 +132,49 @@ describe('SubscribeForm', () => {
     expect(trackNewsletterSubscribed).toHaveBeenCalledWith({ source: 'stay' });
   });
 
+  it('sends a locked interest from the compact form', async () => {
+    postSubscribe.mockResolvedValue({ ok: true });
+
+    await act(async () => {
+      root.render(<SubscribeForm variant="compact" source="beef" interest="beef" />);
+    });
+
+    const email = container.querySelector('#subscribe-email-beef') as HTMLInputElement;
+    const props = reactProps<{
+      onFocus?: () => void;
+      onChange?: (e: { target: { value: string } }) => void;
+    }>(email);
+
+    await act(async () => {
+      props.onFocus?.();
+      props.onChange?.({ target: { value: 'reader@carinyaparc.com.au' } });
+    });
+
+    const form = container.querySelector('form') as HTMLFormElement;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await vi.waitFor(() => {
+      expect(postSubscribe).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'reader@carinyaparc.com.au',
+          source: 'beef',
+          interest: 'beef',
+        }),
+      );
+    });
+    expect(trackNewsletterSubscriptionStarted).toHaveBeenCalledWith({
+      source: 'beef',
+      interest: 'beef',
+    });
+    expect(trackNewsletterSubscribed).toHaveBeenCalledWith({
+      source: 'beef',
+      interest: 'beef',
+    });
+    expect(container.querySelector('select')).toBeNull();
+  });
+
   it('records completion with source and interest from the end-of-article form', async () => {
     postSubscribe.mockResolvedValue({ ok: true });
 

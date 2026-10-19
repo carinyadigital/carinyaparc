@@ -191,8 +191,12 @@ const EXPERIENCE_ITEMS = [
             </h2>
             <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
               Ask about a guided tour or a planting day, and we'll write back with what's actually
-              on. Wander the permaculture gardens, syntropic food forest and meet our herd. A place
-              to stay is still being built.
+              on. Wander the permaculture gardens and the syntropic food forest. The cattle in the
+              photograph are not here yet.{' '}
+              <a href="/beef/" class="font-semibold text-eucalypt-600 hover:opacity-70">
+                The beef is not for sale.
+              </a>{' '}
+              A place to stay is still being built.
             </p>
             <ul role="list" class="mt-[26px] flex flex-col gap-3.5">
               {EXPERIENCE_ITEMS.map((item) => (
@@ -222,16 +226,24 @@ const EXPERIENCE_ITEMS = [
               </Button>
             </div>
           </div>
-          <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
-            <Image
-              src={highlandCattlePaddock}
-              alt="Highland cattle grazing in a paddock at Carinya Parc"
-              widths={[640, 960, 1280]}
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              quality={80}
-              loading="lazy"
-              class="absolute inset-0 h-full w-full object-cover"
-            />
+          <div>
+            <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
+              <Image
+                src={highlandCattlePaddock}
+                alt="Highland cattle, the breed we are bringing to Carinya Parc"
+                widths={[640, 960, 1280]}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={80}
+                loading="lazy"
+                class="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+            <p class="mt-3 text-sm leading-relaxed text-stone">
+              The breed we are bringing, not a herd on the place.{' '}
+              <a href="/beef/" class="font-semibold text-eucalypt-600 hover:opacity-70">
+                The beef is not for sale yet.
+              </a>
+            </p>
           </div>
         </div>
       </div>

@@ -98,10 +98,13 @@ export const LOCAL_BUSINESS = {
   priceRange: '$$',
 };
 
-export const ORG_SOCIAL_PROFILES = [
-  'https://www.facebook.com/carinyaparc',
-  'https://www.instagram.com/carinyaparc',
-];
+/** Profiles that resolve. The footer, contact page, and Organization sameAs share this list. */
+export const SOCIAL_LINKS = [
+  { name: 'Instagram', href: 'https://www.instagram.com/carinyaparc' },
+  { name: 'YouTube', href: 'https://www.youtube.com/@carinyaparc' },
+] as const;
+
+export const ORG_SOCIAL_PROFILES = SOCIAL_LINKS.map((link) => link.href);
 
 export const BREADCRUMB_NAME_MAP: Record<string, string> = {
   about: 'About',

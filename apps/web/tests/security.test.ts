@@ -210,7 +210,60 @@ describeIfBuilt('hero image loading', () => {
     expect(html).toMatch(/decoding=["']sync["']/);
     expect(html).toMatch(/\ssizes=["'][^"']+["']/);
   });
+
+  it('serves the homepage hero to a phone without the 1600-wide file', () => {
+    const html = readFileSync(path.join(DIST, 'index.html'), 'utf8');
+    const picture = html.match(/<picture\b[\s\S]*?<\/picture>/);
+    expect(picture?.[0]).toBeTruthy();
+    const markup = picture?.[0] ?? '';
+    const source = /<source\b[^>]*>/.exec(markup);
+    expect(source?.[0]).toMatch(/media=["']\(max-width: 767px\)["']/);
+    const sourceSrcset = /srcset=["']([^"']+)["']/.exec(source?.[0] ?? '');
+    const phoneWidths = srcsetWidths(sourceSrcset?.[1] ?? '');
+    expect(phoneWidths).toEqual([640, 1080]);
+
+    const imgSrcset = /<img\b[^>]*\ssrcset=["']([^"']+)["']/.exec(markup);
+    const desktopWidths = srcsetWidths(imgSrcset?.[1] ?? '');
+    expect(desktopWidths).toEqual(expect.arrayContaining([1600, 1920]));
+
+    const phoneFile = widestCandidate(sourceSrcset?.[1] ?? '');
+    const desktopFile = candidateAt(imgSrcset?.[1] ?? '', 1600);
+    expect(phoneFile.bytes).toBeLessThan(desktopFile.bytes);
+    expect(phoneFile.bytes).toBeLessThan(220 * 1024);
+
+    const about = readFileSync(path.join(DIST, 'about/index.html'), 'utf8');
+    expect(about).not.toMatch(/<source\b[^>]*max-width: 767px/);
+  });
 });
+
+function srcsetWidths(srcset: string): number[] {
+  return srcset.split(',').flatMap((part) => {
+    const width = /(\d+)w\s*$/.exec(part.trim());
+    return width?.[1] ? [Number(width[1])] : [];
+  });
+}
+
+function candidateAt(srcset: string, width: number): { url: string; bytes: number } {
+  const match = srcset
+    .split(',')
+    .map((part) => part.trim())
+    .find((part) => part.endsWith(`${width}w`));
+  if (!match) throw new Error(`srcset has no ${width}w candidate`);
+  return fileForUrl(match.split(/\s+/)[0] ?? '');
+}
+
+function widestCandidate(srcset: string): { url: string; bytes: number } {
+  const widths = srcsetWidths(srcset);
+  const widest = Math.max(...widths);
+  return candidateAt(srcset, widest);
+}
+
+function fileForUrl(url: string): { url: string; bytes: number } {
+  const pathname = toPathname(url);
+  if (!pathname) throw new Error(`cannot resolve ${url}`);
+  const file = path.join(DIST, pathname.replace(/^\//, ''));
+  return { url, bytes: statSync(file).size };
+}
 
 describeIfBuilt('journal archive first image', () => {
   const cases: Array<{ pathname: string; label: string }> = [

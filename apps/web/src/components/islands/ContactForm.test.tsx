@@ -276,6 +276,42 @@ describe('ContactForm analytics', () => {
     expect(recordedProperties()).not.toContain('Failed to fetch');
   });
 
+  it('sends a short tour enquiry with a spaced mobile and an accented name', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse(200, { success: true, message: 'Message sent' }),
+    );
+    await renderForm();
+    await setField('firstName', 'José');
+    await setField('lastName', 'O’Brien');
+    await setField('email', 'guest@fastmail.com');
+    await setField('phone', '+61 412 345 678');
+    await setField('inquiryType', 'tours');
+    await setField('message', 'Saturday morning tour?');
+    await submitForm();
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Message sent — thank you');
+    });
+
+    const init = vi.mocked(fetch).mock.calls[0]?.[1];
+    const body = JSON.parse(String(init && 'body' in init ? init.body : '')) as {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      inquiryType: string;
+      message: string;
+    };
+    expect(body).toMatchObject({
+      firstName: 'José',
+      lastName: 'O’Brien',
+      phone: '+61 412 345 678',
+      inquiryType: 'tours',
+      message: 'Saturday morning tour?',
+    });
+    expect(container.textContent).not.toContain('50 characters');
+    expect(container.textContent).not.toContain('plain English');
+  });
+
   it('does not record Contact Form Failed when validation stops the submit', async () => {
     await renderForm();
     await submitForm();

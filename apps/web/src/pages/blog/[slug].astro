@@ -15,9 +15,10 @@ import GetInvolvedCTA from '@/components/marketing/GetInvolvedCTA.astro';
 import RelatedPosts from '@/components/blog/RelatedPosts.astro';
 import ShareBar from '@/components/blog/ShareBar.astro';
 import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, SITE_TITLE } from '@/lib/constants';
 import { imagePresets } from '@/lib/images';
 import { buildShareImage, defaultShareImage } from '@/lib/metadata/share-image';
+import { journalStoryTitle } from '@/lib/metadata/title';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
@@ -79,7 +80,7 @@ const breadcrumbs = [
 
 <Site
   showNewsletter={false}
-  title={`${entry.data.title} - Blog - Carinya Parc`}
+  title={journalStoryTitle(entry.data.title, SITE_TITLE)}
   description={description}
   path={path}
   image={share.src}

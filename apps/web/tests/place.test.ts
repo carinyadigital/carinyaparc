@@ -44,11 +44,30 @@ function readPage(pathname: string): string {
 
 function visibleText(html: string): string {
   return decode(html)
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[\s\S]*?<\/script[^>]*>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style[^>]*>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ');
 }
+
+describe('visibleText', () => {
+  it('drops script and style blocks when the end tag has space or attributes before the bracket', () => {
+    const html = [
+      '<p>Visible</p>',
+      '<script>hidden</script >',
+      '<script src="x">also hidden</script foo="bar">',
+      '<script src="x">still hidden</script\t\n bar>',
+      '<style>secret</style >',
+      '<p>Still visible</p>',
+    ].join('');
+    const text = visibleText(html);
+
+    expect(text).toContain('Visible');
+    expect(text).toContain('Still visible');
+    expect(text).not.toContain('hidden');
+    expect(text).not.toContain('secret');
+  });
+});
 
 describeIfBuilt('farm place', () => {
   it('uses the Upper Hunter place on the homepage meta and social descriptions', () => {

@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "clean": "rm -rf dist .astro .vercel",
     "test": "vitest run",
-    "test:dist": "vitest run tests/security.test.ts"
+    "test:dist": "vitest run tests"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.3",

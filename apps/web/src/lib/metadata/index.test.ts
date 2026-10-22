@@ -4,6 +4,7 @@ import {
   DEFAULT_OG_IMAGE_ALT,
   DEFAULT_OG_IMAGE_HEIGHT,
   DEFAULT_OG_IMAGE_WIDTH,
+  SITE_DESCRIPTION,
 } from '../constants';
 import { generateMetadata, generatePageMetadata } from './index';
 
@@ -114,6 +115,24 @@ describe('generatePageMetadata', () => {
 
     expect(metadata.canonical).toBeUndefined();
     expect(metadata.openGraph.url).toMatch(/\/404\/$/);
+  });
+});
+
+describe('SITE_DESCRIPTION', () => {
+  it('places the farm at The Branch, near Stroud, in the Upper Hunter', () => {
+    expect(SITE_DESCRIPTION).toBe(
+      'Carinya Parc is a regenerative farm at The Branch, near Stroud, in the Upper Hunter, NSW. Visit for a planting day or a small-group tour.',
+    );
+
+    const metadata = generatePageMetadata({
+      title: 'Carinya Parc | Regenerative farm at The Branch, near Stroud',
+      description: SITE_DESCRIPTION,
+      path: '/',
+    });
+
+    expect(metadata.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.openGraph.description).toBe(SITE_DESCRIPTION);
+    expect(metadata.twitter.description).toBe(SITE_DESCRIPTION);
   });
 });
 

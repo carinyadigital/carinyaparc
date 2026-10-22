@@ -2,6 +2,7 @@
 /**
  * End-of-article participation CTA. Links to the next upcoming event when one exists;
  * renders nothing when the calendar is empty so articles stay clean.
+ * The primary link records which event was chosen. The link to all upcoming events does not.
  */
 import Button from '@/components/ui/Button.astro';
 import { cn } from '@/lib/cn';
@@ -11,10 +12,12 @@ import { eventSignupHref, formatEventDate, isExternalEventHref } from './event-h
 
 interface Props {
   event: EventEntry | null | undefined;
+  /** Placement for the selection, such as `blog:post-slug`. */
+  source: string;
   class?: string;
 }
 
-const { event, class: className } = Astro.props;
+const { event, source, class: className } = Astro.props;
 
 const full = Boolean(event?.data.isFull);
 const primaryHref = event ? (full ? '/subscribe/' : eventSignupHref(event)) : '';
@@ -59,6 +62,9 @@ const primaryExternal = !full && isExternalEventHref(primaryHref);
         href={primaryHref}
         variant={full ? 'outline' : 'bracken'}
         size="sm"
+        data-event-cta
+        data-event-id={event.id}
+        data-event-source={source}
         {...(primaryExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
         {full ? 'Full — join the waitlist' : 'Sign up for this event'}
@@ -72,3 +78,8 @@ const primaryExternal = !full && isExternalEventHref(primaryHref);
     </div>
   </aside>
 )}
+
+<script>
+  import { bindEventCtas } from '@/lib/analytics/event-cta';
+  bindEventCtas();
+</script>

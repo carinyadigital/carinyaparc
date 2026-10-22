@@ -9,6 +9,7 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import InlineSubscribeForm from '@/components/marketing/InlineSubscribeForm.astro';
 import PartnersSection from '@/components/marketing/PartnersSection.astro';
 import WaysToHelpSection from '@/components/marketing/WaysToHelpSection.astro';
+import { getPublishedPosts, toPostSummary } from '@/lib/content/posts';
 import { contactUrl } from '@/lib/urls';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
@@ -16,6 +17,8 @@ import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
 import { buildShareImage } from '@/lib/metadata/share-image';
 
 const share = await buildShareImage(riverValleyAerial);
+const latestEntry = (await getPublishedPosts())[0];
+const latestLetter = latestEntry ? await toPostSummary(latestEntry) : undefined;
 ---
 
 <Site
@@ -67,6 +70,17 @@ const share = await buildShareImage(riverValleyAerial);
           <p class="mt-[18px] text-[17px] leading-[1.7] text-charcoal">
             Sign up and we'll email you when the next planting day, farm tour, workshop or eco-stay
             opens — plus quarterly progress from the paddock. No spam, ever.{' '}
+            {latestLetter && (
+              <>
+                <a
+                  href={latestLetter.href}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  Read the latest letter
+                </a>
+                .{' '}
+              </>
+            )}
             <a
               href={contactUrl('volunteer')}
               class="font-semibold text-eucalypt-600 hover:opacity-70"

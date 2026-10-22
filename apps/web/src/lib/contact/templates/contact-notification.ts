@@ -2,7 +2,7 @@
  * Email template for contact form notifications
  */
 
-import { sanitizeForEmailGeneration } from '@/lib/validation/sanitize';
+import { sanitizeForEmail, sanitizeForEmailGeneration } from '@/lib/validation/sanitize';
 
 /**
  * Generate HTML email template for contact form submission
@@ -40,6 +40,10 @@ export function generateContactNotificationEmail(params: {
     sanitized.inquiryType === 'tours'
       ? 'Farm Tours'
       : sanitized.inquiryType.charAt(0).toUpperCase() + sanitized.inquiryType.slice(1);
+  // These come from request headers, not the validated form, so they are escaped
+  // before they are written into the HTML body.
+  const safeSourceIp = params.sourceIP ? sanitizeForEmail(params.sourceIP) : '';
+  const safeUserAgent = params.userAgent ? sanitizeForEmail(params.userAgent) : '';
 
   return `
 <!DOCTYPE html>
@@ -99,12 +103,12 @@ ${sanitized.message}
   </div>
 
   ${
-    params.sourceIP || params.userAgent
+    safeSourceIp || safeUserAgent
       ? `
   <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; font-size: 12px; color: #6b7280;">
     <p style="margin: 0 0 8px 0; font-weight: 500; color: #4b5563;">System Information</p>
-    ${params.sourceIP ? `<p style="margin: 4px 0;">IP Address: ${params.sourceIP}</p>` : ''}
-    ${params.userAgent ? `<p style="margin: 4px 0;">User Agent: ${params.userAgent}</p>` : ''}
+    ${safeSourceIp ? `<p style="margin: 4px 0;">IP Address: ${safeSourceIp}</p>` : ''}
+    ${safeUserAgent ? `<p style="margin: 4px 0;">User Agent: ${safeUserAgent}</p>` : ''}
   </div>`
       : ''
   }

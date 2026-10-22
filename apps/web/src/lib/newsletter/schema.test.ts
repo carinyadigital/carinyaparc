@@ -54,10 +54,10 @@ describe('subscribeFormSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects an unknown interest enum value', () => {
+  it.each(['farming', 'beef'])('rejects an unknown interest enum value %s', (interest) => {
     const result = subscribeFormSchema.safeParse({
       ...validBase,
-      interest: 'farming',
+      interest,
     });
     expect(result.success).toBe(false);
   });
@@ -113,20 +113,20 @@ describe('resolveSubscribeInterest', () => {
   it('returns undefined for empty or unknown legacy interests', () => {
     expect(resolveSubscribeInterest(undefined, '')).toBeUndefined();
     expect(resolveSubscribeInterest(undefined, 'unknown-topic')).toBeUndefined();
+    expect(resolveSubscribeInterest(undefined, 'beef')).toBeUndefined();
     expect(resolveSubscribeInterest()).toBeUndefined();
   });
 });
 
 describe('SUBSCRIBE_INTEREST_OPTIONS', () => {
-  it('exposes the interest options with /subscribe/ labels', () => {
-    expect(SUBSCRIBE_INTEREST_OPTIONS).toHaveLength(6);
+  it('exposes the five interest options with /subscribe/ labels', () => {
+    expect(SUBSCRIBE_INTEREST_OPTIONS).toHaveLength(5);
     expect(SUBSCRIBE_INTEREST_OPTIONS.map((o) => o.value)).toEqual([...SUBSCRIBE_INTERESTS]);
     expect(SUBSCRIBE_INTEREST_OPTIONS.map((o) => o.label)).toEqual([
       'Ecological restoration',
       'Regenerative farming',
       'Community involvement',
       'Future produce',
-      'Beef, when we have it',
       'Learning opportunities',
     ]);
   });

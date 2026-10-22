@@ -165,7 +165,7 @@ The system will not do: a browser editing UI, payments or booking, authenticated
 | `/api/csp-report/`    | `lib/api/csp-report.ts`     |
 | `/monitoring/`        | `lib/api/sentry-tunnel.ts`  |
 
-Static routes cover the home, about, regenerate, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it.
+Static routes cover the home, about, regenerate, beef, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it. `/beef/` says the beef is not for sale and collects the `beef` newsletter interest.
 
 An island may import a feature's schema and browser client only. The provider file is imported by the folder's entry (`index.ts`, or `client.ts` for browser-only folders) and nothing else.
 

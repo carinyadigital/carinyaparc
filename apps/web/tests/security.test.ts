@@ -195,6 +195,7 @@ describeIfBuilt('hero image loading', () => {
     { pathname: '/', label: 'home' },
     { pathname: '/about/', label: 'about' },
     { pathname: '/regenerate/', label: 'regenerate' },
+    { pathname: '/beef/', label: 'beef' },
     { pathname: '/blog/', label: 'blog index' },
     { pathname: '/recipes/', label: 'recipes index' },
     { pathname: '/blog/why-highland-cattle/', label: 'post' },

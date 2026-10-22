@@ -105,6 +105,8 @@ const recipeData: RecipeData = {
         <article class="recipe-prose">
           <h1>{recipe.title}</h1>
 
+          {Content && <Content />}
+
           <div class="recipe-hero-image not-prose">
             {recipe.image ? (
               <Image
@@ -142,8 +144,6 @@ const recipeData: RecipeData = {
           <RecipeIngredients ingredients={ingredientRows} note={ingredientNote} />
 
           <RecipeInstructions instructions={instructions} />
-
-          {Content && <Content />}
 
           <RecipeTags tags={recipe.tags} />
 

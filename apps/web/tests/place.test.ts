@@ -88,7 +88,7 @@ describeIfBuilt('farm place', () => {
       `Carinya Parc is 42 hectares of gently undulating countryside at ${PLACE}.`,
     );
     expect(text).toContain(
-      `Located at ${PLACE}, 5 km from Stroud, 70 km to Newcastle, and within easy reach of Barrington Tops National Park, Port Stephens, and the Great Lakes region.`,
+      `${PLACE}. 70 km to Newcastle, and within easy reach of Barrington Tops National Park, Port Stephens, and the Great Lakes region.`,
     );
     expect(html).not.toMatch(/mid-north coast/i);
   });

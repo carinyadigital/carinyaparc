@@ -3,7 +3,8 @@
  */
 
 import { act } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const trackNewsletterSubscriptionStarted = vi.fn();
@@ -235,5 +236,45 @@ describe('SubscribeForm', () => {
     });
     expect(trackNewsletterSubscriptionStarted).not.toHaveBeenCalled();
     expect(trackNewsletterSubscribed).not.toHaveBeenCalled();
+  });
+});
+
+describe('SubscribeForm hydration', () => {
+  let SubscribeForm: typeof import('@/components/newsletter/SubscribeForm').SubscribeForm;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ SubscribeForm } = await import('@/components/newsletter/SubscribeForm'));
+  });
+
+  it('hydrates the stay band from the server markup, including a filled email field', async () => {
+    const element = <SubscribeForm variant="stay" source="stay" />;
+    const html = renderToString(element);
+    const host = document.createElement('div');
+    host.innerHTML = html;
+    document.body.appendChild(host);
+
+    const link = host.querySelector('a');
+    expect(link?.textContent).toBe('privacy policy');
+    expect(link?.textContent?.includes('\u00a0')).toBe(false);
+
+    const email = host.querySelector('#subscribe-email-stay') as HTMLInputElement;
+    email.value = 'reader@example.com';
+    email.setAttribute('value', 'reader@example.com');
+
+    const errors: string[] = [];
+    const spy = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      errors.push(args.map(String).join(' '));
+    });
+
+    await act(async () => {
+      hydrateRoot(host, <SubscribeForm variant="stay" source="stay" />);
+    });
+
+    expect(errors.filter((message) => /hydrat|did not match/i.test(message))).toEqual([]);
+    expect(host.querySelector('#subscribe-email-stay')).toBeTruthy();
+
+    spy.mockRestore();
+    host.remove();
   });
 });

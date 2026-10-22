@@ -165,7 +165,7 @@ The system will not do: a browser editing UI, payments or booking, authenticated
 | `/api/csp-report/`    | `lib/api/csp-report.ts`     |
 | `/monitoring/`        | `lib/api/sentry-tunnel.ts`  |
 
-Static routes cover the home, about, regenerate, beef, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it. `/beef/` says Highland beef is not for sale and collects the `beef` newsletter interest.
+Static routes cover the home, about, regenerate, beef, contact, and subscribe pages, the events list, the journal (including category, tag, and page archives), recipes, legal pages, the feed, robots, and the 404. A category or tag archive exists only when a published post uses it. `/beef/` says the beef is not for sale and collects the `beef` newsletter interest.
 
 An island may import a feature's schema and browser client only. The provider file is imported by the folder's entry (`index.ts`, or `client.ts` for browser-only folders) and nothing else.
 
@@ -227,6 +227,8 @@ There is no revalidation. A draft that remains on `main` stays unpublished. Arch
 2. The handler refuses the form when it is disabled (503), rejects an invalid body (400), and treats a filled honeypot or a submission under two seconds as success without sending.
 3. An in-memory limit of 3 submissions per email per 24 hours returns 429. A failed send releases that attempt.
 4. The notification is sanitised and sent with `send()` to the configured recipient. Failure is a generic 500.
+
+An enquiry may use the phone spacing shown in the field (`+61 412 345 678`), a name written with letters from any language, and a short note. An empty message is still refused. Spam is still the honeypot, the two-second floor, and the email limit — not a long message.
 
 ## Event signup
 
@@ -319,6 +321,7 @@ Invariants:
 - `image` is a path relative to the entry, not a public URL. The file must exist and is optimised at build.
 - Post and recipe photographs use one of three presets (`card`, `featured`, `detail`) and are encoded as WebP. The share image is a separate 1200×630 JPEG crop. `public/images/` holds a placeholder SVG only.
 - Recipe durations match an ISO 8601 hours-minutes-seconds pattern.
+- A recipe ingredient may set `fromFarm: true` only when that food already comes from the property. The recipe page labels those lines and says when none of the ingredients do. Structured data keeps the ingredient text only.
 - `isFull` is set by hand. Nothing counts event capacity.
 - A category or tag with no published post has no archive page.
 

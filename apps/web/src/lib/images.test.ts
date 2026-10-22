@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { IMAGE_FORMAT, IMAGE_SERVICE, imagePresets } from './images';
+import { IMAGE_FORMAT, IMAGE_SERVICE, homeHeroPhone, imagePresets } from './images';
 
 describe('content image presets', () => {
   it('keeps Sharp as the only image service and webp as the output format', () => {
@@ -33,5 +33,13 @@ describe('content image presets', () => {
       quality: 80,
       format: 'webp',
     });
+  });
+
+  it('stops the homepage hero at 1080 on a phone', () => {
+    expect(homeHeroPhone).toEqual({
+      media: '(max-width: 767px)',
+      widths: [640, 1080],
+    });
+    expect(Math.max(...homeHeroPhone.widths)).toBeLessThanOrEqual(1080);
   });
 });

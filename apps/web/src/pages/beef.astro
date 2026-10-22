@@ -12,12 +12,12 @@ import { buildShareImage } from '@/lib/metadata/share-image';
 import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
 
 const share = await buildShareImage(highlandCattlePaddock);
-const imageAlt = 'Highland cattle, the breed we are bringing to Carinya Parc';
+const imageAlt = 'Cattle in a paddock. None are on the place yet.';
 ---
 
 <Site
   title="The beef is not for sale | Carinya Parc"
-  description="The Highlands are not on the place yet. There is no beef to buy. Leave your email and we will write when there is."
+  description="There is no beef to buy yet. Leave your email and we will write when there is."
   path="/beef"
   image={share.src}
   imageWidth={share.width}
@@ -35,7 +35,7 @@ const imageAlt = 'Highland cattle, the breed we are bringing to Carinya Parc';
       eyebrow="The herd"
       title="The beef is not for sale"
       titleAs="h1"
-      description="The Highlands are not on the place yet. There is nothing to order."
+      description="There is no beef to buy yet. There is nothing to order."
       align="left"
       class="pb-4 pt-4 sm:pt-8"
     />
@@ -44,9 +44,8 @@ const imageAlt = 'Highland cattle, the breed we are bringing to Carinya Parc';
       <div class="mx-auto grid max-w-[1240px] items-start gap-12 px-6 lg:grid-cols-2 lg:gap-16 lg:px-14">
         <div>
           <p class="text-[17px] leading-[1.7] text-charcoal">
-            The photograph on the homepage is the breed we are bringing, not cattle in our paddock.
-            The slow roast in the kitchen is the method for later. Fences, water, and pasture come
-            first.
+            The photograph is not cattle in our paddock. The slow roast in the kitchen is the method
+            for later. Fences, water, and pasture come first.
           </p>
           <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
             <a
@@ -90,7 +89,7 @@ const imageAlt = 'Highland cattle, the breed we are bringing to Carinya Parc';
             />
           </div>
           <figcaption class="mt-3 text-sm leading-relaxed text-stone">
-            The breed, not a herd on the place.
+            Not a herd on the place.
           </figcaption>
         </figure>
       </div>

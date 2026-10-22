@@ -4,6 +4,7 @@ import { SubscribeModalHost } from '@/components/newsletter/SubscribeModalHost';
 import { navigation } from '@/config/navigation';
 import { cn } from '@/lib/cn';
 import { withTrailingSlash } from '@/lib/metadata/canonical';
+import { regenerateUrl } from '@/lib/urls';
 
 interface Props {
   overlay?: boolean;
@@ -96,7 +97,7 @@ const headerClass = isSolid
         </a>
       ))}
       <a
-        href="/regenerate/"
+        href={regenerateUrl()}
         class={cn(
           'rounded-pill px-[22px] py-[11px] text-sm font-semibold transition-colors duration-150',
           isSolid
@@ -164,7 +165,7 @@ const headerClass = isSolid
           </div>
           <div class="space-y-3 py-6">
             <a
-              href="/regenerate/"
+              href={regenerateUrl()}
               class="block w-full rounded-pill bg-bracken-500 px-5 py-3.5 text-center text-sm font-semibold text-fleece transition-colors hover:bg-bracken-600"
             >
               Get involved

@@ -4,8 +4,11 @@ import { Image } from 'astro:assets';
 import Site from '@/layouts/Site.astro';
 import PageIntro from '@/components/sections/PageIntro.astro';
 import ContactFormSection from '@/components/marketing/ContactFormSection.astro';
+import { SOCIAL_LINKS } from '@/lib/constants';
 
 import farmDamTrees from '@/assets/images/farm-dam-trees.jpg';
+
+const publicEmail = 'contact@carinyaparc.com.au';
 ---
 
 <Site
@@ -49,16 +52,27 @@ import farmDamTrees from '@/assets/images/farm-dam-trees.jpg';
               Reach us
             </p>
             <div class="mt-3 flex flex-col gap-2.5 text-[15px]">
-              <a
-                href="mailto:contact@carinyaparc.com.au"
-                class="text-eucalypt-600 hover:opacity-70"
-              >
-                hello@carinyaparc.com.au
+              <a href={`mailto:${publicEmail}`} class="text-eucalypt-600 hover:opacity-70">
+                {publicEmail}
               </a>
               <a href="/#stay" class="text-eucalypt-600 hover:opacity-70">
                 Subscribe to the newsletter
               </a>
-              <span class="text-stone">Instagram · Facebook · @carinyaparc</span>
+              <p class="text-stone">
+                {SOCIAL_LINKS.map((link, index) => (
+                  <>
+                    {index > 0 && <span aria-hidden="true"> · </span>}
+                    <a
+                      href={link.href}
+                      class="text-eucalypt-600 hover:opacity-70"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {link.name}
+                    </a>
+                  </>
+                ))}
+              </p>
             </div>
           </div>
 

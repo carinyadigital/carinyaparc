@@ -466,8 +466,11 @@ function InlineSubscribeForm({
         {isStay ? (
           <p className="mt-4 max-w-md text-sm/6 text-inverse-subtle">
             Join a growing community of supporters. Unsubscribe anytime. Read our{' '}
-            <a href="/legal/privacy-policy/" className="font-semibold text-fleece hover:opacity-70">
-              privacy&nbsp;policy
+            <a
+              href="/legal/privacy-policy/"
+              className="whitespace-nowrap font-semibold text-fleece hover:opacity-70"
+            >
+              privacy policy
             </a>
             .
           </p>

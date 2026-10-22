@@ -12,7 +12,6 @@ interface Props {
 const DEFAULT_STATS: ImpactStat[] = [
   { value: '42', label: 'hectares under restoration' },
   { value: '30k+', label: 'native trees to plant' },
-  { value: '104', label: 'acres of land' },
   { value: '400m', label: 'river frontage to restore' },
 ];
 
@@ -24,9 +23,14 @@ const { eyebrow = 'Progress in the ground', stats = DEFAULT_STATS, class: classN
     <p class="text-center text-[13px] font-semibold uppercase tracking-[0.24em] text-wattle">
       {eyebrow}
     </p>
-    <div class="mt-10 grid grid-cols-2 gap-10 lg:grid-cols-4">
-      {stats.map((stat) => (
-        <div class="text-center">
+    <div class="mt-10 grid grid-cols-2 gap-10 lg:grid-cols-3">
+      {stats.map((stat, index) => (
+        <div
+          class={cn(
+            'text-center',
+            stats.length % 2 === 1 && index === stats.length - 1 && 'max-lg:col-span-2',
+          )}
+        >
           <div class="font-heading text-5xl leading-none text-inverse lg:text-[56px]">
             {stat.value}
           </div>

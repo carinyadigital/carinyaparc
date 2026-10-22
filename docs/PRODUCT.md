@@ -136,6 +136,7 @@ The website brings this value to life by:
 - **Recipes**
   - Farm-inspired recipes (e.g., herbed omelette with native greens, slow-roasted Dexter beef).
   - Structured recipe data in MDX frontmatter (`content/recipes/`) with ingredients, instructions, and timing.
+  - Each ingredient can be marked when it comes from the property. The page names those lines, and says when none of them do.
 
 - **Legal and trust**
   - Privacy policy and terms of service pages surfaced clearly (MDX in git).

@@ -2,10 +2,12 @@
 /**
  * Listing card for an upcoming event: date, title, location, rendered MDX description and
  * either the on-site signup form or a link to the external signup target.
+ * External signup and waitlist links record the choice. The on-site form records completion itself.
  */
 import { render } from 'astro:content';
 
 import Button from '@/components/ui/Button.astro';
+import { EVENTS_LISTING_SOURCE } from '@/lib/analytics/types';
 import { cn } from '@/lib/cn';
 import type { EventEntry } from '@/lib/content/events';
 import EventSignup from './EventSignup.astro';
@@ -13,10 +15,12 @@ import { eventSignupHref, formatEventDate, isExternalEventHref } from './event-h
 
 interface Props {
   event: EventEntry;
+  /** Placement for the selection. Listing cards use the events listing. */
+  source?: string;
   class?: string;
 }
 
-const { event, class: className } = Astro.props;
+const { event, source = EVENTS_LISTING_SOURCE, class: className } = Astro.props;
 const { Content } = await render(event);
 
 const hasSignupTarget = Boolean(event.data.signupTarget?.trim());
@@ -47,7 +51,14 @@ const external = isExternalEventHref(signupHref);
     <EventSignup eventSlug={event.id} eventTitle={event.data.title} isFull={full} />
   ) : full ? (
     <div class="mt-6">
-      <Button href="/subscribe/" variant="outline" size="sm">
+      <Button
+        href="/subscribe/"
+        variant="outline"
+        size="sm"
+        data-event-cta
+        data-event-id={event.id}
+        data-event-source={source}
+      >
         Full — join the waitlist
       </Button>
     </div>
@@ -57,6 +68,9 @@ const external = isExternalEventHref(signupHref);
         href={signupHref}
         variant="bracken"
         size="sm"
+        data-event-cta
+        data-event-id={event.id}
+        data-event-source={source}
         {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
         Sign up
@@ -64,3 +78,8 @@ const external = isExternalEventHref(signupHref);
     </div>
   )}
 </article>
+
+<script>
+  import { bindEventCtas } from '@/lib/analytics/event-cta';
+  bindEventCtas();
+</script>

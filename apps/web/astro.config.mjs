@@ -11,8 +11,17 @@ import vercel from '@astrojs/vercel';
 import sentry from '@sentry/astro';
 import tailwindcss from '@tailwindcss/vite';
 
+import { promoteDirectoryRedirects } from './src/lib/directory-redirects';
 import { mergeSecurityIntoVercelOutput } from './src/lib/security/vercel-config';
 import { includeInSitemap } from './src/lib/sitemap/journal-archives';
+
+const redirects = {
+  '/favicon.ico': '/favicon/favicon.ico',
+  // @astrojs/sitemap writes sitemap-index.xml; keep the URL robots.txt and Search Console know.
+  '/sitemap.xml': '/sitemap-index.xml',
+  // The address is retired. Both spellings go to the homepage.
+  '/beef': '/',
+};
 
 const appRoot = fileURLToPath(new URL('.', import.meta.url));
 /** The Vercel adapter writes prerendered HTML under `dist/client`. A plain static build uses `dist`. */
@@ -44,7 +53,7 @@ function vercelSecurityConfig() {
         }
 
         const current = JSON.parse(readFileSync(configPath, 'utf8'));
-        const merged = mergeSecurityIntoVercelOutput(current);
+        const merged = promoteDirectoryRedirects(mergeSecurityIntoVercelOutput(current), redirects);
         writeFileSync(configPath, `${JSON.stringify(merged)}\n`);
       },
     },
@@ -84,11 +93,7 @@ export default defineConfig({
         ]
       : []),
   ],
-  redirects: {
-    '/favicon.ico': '/favicon/favicon.ico',
-    // @astrojs/sitemap writes sitemap-index.xml; keep the URL robots.txt and Search Console know.
-    '/sitemap.xml': '/sitemap-index.xml',
-  },
+  redirects,
   vite: {
     plugins: [tailwindcss()],
     ...(sentryDsn

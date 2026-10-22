@@ -202,13 +202,9 @@ const EXPERIENCE_ITEMS = [
               forest. We'll say how long it runs when we write back. A planting day asks for a pair
               of gloves and a day of planting. No experience needed. The{' '}
               <a href={HERD_POST} class="font-semibold text-eucalypt-600 hover:opacity-70">
-                herd is not on the place yet
-              </a>
-              , and{' '}
-              <a href="/beef/" class="font-semibold text-eucalypt-600 hover:opacity-70">
-                the beef is not for sale
-              </a>
-              . A place to stay is still being built.
+                herd is not on the place yet.
+              </a>{' '}
+              A place to stay is still being built.
             </p>
             <ul role="list" class="mt-[26px] flex flex-col gap-3.5">
               {EXPERIENCE_ITEMS.map((item) => (
@@ -238,24 +234,16 @@ const EXPERIENCE_ITEMS = [
               </Button>
             </div>
           </div>
-          <div>
-            <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
-              <Image
-                src={highlandCattlePaddock}
-                alt="Cattle in a paddock. None are on the place yet."
-                widths={[640, 960, 1280]}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                quality={80}
-                loading="lazy"
-                class="absolute inset-0 h-full w-full object-cover"
-              />
-            </div>
-            <p class="mt-3 text-sm leading-relaxed text-stone">
-              None are on the place yet.{' '}
-              <a href="/beef/" class="font-semibold text-eucalypt-600 hover:opacity-70">
-                The beef is not for sale yet.
-              </a>
-            </p>
+          <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
+            <Image
+              src={highlandCattlePaddock}
+              alt="Cattle in a paddock. None are on the place yet."
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={80}
+              loading="lazy"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
           </div>
         </div>
       </div>

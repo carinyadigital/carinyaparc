@@ -108,7 +108,15 @@ interface VercelOutput {
     headers?: Record<string, string>;
     continue?: boolean;
     status?: number;
+    handle?: string;
   }>;
+}
+
+function firstRoute(routes: VercelOutput['routes'], pathname: string) {
+  return routes?.find((route) => {
+    if (!route.src || route.continue) return false;
+    return new RegExp(route.src).test(pathname);
+  });
 }
 
 describeIfBuilt('internal links and images', () => {
@@ -195,7 +203,6 @@ describeIfBuilt('hero image loading', () => {
     { pathname: '/', label: 'home' },
     { pathname: '/about/', label: 'about' },
     { pathname: '/regenerate/', label: 'regenerate' },
-    { pathname: '/beef/', label: 'beef' },
     { pathname: '/blog/', label: 'blog index' },
     { pathname: '/recipes/', label: 'recipes index' },
     { pathname: '/blog/why-highland-cattle/', label: 'post' },
@@ -301,5 +308,22 @@ describeIfBuilt('Vercel output security config', () => {
       'report-uri /api/csp-report/',
     );
     expect(headerRoute?.headers?.['Content-Security-Policy-Report-Only']).toBeUndefined();
+  });
+
+  it('redirects /beef and /beef/ home and does not publish that page', () => {
+    expect(existsSync(path.join(DIST, 'beef', 'index.html'))).toBe(false);
+    const output = JSON.parse(readFileSync(VERCEL_CONFIG, 'utf8')) as VercelOutput;
+
+    for (const pathname of ['/beef', '/beef/']) {
+      expect(firstRoute(output.routes, pathname)).toMatchObject({
+        headers: { Location: '/' },
+        status: 301,
+      });
+    }
+
+    for (const file of allHtmlFiles(DIST)) {
+      const html = readFileSync(file, 'utf8');
+      expect(html, path.relative(DIST, file)).not.toMatch(/href=["']\/beef\/?["']/);
+    }
   });
 });

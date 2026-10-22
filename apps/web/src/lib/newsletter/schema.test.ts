@@ -118,14 +118,15 @@ describe('resolveSubscribeInterest', () => {
 });
 
 describe('SUBSCRIBE_INTEREST_OPTIONS', () => {
-  it('exposes the five interest options with /subscribe/ labels', () => {
-    expect(SUBSCRIBE_INTEREST_OPTIONS).toHaveLength(5);
+  it('exposes the interest options with /subscribe/ labels', () => {
+    expect(SUBSCRIBE_INTEREST_OPTIONS).toHaveLength(6);
     expect(SUBSCRIBE_INTEREST_OPTIONS.map((o) => o.value)).toEqual([...SUBSCRIBE_INTERESTS]);
     expect(SUBSCRIBE_INTEREST_OPTIONS.map((o) => o.label)).toEqual([
       'Ecological restoration',
       'Regenerative farming',
       'Community involvement',
       'Future produce',
+      'Beef, when we have it',
       'Learning opportunities',
     ]);
   });

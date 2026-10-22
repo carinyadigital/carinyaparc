@@ -65,6 +65,30 @@ describe('handleContact', () => {
     expect(sendContactNotification).not.toHaveBeenCalled();
   });
 
+  it('accepts a short tour enquiry with a spaced mobile and an accented name', async () => {
+    const response = await handleContact(
+      jsonRequest({
+        ...valid,
+        firstName: 'José',
+        lastName: 'O’Brien',
+        phone: '+61 412 345 678',
+        inquiryType: 'tours',
+        message: 'Saturday morning tour?',
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(sendContactNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        firstName: 'José',
+        lastName: 'O’Brien',
+        phone: '+61 412 345 678',
+        inquiryType: 'tours',
+        message: 'Saturday morning tour?',
+      }),
+    );
+  });
+
   it('sends a notification and returns confirmation', async () => {
     const response = await handleContact(jsonRequest(valid));
     expect(response.status).toBe(200);

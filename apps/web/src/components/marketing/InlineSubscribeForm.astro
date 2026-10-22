@@ -13,7 +13,7 @@ const { class: className } = Astro.props;
 ---
 
 <div class={className}>
-  <SubscribeForm client:visible source="regenerate" variant="compact" submitLabel="Join the list">
+  <SubscribeForm client:load source="regenerate" variant="compact" submitLabel="Join the list">
     <PrivacyNote slot="privacy" class="mt-4" />
   </SubscribeForm>
 

@@ -1,0 +1,98 @@
+---
+import { Image } from 'astro:assets';
+
+import Site from '@/layouts/Site.astro';
+import PageIntro from '@/components/sections/PageIntro.astro';
+import Breadcrumb from '@/components/ui/Breadcrumb.astro';
+import JsonLd from '@/components/ui/JsonLd.astro';
+import PrivacyNote from '@/components/newsletter/PrivacyNote.astro';
+import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
+import { buildShareImage } from '@/lib/metadata/share-image';
+
+import highlandCattlePaddock from '@/assets/images/highland-cattle-paddock.jpg';
+
+const share = await buildShareImage(highlandCattlePaddock);
+const imageAlt = 'Cattle in a paddock. None are on the place yet.';
+---
+
+<Site
+  title="The beef is not for sale | Carinya Parc"
+  description="There is no beef to buy yet. Leave your email and we will write when there is."
+  path="/beef"
+  image={share.src}
+  imageWidth={share.width}
+  imageHeight={share.height}
+  imageAlt={imageAlt}
+>
+  <JsonLd />
+
+  <div class="isolate min-h-screen bg-paperbark">
+    <div class="mx-auto max-w-[1240px] px-6 pt-8 lg:px-14">
+      <Breadcrumb />
+    </div>
+
+    <PageIntro
+      eyebrow="The herd"
+      title="The beef is not for sale"
+      titleAs="h1"
+      description="There is no beef to buy yet. There is nothing to order."
+      align="left"
+      class="pb-4 pt-4 sm:pt-8"
+    />
+
+    <section class="pb-16 sm:pb-24">
+      <div class="mx-auto grid max-w-[1240px] items-start gap-12 px-6 lg:grid-cols-2 lg:gap-16 lg:px-14">
+        <div>
+          <p class="text-[17px] leading-[1.7] text-charcoal">
+            The photograph is not cattle in our paddock. The slow roast in the kitchen is the method
+            for later. Fences, water, and pasture come first.
+          </p>
+          <p class="mt-5 text-[17px] leading-[1.7] text-charcoal">
+            <a
+              href="/blog/why-highland-cattle/"
+              class="font-semibold text-eucalypt-600 hover:opacity-70"
+            >
+              The journal has the sequence.
+            </a>
+          </p>
+          <h2 class="mt-10 font-heading text-[32px] font-normal leading-[1.15] text-eucalypt-600">
+            Be told when there is beef
+          </h2>
+          <p class="mt-4 text-[17px] leading-[1.7] text-charcoal">
+            Leave your email and we will write when there is beef to sell. That note is separate
+            from general produce news.
+          </p>
+          <SubscribeForm
+            client:visible
+            variant="compact"
+            source="beef"
+            interest="beef"
+            submitLabel="Email me"
+            className="mt-6"
+          >
+            <PrivacyNote slot="privacy" class="mt-4" />
+          </SubscribeForm>
+        </div>
+
+        <figure>
+          <div class="relative aspect-4/3 overflow-hidden rounded-xl shadow-lg">
+            <Image
+              src={highlandCattlePaddock}
+              alt={imageAlt}
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              quality={80}
+              loading="eager"
+              fetchpriority="high"
+              decoding="sync"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+          <figcaption class="mt-3 text-sm leading-relaxed text-stone">
+            Not a herd on the place.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  </div>
+</Site>

@@ -1,6 +1,7 @@
 ---
 /** Numbered page links under a paginated grid. Page 1 is /blog/, later pages /blog/page/{n}/. */
 import { cn } from '@/lib/cn';
+import { JOURNAL_NAME } from '@/lib/constants';
 
 interface Props {
   currentPage: number;
@@ -17,7 +18,10 @@ const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 ---
 
 {totalPages > 1 && (
-  <nav aria-label="Blog pages" class="mt-14 flex flex-wrap items-center justify-center gap-2">
+  <nav
+    aria-label={`${JOURNAL_NAME} pages`}
+    class="mt-14 flex flex-wrap items-center justify-center gap-2"
+  >
     {currentPage > 1 && (
       <a
         href={pageHref(currentPage - 1)}

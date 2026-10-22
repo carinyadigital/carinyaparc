@@ -6,18 +6,24 @@ import PageIntro from '@/components/sections/PageIntro.astro';
 import Breadcrumb from '@/components/ui/Breadcrumb.astro';
 import JsonLd from '@/components/ui/JsonLd.astro';
 import Icon from '@/components/marketing/Icon.astro';
+import PastLetter from '@/components/marketing/PastLetter.astro';
 import SectionWithImage from '@/components/marketing/SectionWithImage.astro';
 import SubscribeSection from '@/components/marketing/SubscribeSection.astro';
 
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
+import { getPublishedPosts, toPostSummary } from '@/lib/content/posts';
 import { buildShareImage } from '@/lib/metadata/share-image';
 
 const share = await buildShareImage(riverValleyAerial);
+const latestEntry = (await getPublishedPosts())[0];
+const latestLetter = latestEntry ? await toPostSummary(latestEntry) : undefined;
+const description =
+  'Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox.';
 ---
 
 <Site
   title="Subscribe - Carinya Parc"
-  description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+  description={description}
   path="/subscribe"
   image={share.src}
   imageWidth={share.width}
@@ -36,9 +42,11 @@ const share = await buildShareImage(riverValleyAerial);
       eyebrow="Subscribe"
       title="Stay connected to the land"
       titleAs="h1"
-      description="Stay connected to our regenerative journey at Carinya Parc to receive thoughtful, seasonal updates directly from the farm to your inbox."
+      description={description}
       class="pb-4 pt-4 sm:pt-8"
     />
+
+    {latestLetter && <PastLetter post={latestLetter} />}
 
     <SectionWithImage
       variant="light"

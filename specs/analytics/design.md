@@ -110,7 +110,7 @@ type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENT
 type ScrollDepth = 25 | 50 | 75 | 100;
 
 type SubscribeInterest =
-  'restoration' | 'regenerative-farming' | 'community' | 'produce' | 'learning';
+  'restoration' | 'regenerative-farming' | 'community' | 'produce' | 'beef' | 'learning';
 
 type InquiryType = 'general' | 'tours' | 'volunteer' | 'partnership';
 

@@ -3,6 +3,9 @@
  * Global pre-footer newsletter band (`#stay`). Site.astro mounts this on
  * marketing pages; blog routes suppress it so journal subscribe modules do not
  * stack a second band.
+ *
+ * Hydrate on load. `client:visible` left this markup unclaimed until the band
+ * scrolled into view, and React then rebuilt it when the DOM no longer matched.
  */
 import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
 ---
@@ -23,7 +26,7 @@ import { SubscribeForm } from '@/components/newsletter/SubscribeForm';
       </div>
 
       <div class="flex justify-center lg:justify-end">
-        <SubscribeForm client:visible source="stay" variant="stay" />
+        <SubscribeForm client:load source="stay" variant="stay" />
       </div>
     </div>
   </div>

@@ -10,13 +10,14 @@ import Icon from '@/components/marketing/Icon.astro';
 import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
 import riverValleyAerial from '@/assets/images/river-valley-aerial.jpg';
 import { buildShareImage } from '@/lib/metadata/share-image';
+import { contactUrl, postUrl } from '@/lib/urls';
 
 const share = await buildShareImage(farmTrackGate);
 ---
 
 <Site
   title="The Property - Carinya Parc"
-  description="Explore our 42-hectare property at The Branch, near Stroud, in the Upper Hunter, NSW - native woodland, river frontage, and the beginning of our ecological restoration journey."
+  description="42 hectares at The Branch, near Stroud, in the Upper Hunter. River plantings, a first food forest, new fences, five dams, and the shed we live in."
   path="/about/the-property"
   image={share.src}
   imageWidth={share.width}
@@ -57,19 +58,14 @@ const share = await buildShareImage(farmTrackGate);
               The Property
             </h1>
             <p class="mt-6 text-xl/8 text-charcoal">
-              Carinya Parc is 42 hectares of gently undulating countryside at The Branch, near
-              Stroud, in the Upper Hunter, NSW.
+              Carinya Parc is 42 hectares at The Branch, near Stroud, in the Upper Hunter, NSW.
             </p>
             <div class="mt-10 max-w-xl text-base/7 text-charcoal lg:max-w-none">
               <p>
-                The site runs for more than 400 metres along the Branch River, offering natural
-                frontage that supports swimming holes, fishing and, in time, improved riparian
-                habitat. Scattered remnants of native woodland peek through cleared paddocks,
-                hinting at the bush corridors we are reestablishing to connect fragmented habitats
-                for koalas, gliders and native birds. A network of five farm dams, gravity-fed
-                irrigation lines and four troughs ensures reliable water supply across the property,
-                while a sealed driveway and visitor parking beside the homestead provide easy access
-                for guests and volunteers.
+                The land runs for more than 400 metres along the Branch River, from a frost-free
+                ridge down to a valley flat. It was an alpaca farm until early 2024. We rested the
+                paddocks for two summers. Since then the work is trees, fences, water we have
+                walked, and a shed we live in.
               </p>
               <ul role="list" class="mt-8 space-y-8 text-charcoal">
                 <li class="flex gap-x-3">
@@ -83,45 +79,92 @@ const share = await buildShareImage(farmTrackGate);
                 <li class="flex gap-x-3">
                   <Icon name="clock" class="mt-1 size-5 flex-none text-eucalypt-600" />
                   <span>
-                    Previously an alpaca farm, Carinya Parc has entered a deliberate rest period in
-                    early 2024 to allow natural regeneration following decades of grazing pressure.
+                    Alpacas came off in early 2024. Two summers of rest followed. We moved here
+                    full-time in June 2026.
                   </span>
                 </li>
                 <li class="flex gap-x-3">
                   <Icon name="droplets" class="mt-1 size-5 flex-none text-eucalypt-600" />
                   <span>
-                    The property includes five farm dams across undulating hills, frost-free ridges
-                    and sheltered valleys. The Branch River frontage provides important riparian
-                    habitat for local wildlife.
+                    Five farm dams, four troughs, and a gravity line from the top dam. The homestead
+                    dam is spring-fed. Along the river we are planting the bank the flood took.
                   </span>
                 </li>
               </ul>
               <h2 class="mt-16 font-heading text-2xl font-normal tracking-tight text-eucalypt-600">
-                A Canvas for Ecological Renewal
+                What is in the ground
               </h2>
               <p class="mt-6">
-                Carinya Parc is a blank canvas poised for ecological renewal. Over the coming years
-                we will plant more than 30,000 native trees and shrubs across five carefully defined
-                zones, stabilise eroded riverbanks, trial syntropic agroforestry guilds and monitor
-                soil health, water quality and biodiversity through an open-data framework. Every
-                contour, watercourse and forest remnant has been mapped to guide this long-term
-                vision, ensuring that each hectare moves steadily closer to its natural potential.
+                In April 2026, 26 people planted 1,150 native trees along 200 metres of the bend. In
+                September we planted the first three food-forest rows on the slope below the
+                homestead: 90 metres, about 380 plants. The long job is still 30,000 trees.
               </p>
               <p class="mt-6">
-                Whether you are here to learn, to lend a hand or simply to enjoy the peace and
-                privacy of rural NSW, The Property at Carinya Parc offers both a working farm and a
-                living laboratory for regeneration in action.
+                Over the winter of 2026 we built 1.4 kilometres of fence: 740 metres on the eastern
+                boundary and 660 metres of electric line on the north ridge. The western boundary
+                and the river frontage are still the old alpaca wire. Cattle are planned for autumn
+                2027. None are here yet.
+              </p>
+              <p class="mt-6">
+                We live in the Colorbond shed, 15 metres by 9, and we are lining it while we live in
+                it. The homestead cottage stays for guests. Stays are still to come. A visit today
+                is by appointment: a planting day or a small-group tour.
+              </p>
+              <p class="mt-6">
+                The working is in the journal:
+                <a
+                  href={postUrl('two-summers-of-rest')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  two summers of rest
+                </a>
+                ,
+                <a
+                  href={postUrl('first-planting-day')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  the first planting day
+                </a>
+                ,
+                <a
+                  href={postUrl('first-syntropic-lines')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  the first syntropic lines
+                </a>
+                ,
+                <a
+                  href={postUrl('old-fences-new-lines')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  the winter fences
+                </a>
+                ,
+                <a
+                  href={postUrl('five-dams-one-hot-week')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  the dams
+                </a>
+                , and
+                <a
+                  href={postUrl('the-shed-in-winter')}
+                  class="font-semibold text-eucalypt-600 hover:opacity-70"
+                >
+                  living in the shed
+                </a>
+                .
               </p>
               <div class="mt-10 flex items-center gap-x-6">
                 <Button href="/regenerate/" variant="bracken">
-                  Get Involved
+                  Get involved
                 </Button>
                 <a
-                  href="/about/"
+                  href={contactUrl('tours')}
                   class="text-sm font-semibold leading-6 text-eucalypt-600 hover:opacity-70"
                 >
                   <span>
-                    Learn more about us <span aria-hidden="true">→</span>
+                    Ask about a tour <span aria-hidden="true">→</span>
                   </span>
                 </a>
               </div>

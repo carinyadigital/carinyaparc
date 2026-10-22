@@ -6,6 +6,8 @@
 
 Carinya Parc is a working regenerative farm at The Branch, Upper Hunter NSW — 42 hectares being healed back into a peaceful home for land, food and community. Carinya is an Aboriginal word meaning "peaceful home."
 
+The homepage hero eyebrow must stay “Upper Hunter, NSW”. Do not change it under any circumstances.
+
 ## Who we are for
 
 People within reach of the Hunter and the Mid-North Coast who care where their food comes from and want to be closer to it: home cooks buying better beef, families who visit, volunteers who plant, and the growing audience who follow land restoration because they are weighing a version of it themselves.

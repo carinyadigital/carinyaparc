@@ -1,18 +1,27 @@
 ---
 /** Ingredients list with the custom bullet styling from recipes.css. */
+import { FROM_THE_PROPERTY_LABEL, type RecipeIngredient } from '@/lib/recipes/provenance';
+
 interface Props {
-  ingredients: string[];
+  ingredients: RecipeIngredient[];
+  note: string;
 }
 
-const { ingredients } = Astro.props;
+const { ingredients, note } = Astro.props;
 ---
 
 {ingredients.length > 0 && (
   <div class="recipe-ingredients">
     <h2>Ingredients</h2>
+    <p class="recipe-ingredients-note">{note}</p>
     <ul>
       {ingredients.map((ingredient) => (
-        <li>{ingredient}</li>
+        <li>
+          <span class="recipe-ingredient-line">
+            <span>{ingredient.item}</span>
+            {ingredient.fromFarm && <span class="recipe-from-farm">{FROM_THE_PROPERTY_LABEL}</span>}
+          </span>
+        </li>
       ))}
     </ul>
   </div>

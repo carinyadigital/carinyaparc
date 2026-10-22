@@ -5,12 +5,8 @@ import { generateBreadcrumbsFromPath } from './breadcrumb';
 
 describe('generateBreadcrumbsFromPath', () => {
   it('names the journal Life on Pasture', () => {
-    const crumbs = generateBreadcrumbsFromPath('/blog/why-highland-cattle/');
+    const crumbs = generateBreadcrumbsFromPath('/blog/midwinter-pasture/');
 
-    expect(crumbs.map((crumb) => crumb.name)).toEqual([
-      'Home',
-      JOURNAL_NAME,
-      'Why Highland Cattle',
-    ]);
+    expect(crumbs.map((crumb) => crumb.name)).toEqual(['Home', JOURNAL_NAME, 'Midwinter Pasture']);
   });
 });

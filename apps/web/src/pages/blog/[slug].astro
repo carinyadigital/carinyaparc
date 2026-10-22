@@ -18,6 +18,7 @@ import farmTrackGate from '@/assets/images/farm-track-gate.jpg';
 import { BASE_URL, JOURNAL_NAME, SITE_TITLE } from '@/lib/constants';
 import { imagePresets } from '@/lib/images';
 import { buildShareImage, defaultShareImage } from '@/lib/metadata/share-image';
+import { journalStoryTitle } from '@/lib/metadata/title';
 import { getUpcomingEvents } from '@/lib/content/events';
 import { getPublishedPosts, getRelatedPosts, tagName, toPostSummaries } from '@/lib/content/posts';
 import { postUrl, tagUrl } from '@/lib/urls';
@@ -79,7 +80,7 @@ const breadcrumbs = [
 
 <Site
   showNewsletter={false}
-  title={`${entry.data.title} - ${JOURNAL_NAME} - ${SITE_TITLE}`}
+  title={journalStoryTitle(entry.data.title, SITE_TITLE)}
   description={description}
   path={path}
   image={share.src}
@@ -163,7 +164,7 @@ const breadcrumbs = [
 
     <AuthorBlock author={author?.data} />
 
-    <GetInvolvedCTA event={nextEvent} />
+    <GetInvolvedCTA event={nextEvent} source={subscribeSource} />
 
     <div class="pb-12"></div>
 

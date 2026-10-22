@@ -85,7 +85,7 @@ describeIfBuilt('farm place', () => {
     const text = visibleText(html);
 
     expect(text).toContain(
-      `Carinya Parc is 42 hectares (approximately 104 acres) of gently undulating countryside at ${PLACE}.`,
+      `Carinya Parc is 42 hectares of gently undulating countryside at ${PLACE}.`,
     );
     expect(text).toContain(
       `Located at ${PLACE}, 5 km from Stroud, 70 km to Newcastle, and within easy reach of Barrington Tops National Park, Port Stephens, and the Great Lakes region.`,

@@ -14,6 +14,6 @@ interface Props {
 const { source, class: className } = Astro.props;
 ---
 
-<SubscribeForm client:visible variant="end" source={source} className={className}>
+<SubscribeForm client:load variant="end" source={source} className={className}>
   <PrivacyNote slot="privacy" class="mt-4 text-center" />
 </SubscribeForm>

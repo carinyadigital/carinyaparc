@@ -1,6 +1,7 @@
 ---
 /** "For partners & funders" band on /regenerate/ (anchor #support). */
 import Button from '@/components/ui/Button.astro';
+import { contactUrl } from '@/lib/urls';
 
 const BENEFITS = [
   'Published soil baseline: organic carbon 1.6% to 3.1%',
@@ -49,7 +50,7 @@ const TIERS = [
           </li>
         ))}
       </ul>
-      <Button href="/contact/" variant="bracken" class="mt-7">
+      <Button href={contactUrl('partnership')} variant="bracken" class="mt-7">
         Start a conversation →
       </Button>
     </div>

@@ -22,7 +22,7 @@ export const SCROLL_DEPTH_THRESHOLDS: readonly ScrollDepth[] = [25, 50, 75, 100]
 export const EVENTS_LISTING_SOURCE = 'events-listing';
 
 export type SubscribeInterest =
-  'restoration' | 'regenerative-farming' | 'community' | 'produce' | 'learning';
+  'restoration' | 'regenerative-farming' | 'community' | 'produce' | 'beef' | 'learning';
 
 export type InquiryType = 'general' | 'tours' | 'volunteer' | 'partnership';
 

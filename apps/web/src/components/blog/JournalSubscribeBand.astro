@@ -24,7 +24,7 @@ const { class: className, source = 'blog:index' } = Astro.props;
           A letter about once a month, plus planting days and visit dates, straight to your inbox.
         </p>
       </div>
-      <SubscribeForm client:visible source={source} variant="band" submitLabel="Subscribe" />
+      <SubscribeForm client:load source={source} variant="band" submitLabel="Subscribe" />
     </div>
   </div>
 </section>

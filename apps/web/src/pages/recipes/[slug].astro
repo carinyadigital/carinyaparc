@@ -14,6 +14,7 @@ import { generatePageMetadata } from '@/lib/metadata';
 import { buildShareImage } from '@/lib/metadata/share-image';
 import { BASE_URL, PLACEHOLDER_IMAGE } from '@/lib/constants';
 import { getPublishedRecipes, toRecipeSummary, type RecipeEntry } from '@/lib/content/recipes';
+import { farmIngredientNote } from '@/lib/recipes/provenance';
 import type { RecipeData } from '@/lib/schema/recipe';
 
 import '@/styles/pages/recipes.css';
@@ -32,8 +33,10 @@ const recipe = await toRecipeSummary(entry);
 const hasBody = Boolean(entry.body && entry.body.trim().length > 0);
 const { Content } = hasBody ? await render(entry) : { Content: null };
 
-const ingredients = entry.data.ingredients.map((row) => row.item);
+const ingredientRows = entry.data.ingredients;
+const ingredients = ingredientRows.map((row) => row.item);
 const instructions = entry.data.instructions.map((row) => row.step);
+const ingredientNote = farmIngredientNote(ingredientRows);
 const datePublished = recipe.date.toISOString();
 
 /** Centre-cropped 1200×630 share image when the recipe has a photograph. */
@@ -102,6 +105,8 @@ const recipeData: RecipeData = {
         <article class="recipe-prose">
           <h1>{recipe.title}</h1>
 
+          {Content && <Content />}
+
           <div class="recipe-hero-image not-prose">
             {recipe.image ? (
               <Image
@@ -136,11 +141,9 @@ const recipeData: RecipeData = {
             difficulty={recipe.difficulty}
           />
 
-          <RecipeIngredients ingredients={ingredients} />
+          <RecipeIngredients ingredients={ingredientRows} note={ingredientNote} />
 
           <RecipeInstructions instructions={instructions} />
-
-          {Content && <Content />}
 
           <RecipeTags tags={recipe.tags} />
 

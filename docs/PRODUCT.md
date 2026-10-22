@@ -2,7 +2,7 @@
 title: Product Strategy – Carinya Parc Website
 status: active
 owner: product
-last_updated: 2026-05-31
+last_updated: 2026-10-19
 ---
 
 ## Overview
@@ -129,13 +129,15 @@ The website brings this value to life by:
   - Curated overview of the regenerative project.
   - Links to deeper blog posts on major themes (e.g., soil, trees, failures).
 
-- **Blog**
-  - Long-form narrative posts (e.g., restoring 42 ha of land, lessons from failure).
-  - Written as MDX under `content/posts/` and published by merging a pull request.
+- **Life on Pasture**
+  - The journal of long-form notes (e.g., restoring 42 ha of land, lessons from failure).
+  - Written as MDX under `content/posts/` and published by merging a pull request. The public name is Life on Pasture; the route stays `/blog/`.
 
 - **Recipes**
-  - Farm-inspired recipes (e.g., herbed omelette with native greens, slow-roasted Dexter beef).
+  - Farm-inspired recipes (e.g., herbed omelette with native greens, slow-roasted beef).
   - Structured recipe data in MDX frontmatter (`content/recipes/`) with ingredients, instructions, and timing.
+  - Each ingredient can be marked when it comes from the property. The page names those lines, and says when none of them do.
+  - The beef recipe is a method for later. `/beef/` says there is nothing to buy yet, and how to be told when there is.
 
 - **Legal and trust**
   - Privacy policy and terms of service pages surfaced clearly (MDX in git).

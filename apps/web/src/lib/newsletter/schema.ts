@@ -6,13 +6,14 @@ export const SUBSCRIBE_INTERESTS = [
   'regenerative-farming',
   'community',
   'produce',
+  'beef',
   'learning',
 ] as const;
 
 export type SubscribeInterest = (typeof SUBSCRIBE_INTERESTS)[number];
 
 /**
- * Display labels for the five interests — same copy as the standalone `/subscribe/` page.
+ * Display labels for the interests — same copy as the standalone `/subscribe/` page.
  * Values are the canonical enum used by in-flow modules and MailerLite.
  */
 export const SUBSCRIBE_INTEREST_OPTIONS: ReadonlyArray<{
@@ -23,6 +24,7 @@ export const SUBSCRIBE_INTEREST_OPTIONS: ReadonlyArray<{
   { value: 'regenerative-farming', label: 'Regenerative farming' },
   { value: 'community', label: 'Community involvement' },
   { value: 'produce', label: 'Future produce' },
+  { value: 'beef', label: 'Beef, when we have it' },
   { value: 'learning', label: 'Learning opportunities' },
 ];
 
@@ -35,6 +37,7 @@ export const LEGACY_INTEREST_MAP: Record<string, SubscribeInterest> = {
   farming: 'regenerative-farming',
   community: 'community',
   produce: 'produce',
+  beef: 'beef',
   learning: 'learning',
   restoration: 'restoration',
   'regenerative-farming': 'regenerative-farming',

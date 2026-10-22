@@ -6,6 +6,8 @@ import JsonLd from '@/components/ui/JsonLd.astro';
 import BlogTopicNav from '@/components/blog/BlogTopicNav.astro';
 import JournalIntro from '@/components/blog/JournalIntro.astro';
 import PostCard from '@/components/blog/PostCard.astro';
+import { JOURNAL_NAME, SITE_TITLE } from '@/lib/constants';
+import { isThinJournalArchive } from '@/lib/content/journal-archives';
 import { getCategoriesWithPosts, getTagsWithPosts, toPostSummaries } from '@/lib/content/posts';
 import { tagUrl } from '@/lib/urls';
 
@@ -27,15 +29,16 @@ const topics = categories.map((c) => ({ name: c.name, slug: c.id }));
 
 <Site
   showNewsletter={false}
-  title={`${tag.name} - Blog | Carinya Parc`}
+  title={`${tag.name} - ${JOURNAL_NAME} | ${SITE_TITLE}`}
   description={`Published stories tagged ${tag.name} from Carinya Parc — regenerative farming, restoration, and life on the property.`}
   path={tagUrl(tag.id)}
+  noIndex={isThinJournalArchive(posts.length)}
 >
   <JsonLd />
 
   <div class="min-h-screen bg-paperbark">
     <JournalIntro
-      eyebrow="Blog · Tags"
+      eyebrow={`${JOURNAL_NAME} · Tags`}
       title={tag.name}
       description={`Published field notes tagged ${tag.name}.`}
     />
@@ -46,8 +49,8 @@ const topics = categories.map((c) => ({ name: c.name, slug: c.id }));
       <div class="mx-auto max-w-[1240px] px-6 lg:px-14">
         {posts.length > 0 ? (
           <div class="grid auto-rows-fr grid-cols-1 gap-[30px] lg:grid-cols-3">
-            {posts.map((post) => (
-              <PostCard post={post} variant="journal" />
+            {posts.map((post, index) => (
+              <PostCard post={post} variant="journal" eager={index === 0} />
             ))}
           </div>
         ) : (

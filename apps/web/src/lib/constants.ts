@@ -1,6 +1,6 @@
 export const SITE_TITLE = 'Carinya Parc';
 export const SITE_DESCRIPTION =
-  'Carinya Parc is a regenerative farm at The Branch, near Stroud, on the NSW mid-north coast. Visit for a planting day or a small-group tour.';
+  'Carinya Parc is a regenerative farm at The Branch, near Stroud, in the Upper Hunter, NSW. Visit for a planting day or a small-group tour.';
 
 function resolveBaseUrl(): string {
   const fromImportMeta =

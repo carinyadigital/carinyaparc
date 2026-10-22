@@ -11,6 +11,7 @@ import {
   DEFAULT_AUTHOR_URL_PATH,
   ARTICLE_ABOUT_TOPIC,
   BLOG_NAME,
+  JOURNAL_NAME,
   BLOG_URL_PATH,
 } from '../constants';
 import { defaultShareImage } from '../metadata/share-image';
@@ -85,7 +86,7 @@ export function generateArticleSchema(data: {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: data.title,
-    description: data.excerpt || data.description || `Blog post from ${SITE_TITLE}`,
+    description: data.excerpt || data.description || `A note from ${JOURNAL_NAME}`,
     author: {
       '@type': 'Person',
       name: authorName,

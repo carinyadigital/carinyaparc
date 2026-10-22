@@ -59,7 +59,10 @@ export const ORG_LOGO_URL = `${BASE_URL}${FAVICON_512_PATH}`;
 export const ORG_LOGO_WIDTH = 512;
 export const ORG_LOGO_HEIGHT = 512;
 
-export const DEFAULT_ARTICLE_SECTION = 'Blog';
+/** Public name of the journal. Titles, breadcrumbs, and the feed use this. */
+export const JOURNAL_NAME = 'Life on Pasture';
+
+export const DEFAULT_ARTICLE_SECTION = JOURNAL_NAME;
 export const DEFAULT_ARTICLE_WORD_COUNT = 2000;
 export const DEFAULT_ARTICLE_KEYWORDS =
   'regenerative farming, sustainable agriculture, permaculture';
@@ -71,7 +74,7 @@ export const ARTICLE_ABOUT_TOPIC = {
   description: 'Sustainable farming practices that restore soil health and biodiversity',
 };
 
-export const BLOG_NAME = `${SITE_TITLE} Blog`;
+export const BLOG_NAME = `${JOURNAL_NAME} | ${SITE_TITLE}`;
 export const BLOG_URL_PATH = '/blog';
 
 export const DEFAULT_BREADCRUMB_HOME = { name: 'Home', url: BASE_URL, position: 1 };
@@ -109,7 +112,7 @@ export const ORG_SOCIAL_PROFILES = SOCIAL_LINKS.map((link) => link.href);
 
 export const BREADCRUMB_NAME_MAP: Record<string, string> = {
   about: 'About',
-  blog: 'Blog',
+  blog: JOURNAL_NAME,
   recipes: 'Recipes',
   regenerate: 'Regenerate with Us',
   subscribe: 'Subscribe',

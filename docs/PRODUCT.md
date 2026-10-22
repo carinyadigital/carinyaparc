@@ -129,9 +129,9 @@ The website brings this value to life by:
   - Curated overview of the regenerative project.
   - Links to deeper blog posts on major themes (e.g., soil, trees, failures).
 
-- **Blog**
-  - Long-form narrative posts (e.g., restoring 42 ha of land, lessons from failure).
-  - Written as MDX under `content/posts/` and published by merging a pull request.
+- **Life on Pasture**
+  - The journal of long-form notes (e.g., restoring 42 ha of land, lessons from failure).
+  - Written as MDX under `content/posts/` and published by merging a pull request. The public name is Life on Pasture; the route stays `/blog/`.
 
 - **Recipes**
   - Farm-inspired recipes (e.g., herbed omelette with native greens, slow-roasted Dexter beef).

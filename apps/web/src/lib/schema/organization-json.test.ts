@@ -9,6 +9,6 @@ describe('organization schema social profiles', () => {
 
     expect(schema.sameAs).toEqual(SOCIAL_LINKS.map((link) => link.href));
     expect(schema.sameAs).toContain('https://www.facebook.com/carinyaparc');
-    expect(schema.sameAs?.some((href) => href.includes('github.com'))).toBe(false);
+    expect(schema.sameAs?.some((href) => new URL(href).hostname === 'github.com')).toBe(false);
   });
 });

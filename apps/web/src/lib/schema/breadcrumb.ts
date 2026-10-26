@@ -1,5 +1,11 @@
 import { BASE_URL, DEFAULT_BREADCRUMB_HOME, BREADCRUMB_NAME_MAP } from '../constants';
 
+/**
+ * Prefixes that have no page. Legal documents live at `/legal/{slug}/`.
+ * `/legal/` itself is a 404, so an intermediate crumb must not link there.
+ */
+const PREFIXES_WITHOUT_A_PAGE = new Set(['/legal']);
+
 export interface BreadcrumbItem {
   name: string;
   url: string;
@@ -29,6 +35,10 @@ export function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] 
 
   segments.forEach((segment, index) => {
     currentPath += `/${segment}`;
+    const isCurrentPage = index === segments.length - 1;
+    if (!isCurrentPage && PREFIXES_WITHOUT_A_PAGE.has(currentPath)) {
+      return;
+    }
 
     const friendlyName =
       BREADCRUMB_NAME_MAP[segment] ||
@@ -40,7 +50,7 @@ export function generateBreadcrumbsFromPath(pathname: string): BreadcrumbItem[] 
     breadcrumbs.push({
       name: friendlyName,
       url: `${BASE_URL}${currentPath}/`,
-      position: index + 2,
+      position: breadcrumbs.length + 1,
     });
   });
 

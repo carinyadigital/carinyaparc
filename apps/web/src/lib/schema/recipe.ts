@@ -31,7 +31,12 @@ export function generateRecipeSchema(data: {
   recipeInstructions?: string;
   image?: string;
   datePublished?: string;
-}): RecipeSchema {
+}): RecipeSchema | undefined {
+  // A recipe result requires a photograph of the dish. Without one, crawlers
+  // report the type as an error, so the page keeps its other structured data
+  // and omits Recipe until a real image is set.
+  if (!data.image) return undefined;
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
@@ -44,9 +49,7 @@ export function generateRecipeSchema(data: {
     ...(data.recipeYield && { recipeYield: data.recipeYield }),
     ...(data.recipeIngredient && { recipeIngredient: data.recipeIngredient }),
     ...(data.recipeInstructions && { recipeInstructions: data.recipeInstructions }),
-    ...(data.image && {
-      image: data.image.startsWith('http') ? data.image : `${BASE_URL}${data.image}`,
-    }),
+    image: data.image.startsWith('http') ? data.image : `${BASE_URL}${data.image}`,
     ...(data.datePublished && { datePublished: data.datePublished }),
   };
 }

@@ -22,7 +22,10 @@ const schemas: unknown[] = [
 ];
 if (includeLocalBusiness) schemas.push(generateLocalBusinessSchema(LOCAL_BUSINESS));
 if (article) schemas.push(generateArticleSchema(article));
-if (recipe) schemas.push(generateRecipeSchema(recipe));
+if (recipe) {
+  const recipeSchema = generateRecipeSchema(recipe);
+  if (recipeSchema) schemas.push(recipeSchema);
+}
 
 const json =
   schemas.length === 1

@@ -32,7 +32,10 @@ export function generateJsonLd(
       if (context.article) graph.push(generateArticleSchema(context.article));
       break;
     case 'recipe':
-      if (context.recipe) graph.push(generateRecipeSchema(context.recipe));
+      if (context.recipe) {
+        const recipeSchema = generateRecipeSchema(context.recipe);
+        if (recipeSchema) graph.push(recipeSchema);
+      }
       break;
     default:
       break;
